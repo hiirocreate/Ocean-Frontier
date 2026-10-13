@@ -15,6 +15,7 @@ config/icon="res://assets/ui/icon.svg"
 [autoload]
 
 Game="*res://scripts/core/game.gd"
+Audio="*res://scripts/core/audio_manager.gd"
 
 [display]
 

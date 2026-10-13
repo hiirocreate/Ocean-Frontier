@@ -77,6 +77,12 @@ func load_all() -> bool:
 	quests = _load_list("quests")
 	random_events = _load_list("random_events")
 	endings = _load_list("endings")
+	# アイコンの既定パス（assets/items/<id>.png）
+	for id in items:
+		if str(items[id].get("icon", "")) == "":
+			var path := "res://assets/items/%s.png" % id
+			if ResourceLoader.exists(path):
+				items[id]["icon"] = path
 	var b: Variant = _read_json(BALANCE_FILE)
 	balance = b if b is Dictionary else {}
 	for e in load_errors:
@@ -133,6 +139,19 @@ func bal(path: String, default: Variant = null) -> Variant:
 
 func item(id: String) -> Dictionary:
 	return items.get(id, {})
+
+
+var _icon_cache := {}
+
+
+## アイテムのアイコン（なければ null）
+func item_icon(id: String) -> Texture2D:
+	if _icon_cache.has(id):
+		return _icon_cache[id]
+	var path := str(items.get(id, {}).get("icon", ""))
+	var tex: Texture2D = load(path) if path != "" and ResourceLoader.exists(path) else null
+	_icon_cache[id] = tex
+	return tex
 
 
 func item_name(id: String) -> String:

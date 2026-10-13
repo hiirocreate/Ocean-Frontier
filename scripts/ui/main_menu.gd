@@ -7,6 +7,7 @@ var _status: Label
 
 func _ready() -> void:
 	theme = UiTheme.get_theme()
+	Audio.set_music("bgm_day", 0.4)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var bg := ColorRect.new()
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

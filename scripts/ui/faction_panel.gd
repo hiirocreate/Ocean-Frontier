@@ -129,6 +129,7 @@ func _show_trade() -> void:
 		for item in d.get("market", {}).get("sells", {}):
 			var price := Trade.buy_price(session, fid, item)
 			var row := HBoxContainer.new()
+			row.add_child(_icon(item))
 			var l := UiTheme.label("%s　%d貝貨" % [session.data.item_name(item), price], 16)
 			l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			row.add_child(l)
@@ -147,6 +148,7 @@ func _show_trade() -> void:
 			if have <= 0:
 				continue
 			var row := HBoxContainer.new()
+			row.add_child(_icon(item))
 			var l := UiTheme.label("%s ×%d　%d貝貨" % [session.data.item_name(item), have, Trade.sell_price(session, fid, item)], 16)
 			l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			row.add_child(l)
@@ -185,6 +187,15 @@ func _show_trade() -> void:
 		if pp != "":
 			_box.add_child(UiTheme.label("保護料: " + pp, 14, Color(0.8, 0.8, 0.8)))
 	_box.add_child(pir)
+
+
+func _icon(item: String) -> Control:
+	var tr := TextureRect.new()
+	tr.texture = session.data.item_icon(item)
+	tr.custom_minimum_size = Vector2(40, 40)
+	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	return tr
 
 
 func _btn(text: String, cb: Callable, disabled: bool = false) -> Button:

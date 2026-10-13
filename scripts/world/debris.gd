@@ -29,6 +29,7 @@ func setup(k: String, phase: float, drift_vel: Vector3) -> void:
 			add_child(LowPoly.box(Vector3(0.2, 0.12, 0.95), Color("6e5130"), Vector3(0, 0.3, 0), Vector3(0, 0, 6)))
 	# 目印の小さな光（遠くからでも見つけやすく）
 	add_child(LowPoly.sphere(0.08, Color(1.0, 0.9, 0.6), Vector3(0, 0.55, 0), 6))
+	LowPoly.merge_in_place(self)
 
 
 func update_float(t: float, amp: float, delta: float) -> void:

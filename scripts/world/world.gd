@@ -65,6 +65,17 @@ func _ready() -> void:
 	hud.collect_pressed.connect(collect_nearest)
 	hud.build_mode_changed.connect(func(on, t): raft_view.set_build_mode(on, t))
 	hud.build_confirmed.connect(_on_build_confirmed)
+	session.actions.job_started.connect(func(j):
+		var cat := str(session.data.action(j["action"]).get("category", ""))
+		if cat in ["build", "raft", "repair"]:
+			Audio.play_sfx("sfx_build"))
+	session.actions.job_completed.connect(func(j, r):
+		var cat := str(session.data.action(j["action"]).get("category", ""))
+		if cat in ["craft", "explore"]:
+			Audio.play_sfx("sfx_craft" if r.get("success", false) else "sfx_fail"))
+	session.crew.member_joined.connect(func(_id): Audio.play_sfx("sfx_success"))
+	session.crew.member_left.connect(func(_id, _r): Audio.play_sfx("sfx_fail"))
+	session.story.chapter_started.connect(func(_c): Audio.play_sfx("sfx_success"))
 	hud.dialogue_panel.closed.connect(_on_dialogue_closed)
 	session.crew.changed.connect(_rebuild_crew)
 	_rebuild_crew()
@@ -78,6 +89,7 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	Game.running = false
+	Audio.stop_all_ambient()
 
 
 # ---------- 構築 ----------
@@ -174,6 +186,7 @@ func _build_raft() -> void:
 	lantern.position = Vector3(0.12, 1.5, 0)
 	mast.add_child(lantern)
 	mast.position = raft_view.tile_to_local(Vector2i(0, 0)) + Vector3(-0.6, 0, -0.6)
+	LowPoly.merge_in_place(mast)
 	raft_root.add_child(mast)
 
 
@@ -209,6 +222,17 @@ func _update_weather(delta: float) -> void:
 	rain.global_position = raft_root.global_position + Vector3(0, 18, 0)
 
 
+func _update_audio() -> void:
+	Audio.set_ambient("amb_ocean", 0.55 + 0.3 * _weather_mix)
+	Audio.set_ambient("amb_rain", 0.6 if session.weather_type() == "rain" else 0.0)
+	Audio.set_ambient("amb_storm", 0.8 * _weather_mix if session.weather_type() == "storm" else 0.0)
+	var night := session.clock.hour() >= 20 or session.clock.hour() < 5
+	if hud.combat_panel.visible:
+		Audio.set_music("bgm_combat", 0.5)
+	else:
+		Audio.set_music("bgm_night" if night else "bgm_day", 0.35)
+
+
 func _apply_quality() -> void:
 	var q := Game.quality_preset()
 	sun.shadow_enabled = q["shadows"]
@@ -223,6 +247,7 @@ func _process(delta: float) -> void:
 	_update_movement(delta)
 	_update_lighting()
 	_update_weather(delta)
+	_update_audio()
 	_update_debris(delta)
 	_update_encounter(delta)
 	_check_pending_dialogue()
@@ -356,6 +381,7 @@ func collect_nearest() -> void:
 		hud.show_toast("近くに回収できる漂流物がありません", UiTheme.C_WARN)
 		return
 	session.collect_debris(_nearest.kind)
+	Audio.play_sfx("sfx_collect")
 	_nearest.fly_to(player)
 	_nearest = null
 
@@ -393,7 +419,7 @@ func _update_location() -> void:
 		var sd: Dictionary = session.data.sites[sid]
 		var near := session.site_distance(sid) < 320.0 and (not bool(sd.get("hidden", false)) or session.is_site_discovered(sid))
 		if near and not _landmarks.has(sid):
-			var m := SiteModels.make(str(sd.get("type", "")))
+			var m := LowPoly.merge_in_place(SiteModels.make(str(sd.get("type", ""))))
 			m.position = session.site_position(sid)
 			landmarks_root.add_child(m)
 			_landmarks[sid] = m

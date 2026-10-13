@@ -74,8 +74,12 @@ func stand_position() -> Vector3:
 func rebuild() -> void:
 	for c in _tiles_root.get_children():
 		c.queue_free()
+	# 全タイルを1つのメッシュに結合して描画負荷を下げる（Android 向け）
+	var tmp := Node3D.new()
 	for p in session.raft.tile_positions():
-		_tiles_root.add_child(_make_tile(p))
+		tmp.add_child(_make_tile(p))
+	_tiles_root.add_child(LowPoly.merge(tmp))
+	tmp.free()
 	_rebuild_buildings()
 	_rebuild_pending()
 	_rebuild_ghosts()
@@ -128,7 +132,9 @@ func _rebuild_buildings() -> void:
 		shape.shape = bs
 		shape.position.y = 0.6
 		body.add_child(shape)
-		body.add_child(BuildingModels.make(b["id"], int(b["stored"])))
+		var model := BuildingModels.make(b["id"], int(b["stored"]))
+		body.add_child(LowPoly.merge(model))
+		body.add_child(model)  # 結合できなかった半透明部品だけが残る
 		_buildings_root.add_child(body)
 
 

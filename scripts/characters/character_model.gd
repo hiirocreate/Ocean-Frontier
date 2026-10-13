@@ -89,6 +89,16 @@ func _ready() -> void:
 	_body.add_child(_leg_r)
 	# 背中の小さな鞄（漂流者の唯一の持ち物）
 	_body.add_child(LowPoly.box(Vector3(0.3, 0.32, 0.14), Color("7a5a3a"), Vector3(0, 1.12, -0.26)))
+	# 描画呼び出しを減らすため、動かない部分と各手足をそれぞれ1メッシュに結合する
+	for limb in [_arm_l, _arm_r, _leg_l, _leg_r]:
+		LowPoly.merge_in_place(limb)
+	var static_part := Node3D.new()
+	for c in _body.get_children():
+		if c is MeshInstance3D:
+			_body.remove_child(c)
+			static_part.add_child(c)
+	_body.add_child(LowPoly.merge(static_part))
+	static_part.free()
 
 
 ## 肩/股関節を支点にぶら下がる手足。

@@ -311,6 +311,8 @@ static func _items(d: GameData, e: Array[String]) -> void:
 		var icon := str(it.get("icon", ""))
 		if icon != "" and not ResourceLoader.exists(icon):
 			e.append("item %s: アイコンが存在しません %s" % [id, icon])
+		elif icon == "":
+			e.append("item %s: アイコンがありません（tools/generate_icons.gd で生成）" % id)
 		for k in it.get("use_effects", {}):
 			if not (k in KNOWN_USE_EFFECTS):
 				e.append("item %s: 未知の use_effects '%s'" % [id, k])

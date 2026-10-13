@@ -11,6 +11,7 @@ func test_validator_detects_bad_references() -> void:
 	var d := game_data()
 	d.actions["bad"] = {"id": "bad", "inputs": {"ghost": 1, "wood": -2}, "tools": [{"item": "wood"}], "facilities": ["nope"], "success_chance": 2}
 	d.items["bad_icon"] = {"id": "bad_icon", "name": "x", "category": "material", "weight": 1, "icon": "res://nope.png"}
+	d.items["no_icon"] = {"id": "no_icon", "name": "y", "category": "material", "weight": 1}
 	var errors := DataValidator.validate(d)
 	var joined := "\n".join(errors)
 	check(joined.contains("ghost"), "存在しないアイテム参照")
@@ -18,6 +19,7 @@ func test_validator_detects_bad_references() -> void:
 	check(joined.contains("nope"), "存在しない設備")
 	check(joined.contains("success_chance"), "確率範囲")
 	check(joined.contains("アイコンが存在しません"), "存在しない画像パス")
+	check(joined.contains("アイコンがありません"), "アイコン未設定")
 	check(joined.contains("スタック不可"), "工具の種類")
 
 

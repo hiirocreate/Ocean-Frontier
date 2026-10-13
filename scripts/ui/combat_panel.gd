@@ -23,6 +23,7 @@ func _process(_delta: float) -> void:
 	var want := not session.pending_combat.is_empty() or not _result.is_empty()
 	if want and not visible:
 		visible = true
+		Audio.play_sfx("sfx_alert")
 		_refresh()
 	elif not want and visible:
 		visible = false
@@ -86,6 +87,9 @@ func _refresh() -> void:
 
 func _choose(stance: String) -> void:
 	_result = session.resolve_combat(stance)
+	Audio.play_sfx("sfx_hit")
+	var good: bool = _result.get("outcome", "") in ["victory", "enemy_surrendered", "enemy_fled", "negotiated"]
+	Audio.play_sfx("sfx_success" if good else "sfx_fail")
 	_refresh()
 
 

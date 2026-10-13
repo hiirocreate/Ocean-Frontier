@@ -156,10 +156,12 @@ func _build_status() -> void:
 func _build_toasts() -> void:
 	_toasts = VBoxContainer.new()
 	_toasts.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_toasts.custom_minimum_size = Vector2(560, 0)
+	_toasts.custom_minimum_size = Vector2(400, 0)
 	root.add_child(_toasts)
 	_toasts.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 20)
 	_toasts.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_toasts.offset_top = 96  # 上部のボタン列と重ならないよう少し下・左寄せ
+	_shift_left(_toasts)
 
 
 func _build_controls() -> void:
@@ -236,8 +238,9 @@ func _build_controls() -> void:
 	_nav_label = UiTheme.label("", 20, UiTheme.C_GOLD)
 	_nav_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(_nav_label)
-	_nav_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 130)
+	_nav_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 24)
 	_nav_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_shift_left(_nav_label)
 
 
 func _build_jobs() -> void:
@@ -326,7 +329,7 @@ func _build_building_panel() -> void:
 
 
 func _build_menu() -> void:
-	_menu_panel = _modal(Vector2(460, 520))
+	_menu_panel = _modal(Vector2(460, 580))
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 12)
 	_menu_panel.add_child(v)
@@ -346,6 +349,19 @@ func _build_menu() -> void:
 		q.add_child(b)
 		_quality_buttons[spec[0]] = b
 	v.add_child(q)
+	var vol := HBoxContainer.new()
+	vol.add_child(UiTheme.label("音量 ", 18))
+	var sl := HSlider.new()
+	sl.min_value = 0.0
+	sl.max_value = 1.0
+	sl.step = 0.05
+	sl.value = float(Game.settings.get("master_volume", 1.0))
+	sl.custom_minimum_size = Vector2(260, 40)
+	sl.value_changed.connect(func(val):
+		Game.settings["master_volume"] = val
+		Game.save_settings())
+	vol.add_child(sl)
+	v.add_child(vol)
 	var title_b := UiTheme.button("タイトルへ戻る（自動セーブ）")
 	title_b.pressed.connect(func(): Game.save_game(); Game.return_to_menu())
 	v.add_child(title_b)
@@ -450,7 +466,7 @@ func show_toast(text: String, color: Color = UiTheme.C_TEXT) -> void:
 	var p := PanelContainer.new()
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	p.add_theme_stylebox_override("panel", UiTheme.box(Color(0.02, 0.08, 0.12, 0.78), Color(0, 0, 0, 0), 10, 10))
-	var l := UiTheme.label(text, 20, color)
+	var l := UiTheme.label(text, 18, color)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	p.add_child(l)
@@ -625,6 +641,14 @@ func _refresh_inventory() -> void:
 	for id in ids:
 		var def := session.data.item(id)
 		var row := HBoxContainer.new()
+		var icon := session.data.item_icon(id)
+		if icon:
+			var tr := TextureRect.new()
+			tr.texture = icon
+			tr.custom_minimum_size = Vector2(52, 52)
+			tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			row.add_child(tr)
 		var info := VBoxContainer.new()
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var title := "%s ×%d" % [def.get("name", id), inv.count(id)]

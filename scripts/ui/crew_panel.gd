@@ -67,6 +67,8 @@ func refresh() -> void:
 		c.queue_free()
 	var aboard := session.crew.aboard_ids()
 	var departed := session.crew.departed_ids()
+	if (_selected == "" or not session.crew.members.has(_selected)) and not aboard.is_empty():
+		_selected = aboard[0]
 	if aboard.is_empty() and departed.is_empty():
 		_detail.add_child(UiTheme.label("まだ仲間はいない。漂流者を探して救助しよう。", 20))
 		return

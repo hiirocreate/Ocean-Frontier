@@ -109,7 +109,7 @@ func _check_conditions(a: Dictionary, params: Dictionary, inputs_in_inventory: b
 	var delta := inventory.weight_of(outputs)
 	if inputs_in_inventory:
 		delta -= inventory.weight_of(inputs_of(a, params))
-	if delta > inventory.free_weight() + 0.0001:
+	if delta > 0.0 and delta > inventory.free_weight() + 0.0001:
 		problems.append(problem("no_capacity", "所持重量の空き容量が不足しています（あと%.1f必要）" % (delta - inventory.free_weight())))
 	var eff := str(a.get("effect", ""))
 	if eff != "":

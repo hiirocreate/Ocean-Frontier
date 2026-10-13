@@ -143,3 +143,11 @@ func test_repair_action() -> void:
 	check(r["ok"], "修理開始")
 	s.advance(10)
 	near(float(s.inventory.instances[0]["durability"]), 30.0, 0.01, "20回復")
+
+
+func test_over_capacity_does_not_block_weight_reducing_actions() -> void:
+	s.inventory.max_weight = 1.0
+	s.inventory.add_many({"cloth": 30}, true)
+	check(s.inventory.free_weight() < 0.0, "重量超過の状態")
+	var r := s.actions.start("craft_rope")
+	check(r["ok"], "重量が減る行動は重量超過でも実行できる %s" % str(r["problems"]))

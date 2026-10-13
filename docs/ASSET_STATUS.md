@@ -17,15 +17,18 @@
 | char_portraits | 立ち絵（主人公＋仲間5名×表情6種） | 2D（図形描画） | scripts/ui/portrait_view.gd | コードで描画（配色・髪型・装飾をデータから） | 独自 | 会話・仲間画面 | 全キャラクター | 仮素材 | はい |
 | char_crew_models | 仲間5名の3Dモデル | 3D | scripts/characters/character_model.gd（apply_look） | プリミティブ組合せ | 独自 | 探索・筏 | 全仲間 | 仮素材 | はい |
 | encounter_boat | 漂流者の小舟 | 3D | scripts/world/encounter.gd | プリミティブ組合せ | 独自 | 救助・再会 | — | 仮素材 | はい |
-| item_icons | アイテムアイコン | 2D | assets/items/*.png | — | — | UI | 全アイテム | 未作成（文字表示で代替） | — |
+| item_icons | アイテムアイコン50種 | 2D（64px） | assets/items/<id>.png | tools/generate_icons.gd で図形描画 | 独自 | 持ち物・交易 | 全アイテム | 仮素材 | はい |
+| launcher_icons | ランチャーアイコン | 2D | assets/ui/icon_192.png, icon_432_fg.png, icon_432_bg.png | tools/generate_launcher_icons.gd（icon.svg から） | 独自 | Android | — | 仮素材 | はい |
 | title_bg | タイトル背景 | シェーダー | scripts/ui/main_menu.gd | コード | 独自 | タイトル | — | 仮素材 | はい |
-| audio_* | 効果音・BGM | 音声 | assets/audio/ | — | — | — | — | 未作成 | — |
+| sfx_* | 効果音8種（回収・建築・製作・クリック・打撃・成功・失敗・警報） | WAV | assets/audio/sfx_*.wav | tools/generate_audio.py で数式合成 | 独自 | 全画面 | — | 完成（簡素） | いいえ |
+| amb_* | 環境音3種（波・雨・嵐） | WAV（ループ） | assets/audio/amb_*.wav | 同上 | 独自 | 探索 | 天候 | 完成（簡素） | いいえ |
+| bgm_* | BGM3曲（昼・夜・戦闘） | WAV（ループ） | assets/audio/bgm_*.wav | 同上 | 独自 | 探索・戦闘・タイトル | — | 仮素材 | はい |
 
 ## 不足素材（完成版で必要）
 - 主人公と主要キャラクター5名の2Dイラスト一式（設定画・立ち絵・表情差分・アイコン）
 - Blender製の探索用3Dモデル（.glb）とアニメーション
-- アイテムアイコン（13種、今後増加）
-- 効果音（回収・建築・クラフト・UI）、環境音（波・風）、BGM
+- アイテムアイコンの正式イラスト（現在は図形描画）
+- BGMの正式な楽曲（現在は合成の分散和音）
 
 ## 存在しない素材の扱い
 - データ検証（`DataValidator`）がアイテムのアイコン、建築物のモデルのパスの存在を検査し、存在しなければ開発時エラーにする。

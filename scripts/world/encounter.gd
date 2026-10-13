@@ -16,6 +16,7 @@ func setup(k: String, id: String, defn: Dictionary) -> void:
 	add_child(LowPoly.box(Vector3(1.2, 0.12, 2.3), Color("8a5a33"), Vector3(0, 0.18, 0)))
 	add_child(LowPoly.box(Vector3(0.1, 0.5, 2.4), Color("5a3a20"), Vector3(0.65, 0.3, 0)))
 	add_child(LowPoly.box(Vector3(0.1, 0.5, 2.4), Color("5a3a20"), Vector3(-0.65, 0.3, 0), Vector3(0, 0, -10)))
+	LowPoly.merge_in_place(self)
 	var person := CharacterModel.new()
 	person.apply_look(defn)
 	person.position = Vector3(0, 0.2, 0.3)

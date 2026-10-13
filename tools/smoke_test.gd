@@ -241,6 +241,7 @@ func _run() -> void:
 	w.hud.show_site_panel(s.nearby_site())
 	await frames(3)
 	s.money = 200
+	s.inventory.max_weight += 40.0
 	w.hud._site_panel.visible = false
 	w.hud.faction_panel.open_trade("tide_union")
 	await frames(5)
