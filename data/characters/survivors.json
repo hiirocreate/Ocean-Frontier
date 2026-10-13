@@ -1,85 +1,389 @@
 {
-  "_comment": "仲間候補の定義（静的）。状態（体力・信頼・関係など）はセーブデータ側の Crew が持つ。colors は2D立ち絵と3Dモデルで共通。",
-  "survivors": [
-    {
-      "id": "mira", "name": "ミラ", "role": "元海洋研究者", "age": 31,
-      "personality": ["curious", "idealist", "cautious"],
-      "beliefs": ["truth_matters", "anti_piracy"],
-      "skills": {"research": 4, "repair": 2, "fishing": 1, "cooking": 1, "navigation": 2},
-      "personal_goal": "沈んだ研究所『アトラス』の記録を取り戻すこと",
-      "secret": "主人公の顔に見覚えがある。研究所の名簿で見た気がしている",
-      "backstory": "崩壊前は海流観測の研究員。仲間の船が沈み、壊れた観測ブイにしがみついて漂流していた。",
-      "colors": {"skin": "#f0c8a8", "hair": "#6b4a3a", "shirt": "#e8e8e0", "outer": "#9fb4c4", "pants": "#4f5a66", "accent": "#3d7fa8"},
-      "accessory": "glasses", "hair_style": "long",
-      "recruit": {"condition": {"any": [{"tiles_min": 5}, {"day_min": 2}]}, "dialogue": "mira_rescue", "rescue_text": "観測ブイにしがみつく人影"},
-      "talk": ["mira_talk_records", "mira_talk_signal"],
-      "departure": {"warn_at": 60, "leave_at": 100, "sudden": false, "weights": {"hunger": 1.0, "thirst": 1.0, "low_satisfaction": 1.0, "hostility": 0.8, "piracy": 2.0}, "destinations": ["independent", "faction:tide_union"]},
-      "rejoin": {"min_trust": 45, "min_days_away": 3},
-      "relations": {"garrett": {"respect": 20}, "rook": {"fear": 25}}
+ "_comment": "仲間候補の定義（静的）。状態（体力・信頼・関係など）はセーブデータ側の Crew が持つ。colors は2D立ち絵と3Dモデルで共通。",
+ "survivors": [
+  {
+   "id": "mira",
+   "name": "ミラ",
+   "role": "元海洋研究者",
+   "age": 31,
+   "personality": [
+    "curious",
+    "idealist",
+    "cautious"
+   ],
+   "beliefs": [
+    "truth_matters",
+    "anti_piracy"
+   ],
+   "skills": {
+    "research": 4,
+    "repair": 2,
+    "fishing": 1,
+    "cooking": 1,
+    "navigation": 2
+   },
+   "personal_goal": "沈んだ研究所『アトラス』の記録を取り戻すこと",
+   "secret": "主人公の顔に見覚えがある。研究所の名簿で見た気がしている",
+   "backstory": "崩壊前は海流観測の研究員。仲間の船が沈み、壊れた観測ブイにしがみついて漂流していた。",
+   "colors": {
+    "skin": "#f0c8a8",
+    "hair": "#6b4a3a",
+    "shirt": "#e8e8e0",
+    "outer": "#9fb4c4",
+    "pants": "#4f5a66",
+    "accent": "#3d7fa8"
+   },
+   "accessory": "glasses",
+   "hair_style": "long",
+   "recruit": {
+    "condition": {
+     "any": [
+      {
+       "tiles_min": 5
+      },
+      {
+       "day_min": 2
+      }
+     ]
     },
-    {
-      "id": "tobi", "name": "トビ", "role": "少年技術者", "age": 15,
-      "personality": ["inventive", "cheerful", "reckless"],
-      "beliefs": ["freedom"],
-      "skills": {"construction": 3, "repair": 4, "gathering": 2, "fishing": 1},
-      "personal_goal": "生き別れた姉を見つけること",
-      "secret": "姉は海賊団に加わったと聞いている",
-      "backstory": "浮遊市場の修理屋で働いていたが、嵐で市場が崩れ、自作の小舟で流されていた。",
-      "colors": {"skin": "#e3b48c", "hair": "#c27a2c", "shirt": "#d9b45a", "outer": "#a45a2a", "pants": "#5a4a3a", "accent": "#2b2b2b"},
-      "accessory": "goggles", "hair_style": "spiky",
-      "recruit": {"condition": {"all": [{"day_min": 3}, {"crew_min": 1}]}, "dialogue": "tobi_rescue", "rescue_text": "ひっくり返った手作りの小舟"},
-      "talk": ["tobi_talk_sister"],
-      "departure": {"warn_at": 50, "leave_at": 90, "sudden": false, "weights": {"hunger": 1.3, "thirst": 1.3, "low_satisfaction": 1.2, "hostility": 1.0, "piracy": 0.3}, "destinations": ["independent", "pirate"]},
-      "rejoin": {"min_trust": 30, "min_days_away": 2},
-      "relations": {"mira": {"friendship": 15}}
+    "dialogue": "mira_rescue",
+    "rescue_text": "観測ブイにしがみつく人影"
+   },
+   "talk": [
+    "mira_talk_records",
+    "mira_talk_signal"
+   ],
+   "departure": {
+    "warn_at": 60,
+    "leave_at": 100,
+    "sudden": false,
+    "weights": {
+     "hunger": 1.0,
+     "thirst": 1.0,
+     "low_satisfaction": 1.0,
+     "hostility": 0.8,
+     "piracy": 2.0
     },
-    {
-      "id": "garrett", "name": "ギャレット", "role": "元軍人", "age": 52,
-      "personality": ["disciplined", "diligent", "ruthless"],
-      "beliefs": ["order", "survival_first"],
-      "skills": {"guard": 5, "command": 4, "navigation": 3, "construction": 2, "gathering": 2},
-      "personal_goal": "かつての部隊の汚名をそそぐこと",
-      "secret": "崩壊の夜、ある施設の封鎖命令を実行した部隊にいた",
-      "backstory": "沿岸防衛隊の元曹長。部隊が解散した後、ひとりで救命艇を漂わせていた。",
-      "colors": {"skin": "#c99a78", "hair": "#d8d4cc", "shirt": "#5d6648", "outer": "#3e4532", "pants": "#2e3328", "accent": "#8a8a7a"},
-      "accessory": "scar", "hair_style": "crop",
-      "recruit": {"condition": {"all": [{"day_min": 4}, {"buildings_min": 2}]}, "dialogue": "garrett_rescue", "rescue_text": "傾いた救命艇"},
-      "talk": ["garrett_talk_unit"],
-      "departure": {"warn_at": 70, "leave_at": 110, "sudden": false, "weights": {"hunger": 0.7, "thirst": 0.7, "low_satisfaction": 1.0, "hostility": 1.2, "piracy": 0.5}, "destinations": ["faction:iron_reef", "independent"]},
-      "rejoin": {"min_trust": 50, "min_days_away": 4},
-      "relations": {"tobi": {"respect": -10}, "rook": {"hostility": 40}}
+    "destinations": [
+     "independent",
+     "faction:tide_union"
+    ]
+   },
+   "rejoin": {
+    "min_trust": 45,
+    "min_days_away": 3
+   },
+   "relations": {
+    "garrett": {
+     "respect": 20
     },
-    {
-      "id": "selene", "name": "セレーネ", "role": "流れの商人", "age": 28,
-      "personality": ["greedy", "cheerful"],
-      "beliefs": ["profit", "freedom"],
-      "skills": {"trade": 5, "cooking": 3, "gathering": 2, "navigation": 2},
-      "personal_goal": "自分の交易船団を持つこと",
-      "secret": "複数の勢力に情報を売っている",
-      "backstory": "島々を渡り歩く商人。商売相手に船を奪われ、積み荷の樽と一緒に流されていた。",
-      "colors": {"skin": "#d9a27a", "hair": "#2a1e3a", "shirt": "#e0b040", "outer": "#7a3a8a", "pants": "#3a2a4a", "accent": "#e8c060"},
-      "accessory": "earrings", "hair_style": "long_wavy",
-      "recruit": {"condition": {"day_min": 6}, "dialogue": "selene_rescue", "rescue_text": "樽にまたがって手を振る人物"},
-      "talk": ["selene_talk_trade"],
-      "departure": {"warn_at": 50, "leave_at": 80, "sudden": false, "weights": {"hunger": 1.2, "thirst": 1.2, "low_satisfaction": 1.5, "hostility": 0.8, "piracy": 0.0}, "destinations": ["independent", "faction:tide_union"]},
-      "rejoin": {"min_trust": 35, "min_days_away": 2},
-      "relations": {}
-    },
-    {
-      "id": "rook", "name": "ルーク", "role": "海賊くずれ", "age": 36,
-      "personality": ["ruthless", "reckless", "greedy"],
-      "beliefs": ["strength", "freedom"],
-      "skills": {"guard": 4, "exploration": 4, "navigation": 3, "gathering": 3},
-      "personal_goal": "自分を裏切った船長への復讐",
-      "secret": "トビの姉の行方を知っている",
-      "backstory": "海賊団『黒潮』の元副長。仲間割れで小舟ひとつで追放された。",
-      "colors": {"skin": "#b8876a", "hair": "#1a1a1a", "shirt": "#4a2a2a", "outer": "#6a1e1e", "pants": "#1e1e22", "accent": "#c0a060"},
-      "accessory": "eyepatch", "hair_style": "tied",
-      "recruit": {"condition": {"all": [{"day_min": 8}, {"crew_min": 2}]}, "dialogue": "rook_rescue", "rescue_text": "銛を抱えた男の乗る小舟"},
-      "talk": ["rook_talk_past"],
-      "departure": {"warn_at": 40, "leave_at": 70, "sudden": true, "weights": {"hunger": 1.0, "thirst": 1.0, "low_satisfaction": 1.5, "hostility": 1.0, "piracy": -1.0}, "destinations": ["pirate", "independent"]},
-      "rejoin": {"min_trust": 40, "min_days_away": 5},
-      "relations": {"garrett": {"hostility": 30}, "tobi": {"intimacy": 10}}
+    "rook": {
+     "fear": 25
     }
-  ]
+   },
+   "address_style": "name"
+  },
+  {
+   "id": "tobi",
+   "name": "トビ",
+   "role": "少年技術者",
+   "age": 15,
+   "personality": [
+    "inventive",
+    "cheerful",
+    "reckless"
+   ],
+   "beliefs": [
+    "freedom"
+   ],
+   "skills": {
+    "construction": 3,
+    "repair": 4,
+    "gathering": 2,
+    "fishing": 1
+   },
+   "personal_goal": "生き別れた姉を見つけること",
+   "secret": "姉は海賊団に加わったと聞いている",
+   "backstory": "浮遊市場の修理屋で働いていたが、嵐で市場が崩れ、自作の小舟で流されていた。",
+   "colors": {
+    "skin": "#e3b48c",
+    "hair": "#c27a2c",
+    "shirt": "#d9b45a",
+    "outer": "#a45a2a",
+    "pants": "#5a4a3a",
+    "accent": "#2b2b2b"
+   },
+   "accessory": "goggles",
+   "hair_style": "spiky",
+   "recruit": {
+    "condition": {
+     "all": [
+      {
+       "day_min": 3
+      },
+      {
+       "crew_min": 1
+      }
+     ]
+    },
+    "dialogue": "tobi_rescue",
+    "rescue_text": "ひっくり返った手作りの小舟"
+   },
+   "talk": [
+    "tobi_talk_sister"
+   ],
+   "departure": {
+    "warn_at": 50,
+    "leave_at": 90,
+    "sudden": false,
+    "weights": {
+     "hunger": 1.3,
+     "thirst": 1.3,
+     "low_satisfaction": 1.2,
+     "hostility": 1.0,
+     "piracy": 0.3
+    },
+    "destinations": [
+     "independent",
+     "pirate"
+    ]
+   },
+   "rejoin": {
+    "min_trust": 30,
+    "min_days_away": 2
+   },
+   "relations": {
+    "mira": {
+     "friendship": 15
+    }
+   },
+   "address_style": "kid"
+  },
+  {
+   "id": "garrett",
+   "name": "ギャレット",
+   "role": "元軍人",
+   "age": 52,
+   "personality": [
+    "disciplined",
+    "diligent",
+    "ruthless"
+   ],
+   "beliefs": [
+    "order",
+    "survival_first"
+   ],
+   "skills": {
+    "guard": 5,
+    "command": 4,
+    "navigation": 3,
+    "construction": 2,
+    "gathering": 2
+   },
+   "personal_goal": "かつての部隊の汚名をそそぐこと",
+   "secret": "崩壊の夜、ある施設の封鎖命令を実行した部隊にいた",
+   "backstory": "沿岸防衛隊の元曹長。部隊が解散した後、ひとりで救命艇を漂わせていた。",
+   "colors": {
+    "skin": "#c99a78",
+    "hair": "#d8d4cc",
+    "shirt": "#5d6648",
+    "outer": "#3e4532",
+    "pants": "#2e3328",
+    "accent": "#8a8a7a"
+   },
+   "accessory": "scar",
+   "hair_style": "crop",
+   "recruit": {
+    "condition": {
+     "all": [
+      {
+       "day_min": 4
+      },
+      {
+       "buildings_min": 2
+      }
+     ]
+    },
+    "dialogue": "garrett_rescue",
+    "rescue_text": "傾いた救命艇"
+   },
+   "talk": [
+    "garrett_talk_unit"
+   ],
+   "departure": {
+    "warn_at": 70,
+    "leave_at": 110,
+    "sudden": false,
+    "weights": {
+     "hunger": 0.7,
+     "thirst": 0.7,
+     "low_satisfaction": 1.0,
+     "hostility": 1.2,
+     "piracy": 0.5
+    },
+    "destinations": [
+     "faction:iron_reef",
+     "independent"
+    ]
+   },
+   "rejoin": {
+    "min_trust": 50,
+    "min_days_away": 4
+   },
+   "relations": {
+    "tobi": {
+     "respect": -10
+    },
+    "rook": {
+     "hostility": 40
+    }
+   },
+   "address_style": "military"
+  },
+  {
+   "id": "selene",
+   "name": "セレーネ",
+   "role": "流れの商人",
+   "age": 28,
+   "personality": [
+    "greedy",
+    "cheerful"
+   ],
+   "beliefs": [
+    "profit",
+    "freedom"
+   ],
+   "skills": {
+    "trade": 5,
+    "cooking": 3,
+    "gathering": 2,
+    "navigation": 2
+   },
+   "personal_goal": "自分の交易船団を持つこと",
+   "secret": "複数の勢力に情報を売っている",
+   "backstory": "島々を渡り歩く商人。商売相手に船を奪われ、積み荷の樽と一緒に流されていた。",
+   "colors": {
+    "skin": "#d9a27a",
+    "hair": "#2a1e3a",
+    "shirt": "#e0b040",
+    "outer": "#7a3a8a",
+    "pants": "#3a2a4a",
+    "accent": "#e8c060"
+   },
+   "accessory": "earrings",
+   "hair_style": "long_wavy",
+   "recruit": {
+    "condition": {
+     "day_min": 6
+    },
+    "dialogue": "selene_rescue",
+    "rescue_text": "樽にまたがって手を振る人物"
+   },
+   "talk": [
+    "selene_talk_trade"
+   ],
+   "departure": {
+    "warn_at": 50,
+    "leave_at": 80,
+    "sudden": false,
+    "weights": {
+     "hunger": 1.2,
+     "thirst": 1.2,
+     "low_satisfaction": 1.5,
+     "hostility": 0.8,
+     "piracy": 0.0
+    },
+    "destinations": [
+     "independent",
+     "faction:tide_union"
+    ]
+   },
+   "rejoin": {
+    "min_trust": 35,
+    "min_days_away": 2
+   },
+   "relations": {},
+   "address_style": "merchant"
+  },
+  {
+   "id": "rook",
+   "name": "ルーク",
+   "role": "海賊くずれ",
+   "age": 36,
+   "personality": [
+    "ruthless",
+    "reckless",
+    "greedy"
+   ],
+   "beliefs": [
+    "strength",
+    "freedom"
+   ],
+   "skills": {
+    "guard": 4,
+    "exploration": 4,
+    "navigation": 3,
+    "gathering": 3
+   },
+   "personal_goal": "自分を裏切った船長への復讐",
+   "secret": "トビの姉の行方を知っている",
+   "backstory": "海賊団『黒潮』の元副長。仲間割れで小舟ひとつで追放された。",
+   "colors": {
+    "skin": "#b8876a",
+    "hair": "#1a1a1a",
+    "shirt": "#4a2a2a",
+    "outer": "#6a1e1e",
+    "pants": "#1e1e22",
+    "accent": "#c0a060"
+   },
+   "accessory": "eyepatch",
+   "hair_style": "tied",
+   "recruit": {
+    "condition": {
+     "all": [
+      {
+       "day_min": 8
+      },
+      {
+       "crew_min": 2
+      }
+     ]
+    },
+    "dialogue": "rook_rescue",
+    "rescue_text": "銛を抱えた男の乗る小舟"
+   },
+   "talk": [
+    "rook_talk_past"
+   ],
+   "departure": {
+    "warn_at": 40,
+    "leave_at": 70,
+    "sudden": true,
+    "weights": {
+     "hunger": 1.0,
+     "thirst": 1.0,
+     "low_satisfaction": 1.5,
+     "hostility": 1.0,
+     "piracy": -1.0
+    },
+    "destinations": [
+     "pirate",
+     "independent"
+    ]
+   },
+   "rejoin": {
+    "min_trust": 40,
+    "min_days_away": 5
+   },
+   "relations": {
+    "garrett": {
+     "hostility": 30
+    },
+    "tobi": {
+     "intimacy": 10
+    }
+   },
+   "address_style": "pirate"
+  }
+ ]
 }

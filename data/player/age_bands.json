@@ -1,0 +1,43 @@
+{
+ "_comment": "年齢帯。能力差は小さく（各+1程度）、特性で補正できる。",
+ "age_bands": [
+  {
+   "id": "young",
+   "name": "若年層",
+   "min": 10,
+   "max": 15,
+   "abilities": {
+    "learning": 1
+   },
+   "description": "学びが早い。経験不足を心配される場面がある"
+  },
+  {
+   "id": "youth",
+   "name": "青年初期",
+   "min": 16,
+   "max": 19,
+   "abilities": {
+    "adaptability": 1
+   },
+   "description": "適応力があり、成長に関する選択肢が多い"
+  },
+  {
+   "id": "adult",
+   "name": "成人初期・中期",
+   "min": 20,
+   "max": 29,
+   "abilities": {},
+   "description": "偏りの少ない初期能力"
+  },
+  {
+   "id": "mature",
+   "name": "成人中期",
+   "min": 30,
+   "max": 40,
+   "abilities": {
+    "leadership": 1
+   },
+   "description": "経験と判断力。交渉や指揮の選択肢が増える"
+  }
+ ]
+}

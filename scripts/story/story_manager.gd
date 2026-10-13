@@ -115,9 +115,33 @@ func final_choice_nodes(s: GameSession) -> Dictionary:
 	for id in available_endings(s):
 		choices.append({"text": str(data.endings[id]["description"]), "next": "end", "effects": [{"type": "flag", "key": "ending_pick", "value": id}]})
 	return {
-		"start": {"speaker": "narrator", "text": "中枢の奥で、巨大な装置が脈打っている。世界中の潮流を、ここから操っていたのだ。\nあなたの手には、全てを変える力がある。", "next": "choose"},
+		"start": {"speaker": "narrator", "text": "中枢の奥で、巨大な装置が脈打っている。世界中の潮流を、ここから操っていたのだ。\nあなたの手には、全てを変える力がある。", "next": "recall"},
+		"recall": {"speaker": "player", "expression": "sad", "text": recall_text(s), "next": "choose"},
 		"choose": {"speaker": "narrator", "text": "——どうする？", "choices": choices},
 	}
+
+
+## エンディング直前の回想（背景・年齢帯・過去の出来事で変化）
+func recall_text(s: GameSession) -> String:
+	var p := s.profile
+	var bg_line: String = {
+		"amnesia": "失くした記憶は、ここに置き忘れていたのかもしれない。",
+		"floating_city": "浮遊都市の灯りを、もう一度見たかった。",
+		"drift_ship": "船の古老が言っていた『逆さの潮』は、ここから来ていたんだ。",
+		"research_insider": "この装置の図面を、私は知っている。……私も、これを作った一人だった。",
+		"trade_crew": "沈められた仲間たちの航路も、この潮に狂わされていたのか。",
+		"pirate_escapee": "黒潮も灯台会も、この力の取り合いをしていただけだった。",
+	}.get(p.background_id, "")
+	var age_line: String = {
+		"young": "まだ子どもだと言われ続けた。でも、ここまで来たのは自分の足だ。",
+		"youth": "迷ってばかりだった。それでも、選ぶのは自分だ。",
+		"adult": "やるべきことは、いつもひとつずつだった。",
+		"mature": "長い年月の答えが、今ここにある。",
+	}.get(p.age_band(), "")
+	var last := ""
+	if not p.past_events.is_empty():
+		last = "\n（%s）" % p.past_events.back()["text"]
+	return "（%s %s）%s" % [bg_line, age_line, last]
 
 
 func choose_ending(s: GameSession, id: String) -> bool:

@@ -1,125 +1,734 @@
 {
-  "_comment": "会話。nodes.<id>: speaker(仲間ID/player/narrator), expression, text, choices[{text, next, condition, effects}] または next。next=\"end\"で終了。effects.type: recruit, trust, loyalty, satisfaction, stress, relation, flag, give_item, take_item。",
-  "dialogues": [
-    {
-      "id": "mira_rescue",
-      "nodes": {
-        "start": {"speaker": "narrator", "text": "壊れた観測ブイに、ずぶ濡れの女性がしがみついている。", "next": "n1"},
-        "n1": {"speaker": "mira", "expression": "sad", "text": "……人？　本当に、人なの……？　お願い、少しでいいから水を……。", "choices": [
-          {"text": "水を渡す", "condition": {"has_items": {"water_bottle": 1}}, "next": "give", "effects": [{"type": "take_item", "item": "water_bottle", "n": 1}, {"type": "trust", "target": "mira", "delta": 15}]},
-          {"text": "筏に引き上げる", "next": "pull"},
-          {"text": "立ち去る", "next": "leave"}
-        ]},
-        "give": {"speaker": "mira", "expression": "smile", "text": "ありがとう……生き返った。私はミラ。海流の研究をしていたの。", "next": "pull"},
-        "pull": {"speaker": "mira", "expression": "normal", "text": "あなたの筏、しっかりしてる。私にできることがあれば手伝わせて。……あれ、あなたの顔、どこかで……いいえ、気のせいね。", "choices": [
-          {"text": "一緒に来てくれ", "next": "join", "effects": [{"type": "recruit", "target": "mira"}, {"type": "flag", "key": "first_companion", "value": true}]},
-          {"text": "近くの島まで送るだけだ", "next": "join_cold", "effects": [{"type": "recruit", "target": "mira"}, {"type": "trust", "target": "mira", "delta": -10}, {"type": "flag", "key": "first_companion", "value": true}]}
-        ]},
-        "join": {"speaker": "mira", "expression": "smile", "text": "よろしく。……ねえ、夜になると無線に変な信号が入るの。気づいてた？", "next": "end", "effects": [{"type": "flag", "key": "heard_signal", "value": true}]},
-        "join_cold": {"speaker": "mira", "expression": "normal", "text": "……わかった。それまでは役に立ってみせる。", "next": "end"},
-        "leave": {"speaker": "narrator", "text": "あなたは背を向けかけたが、波の音に混じった声に足を止めた。見捨てることはできない。", "next": "pull"}
-      }
+ "_comment": "会話。nodes.<id>: speaker(仲間ID/player/narrator), expression, text, choices[{text, next, condition, effects}] または next。next=\"end\"で終了。effects.type: recruit, trust, loyalty, satisfaction, stress, relation, flag, give_item, take_item。",
+ "dialogues": [
+  {
+   "id": "mira_rescue",
+   "nodes": {
+    "start": {
+     "speaker": "narrator",
+     "text": "壊れた観測ブイに、ずぶ濡れの女性がしがみついている。",
+     "next": "n1"
     },
-    {
-      "id": "tobi_rescue",
-      "nodes": {
-        "start": {"speaker": "tobi", "expression": "surprised", "text": "うわっ、筏だ！　助かったー！　おれの船、ひっくり返っちゃってさ。", "choices": [
-          {"text": "乗れ", "next": "join", "effects": [{"type": "recruit", "target": "tobi"}]},
-          {"text": "何ができる？", "next": "skills"}
-        ]},
-        "skills": {"speaker": "tobi", "expression": "smile", "text": "修理ならまかせて！　浮遊市場じゃ一番の修理屋見習いだったんだ。", "choices": [
-          {"text": "頼りにしてる", "next": "join", "effects": [{"type": "recruit", "target": "tobi"}, {"type": "trust", "target": "tobi", "delta": 10}]}
-        ]},
-        "join": {"speaker": "tobi", "expression": "smile", "text": "へへっ、よろしく！　……あのさ、どこかで姉ちゃんを見かけたら教えてよ。", "next": "end"}
+    "n1": {
+     "speaker": "mira",
+     "expression": "sad",
+     "text": "……人？　本当に、人なの……？　お願い、少しでいいから水を……。",
+     "choices": [
+      {
+       "text": "水を渡す",
+       "condition": {
+        "has_items": {
+         "water_bottle": 1
+        }
+       },
+       "next": "give",
+       "effects": [
+        {
+         "type": "take_item",
+         "item": "water_bottle",
+         "n": 1
+        },
+        {
+         "type": "trust",
+         "target": "mira",
+         "delta": 15
+        }
+       ]
+      },
+      {
+       "text": "筏に引き上げる",
+       "next": "pull"
+      },
+      {
+       "text": "立ち去る",
+       "next": "leave"
       }
+     ]
     },
-    {
-      "id": "garrett_rescue",
-      "nodes": {
-        "start": {"speaker": "garrett", "expression": "normal", "text": "……民間人の筏か。設備は悪くない。指揮系統は誰だ。", "choices": [
-          {"text": "ここは自分の筏だ", "next": "respect", "effects": [{"type": "trust", "target": "garrett", "delta": 10}]},
-          {"text": "指揮なんてない。皆で決める", "next": "doubt", "effects": [{"type": "trust", "target": "garrett", "delta": -5}]}
-        ]},
-        "respect": {"speaker": "garrett", "expression": "normal", "text": "よかろう。ギャレットだ。見張りと航海なら役に立つ。", "next": "join"},
-        "doubt": {"speaker": "garrett", "expression": "angry", "text": "……甘いな。だが救われた借りは返す。", "next": "join"},
-        "join": {"speaker": "garrett", "expression": "normal", "text": "海賊の動きが活発になっている。夜の見張りは欠かすな。", "next": "end", "effects": [{"type": "recruit", "target": "garrett"}, {"type": "flag", "key": "knows_pirates", "value": true}]}
-      }
+    "give": {
+     "speaker": "mira",
+     "expression": "smile",
+     "text": "ありがとう……生き返った。私はミラ。海流の研究をしていたの。",
+     "next": "pull"
     },
-    {
-      "id": "selene_rescue",
-      "nodes": {
-        "start": {"speaker": "selene", "expression": "smile", "text": "あら、いいところに！　乗せてくれたら、きっと得をさせてあげる。", "choices": [
-          {"text": "乗せる", "next": "join"},
-          {"text": "見返りは？", "next": "deal"}
-        ]},
-        "deal": {"speaker": "selene", "expression": "smile", "text": "ふふ、話が早い。この缶詰をどうぞ。商人は信用が第一なの。", "next": "join", "effects": [{"type": "give_item", "item": "canned_food", "n": 2}, {"type": "trust", "target": "selene", "delta": 10}]},
-        "join": {"speaker": "selene", "expression": "smile", "text": "セレーネよ。島々の相場なら何でも聞いて。", "next": "end", "effects": [{"type": "recruit", "target": "selene"}]}
+    "pull": {
+     "speaker": "mira",
+     "expression": "normal",
+     "text": "あなたの筏、しっかりしてる。私にできることがあれば手伝わせて。……あれ、あなたの顔、どこかで……いいえ、気のせいね。",
+     "choices": [
+      {
+       "text": "一緒に来てくれ",
+       "next": "join",
+       "effects": [
+        {
+         "type": "recruit",
+         "target": "mira"
+        },
+        {
+         "type": "flag",
+         "key": "first_companion",
+         "value": true
+        }
+       ]
+      },
+      {
+       "text": "近くの島まで送るだけだ",
+       "next": "join_cold",
+       "effects": [
+        {
+         "type": "recruit",
+         "target": "mira"
+        },
+        {
+         "type": "trust",
+         "target": "mira",
+         "delta": -10
+        },
+        {
+         "type": "flag",
+         "key": "first_companion",
+         "value": true
+        }
+       ]
       }
+     ],
+     "variants": [
+      {
+       "condition": {
+        "player_background": "research_insider"
+       },
+       "text": "あなたの筏、しっかりしてる。……待って、その顔。研究所の廊下ですれ違った気がする。{name}……そう、名簿で見た名前よ。",
+       "expression": "surprised"
+      },
+      {
+       "condition": {
+        "player_age_band": "young"
+       },
+       "text": "あなた、まだ子どもじゃない……一人でここまで？　手伝わせて。二人なら何とかなるわ。",
+       "expression": "sad"
+      }
+     ]
     },
-    {
-      "id": "rook_rescue",
-      "nodes": {
-        "start": {"speaker": "rook", "expression": "normal", "text": "おっと、撃つなよ。……俺はルーク。ちょいと前まで海賊だった。", "choices": [
-          {"text": "乗せてやる", "next": "join"},
-          {"text": "海賊は信用できない", "next": "argue"}
-        ]},
-        "argue": {"speaker": "rook", "expression": "angry", "text": "正直だな。だが海の上じゃ、信用より腕っぷしだ。試してみろよ。", "choices": [
-          {"text": "……わかった、乗れ", "next": "join", "effects": [{"type": "trust", "target": "rook", "delta": -5}]}
-        ]},
-        "join": {"speaker": "rook", "expression": "smile", "text": "ありがとよ、船長。借りは返す主義だ……たぶんな。", "next": "end", "effects": [{"type": "recruit", "target": "rook"}, {"type": "relation", "from": "garrett", "to": "rook", "kind": "hostility", "delta": 10}]}
+    "join": {
+     "speaker": "mira",
+     "expression": "smile",
+     "text": "よろしく。……ねえ、夜になると無線に変な信号が入るの。気づいてた？",
+     "next": "end",
+     "effects": [
+      {
+       "type": "flag",
+       "key": "heard_signal",
+       "value": true
       }
+     ]
     },
-    {
-      "id": "mira_talk_records",
-      "condition": {"day_min": 2},
-      "nodes": {
-        "start": {"speaker": "mira", "expression": "normal", "text": "研究所の記録には、潮の流れが『人為的に』変えられた形跡があったの。信じられる？", "choices": [
-          {"text": "詳しく聞かせてくれ", "next": "more", "effects": [{"type": "trust", "target": "mira", "delta": 5}, {"type": "flag", "key": "clue_artificial_current", "value": true}]},
-          {"text": "今は生き延びるのが先だ", "next": "end", "effects": [{"type": "satisfaction", "target": "mira", "delta": -5}]}
-        ]},
-        "more": {"speaker": "mira", "expression": "sad", "text": "『アトラス』という施設の名前だけは覚えてる。いつか必ず確かめたい。", "next": "end"}
-      }
+    "join_cold": {
+     "speaker": "mira",
+     "expression": "normal",
+     "text": "……わかった。それまでは役に立ってみせる。",
+     "next": "end"
     },
-    {
-      "id": "mira_talk_signal",
-      "condition": {"flags_all": ["heard_signal"], "day_min": 3},
-      "nodes": {
-        "start": {"speaker": "mira", "expression": "surprised", "text": "昨夜の信号、規則的だった。ただの雑音じゃない。誰かが……呼んでる。", "next": "end", "effects": [{"type": "flag", "key": "signal_regular", "value": true}]}
-      }
-    },
-    {
-      "id": "tobi_talk_sister",
-      "condition": {"day_min": 4},
-      "nodes": {
-        "start": {"speaker": "tobi", "expression": "sad", "text": "姉ちゃん、海賊に入ったって噂があるんだ。……そんなはずないよね。", "choices": [
-          {"text": "必ず見つけよう", "next": "end", "effects": [{"type": "loyalty", "target": "tobi", "delta": 10}, {"type": "flag", "key": "promise_tobi_sister", "value": true}]},
-          {"text": "期待しすぎるな", "next": "end", "effects": [{"type": "satisfaction", "target": "tobi", "delta": -8}]}
-        ]}
-      }
-    },
-    {
-      "id": "garrett_talk_unit",
-      "condition": {"day_min": 6},
-      "nodes": {
-        "start": {"speaker": "garrett", "expression": "normal", "text": "崩壊の夜、我々は命令に従っただけだ。……何を封鎖したのか、知らされずにな。", "next": "end", "effects": [{"type": "flag", "key": "clue_lockdown", "value": true}, {"type": "trust", "target": "garrett", "delta": 5}]}
-      }
-    },
-    {
-      "id": "selene_talk_trade",
-      "condition": {"day_min": 7},
-      "nodes": {
-        "start": {"speaker": "selene", "expression": "smile", "text": "北東に『潮流連合』の市場があるわ。いずれ取引しに行きましょう。", "next": "end", "effects": [{"type": "flag", "key": "knows_tide_union", "value": true}]}
-      }
-    },
-    {
-      "id": "rook_talk_past",
-      "condition": {"day_min": 9},
-      "nodes": {
-        "start": {"speaker": "rook", "expression": "angry", "text": "黒潮の船長は仲間を売った。いつか落とし前をつけさせる。", "choices": [
-          {"text": "手を貸そう", "next": "end", "effects": [{"type": "loyalty", "target": "rook", "delta": 12}, {"type": "flag", "key": "rook_revenge_promise", "value": true}]},
-          {"text": "復讐はやめておけ", "next": "end", "effects": [{"type": "trust", "target": "rook", "delta": -5}]}
-        ]}
-      }
+    "leave": {
+     "speaker": "narrator",
+     "text": "あなたは背を向けかけたが、波の音に混じった声に足を止めた。見捨てることはできない。",
+     "next": "pull"
     }
-  ]
+   }
+  },
+  {
+   "id": "tobi_rescue",
+   "nodes": {
+    "start": {
+     "speaker": "tobi",
+     "expression": "surprised",
+     "text": "うわっ、筏だ！　助かったー！　おれの船、ひっくり返っちゃってさ。",
+     "choices": [
+      {
+       "text": "乗れ",
+       "next": "join",
+       "effects": [
+        {
+         "type": "recruit",
+         "target": "tobi"
+        }
+       ]
+      },
+      {
+       "text": "何ができる？",
+       "next": "skills",
+       "effects": []
+      },
+      {
+       "text": "同じ船の子なら、一緒に行こう",
+       "condition": {
+        "player_background": "drift_ship"
+       },
+       "next": "join",
+       "effects": [
+        {
+         "type": "recruit",
+         "target": "tobi"
+        },
+        {
+         "type": "loyalty",
+         "target": "tobi",
+         "delta": 15
+        }
+       ]
+      }
+     ],
+     "variants": [
+      {
+       "condition": {
+        "player_background": "drift_ship"
+       },
+       "text": "うわっ、筏だ！　……その結び目、漂流船の結び方だろ？　{address}も海の子なんだ！",
+       "expression": "smile"
+      },
+      {
+       "condition": {
+        "player_age_band": "young"
+       },
+       "text": "うわっ、筏だ！　おれと同じくらいの歳じゃん！　助かったー！",
+       "expression": "smile"
+      }
+     ]
+    },
+    "skills": {
+     "speaker": "tobi",
+     "expression": "smile",
+     "text": "修理ならまかせて！　浮遊市場じゃ一番の修理屋見習いだったんだ。",
+     "choices": [
+      {
+       "text": "頼りにしてる",
+       "next": "join",
+       "effects": [
+        {
+         "type": "recruit",
+         "target": "tobi"
+        },
+        {
+         "type": "trust",
+         "target": "tobi",
+         "delta": 10
+        }
+       ]
+      }
+     ]
+    },
+    "join": {
+     "speaker": "tobi",
+     "expression": "smile",
+     "text": "へへっ、よろしく！　……あのさ、どこかで姉ちゃんを見かけたら教えてよ。",
+     "next": "end"
+    }
+   }
+  },
+  {
+   "id": "garrett_rescue",
+   "nodes": {
+    "start": {
+     "speaker": "garrett",
+     "expression": "normal",
+     "text": "……民間人の筏か。設備は悪くない。指揮系統は誰だ。",
+     "choices": [
+      {
+       "text": "かつての経験を話す（判断力）",
+       "condition": {
+        "any": [
+         {
+          "player_age_band": "mature"
+         },
+         {
+          "ability_min": {
+           "leadership": 1
+          }
+         }
+        ]
+       },
+       "next": "respect",
+       "effects": [
+        {
+         "type": "trust",
+         "target": "garrett",
+         "delta": 15
+        },
+        {
+         "type": "flag",
+         "key": "garrett_veteran_talk",
+         "value": true
+        }
+       ]
+      },
+      {
+       "text": "若くても、この筏は自分が守ってきた",
+       "condition": {
+        "player_age_band": [
+         "young",
+         "youth"
+        ]
+       },
+       "next": "respect",
+       "effects": [
+        {
+         "type": "trust",
+         "target": "garrett",
+         "delta": 8
+        },
+        {
+         "type": "satisfaction",
+         "target": "garrett",
+         "delta": 5
+        }
+       ]
+      },
+      {
+       "text": "ここは自分の筏だ",
+       "next": "respect",
+       "effects": [
+        {
+         "type": "trust",
+         "target": "garrett",
+         "delta": 10
+        }
+       ]
+      },
+      {
+       "text": "指揮なんてない。皆で決める",
+       "next": "doubt",
+       "effects": [
+        {
+         "type": "trust",
+         "target": "garrett",
+         "delta": -5
+        }
+       ]
+      }
+     ],
+     "variants": [
+      {
+       "condition": {
+        "player_age_band": "young"
+       },
+       "text": "……{address}、お前一人か？　この海は子どもに優しくない。指揮は誰が執っている。"
+      },
+      {
+       "condition": {
+        "player_age_band": "mature"
+       },
+       "text": "……民間人の筏か。あんた、それなりに海を見てきた顔だな。指揮系統は誰だ。"
+      },
+      {
+       "condition": {
+        "player_background": "pirate_escapee"
+       },
+       "text": "……その手首の痕、黒潮の枷だな。逃げてきたのか。指揮系統は誰だ。"
+      }
+     ]
+    },
+    "respect": {
+     "speaker": "garrett",
+     "expression": "normal",
+     "text": "よかろう。ギャレットだ。見張りと航海なら役に立つ。",
+     "next": "join"
+    },
+    "doubt": {
+     "speaker": "garrett",
+     "expression": "angry",
+     "text": "……甘いな。だが救われた借りは返す。",
+     "next": "join"
+    },
+    "join": {
+     "speaker": "garrett",
+     "expression": "normal",
+     "text": "海賊の動きが活発になっている。夜の見張りは欠かすな。",
+     "next": "end",
+     "effects": [
+      {
+       "type": "recruit",
+       "target": "garrett"
+      },
+      {
+       "type": "flag",
+       "key": "knows_pirates",
+       "value": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "selene_rescue",
+   "nodes": {
+    "start": {
+     "speaker": "selene",
+     "expression": "smile",
+     "text": "あら、いいところに！　乗せてくれたら、きっと得をさせてあげる。",
+     "choices": [
+      {
+       "text": "乗せる",
+       "next": "join"
+      },
+      {
+       "text": "見返りは？",
+       "next": "deal"
+      },
+      {
+       "text": "条件を詰めよう（交渉上手）",
+       "condition": {
+        "ability_min": {
+         "negotiation": 1
+        }
+       },
+       "next": "deal2"
+      }
+     ],
+     "variants": [
+      {
+       "condition": {
+        "player_background": "floating_city"
+       },
+       "text": "あら、その訛り……浮遊都市の人ね！　同郷のよしみ、乗せてくれたら得をさせてあげる。",
+       "expression": "smile"
+      },
+      {
+       "condition": {
+        "player_age_band": "young"
+       },
+       "text": "あら、{address}が船長？　しっかりしてるのね。乗せてくれたら得をさせてあげる。",
+       "expression": "smile"
+      }
+     ]
+    },
+    "deal": {
+     "speaker": "selene",
+     "expression": "smile",
+     "text": "ふふ、話が早い。この缶詰をどうぞ。商人は信用が第一なの。",
+     "next": "join",
+     "effects": [
+      {
+       "type": "give_item",
+       "item": "canned_food",
+       "n": 2
+      },
+      {
+       "type": "trust",
+       "target": "selene",
+       "delta": 10
+      }
+     ]
+    },
+    "join": {
+     "speaker": "selene",
+     "expression": "smile",
+     "text": "セレーネよ。島々の相場なら何でも聞いて。",
+     "next": "end",
+     "effects": [
+      {
+       "type": "recruit",
+       "target": "selene"
+      }
+     ]
+    },
+    "deal2": {
+     "speaker": "selene",
+     "expression": "surprised",
+     "text": "……手強いわね。いいわ、缶詰に加えてこれも。商人に二言はないもの。",
+     "next": "join",
+     "effects": [
+      {
+       "type": "give_item",
+       "item": "canned_food",
+       "n": 2
+      },
+      {
+       "type": "give_item",
+       "item": "medkit",
+       "n": 1
+      },
+      {
+       "type": "trust",
+       "target": "selene",
+       "delta": 15
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "rook_rescue",
+   "nodes": {
+    "start": {
+     "speaker": "rook",
+     "expression": "normal",
+     "text": "おっと、撃つなよ。……俺はルーク。ちょいと前まで海賊だった。",
+     "choices": [
+      {
+       "text": "乗せてやる",
+       "next": "join"
+      },
+      {
+       "text": "海賊は信用できない",
+       "next": "argue"
+      }
+     ],
+     "variants": [
+      {
+       "condition": {
+        "player_background": "pirate_escapee"
+       },
+       "text": "……お前、黒潮の船倉から消えた{address}か。追っ手じゃねえ、俺も追い出された身だ。",
+       "expression": "surprised"
+      },
+      {
+       "condition": {
+        "player_age_band": "young"
+       },
+       "text": "おっと、撃つなよ{address}。……俺はルーク。ちょいと前まで海賊だった。"
+      }
+     ]
+    },
+    "argue": {
+     "speaker": "rook",
+     "expression": "angry",
+     "text": "正直だな。だが海の上じゃ、信用より腕っぷしだ。試してみろよ。",
+     "choices": [
+      {
+       "text": "……わかった、乗れ",
+       "next": "join",
+       "effects": [
+        {
+         "type": "trust",
+         "target": "rook",
+         "delta": -5
+        }
+       ]
+      }
+     ]
+    },
+    "join": {
+     "speaker": "rook",
+     "expression": "smile",
+     "text": "ありがとよ、船長。借りは返す主義だ……たぶんな。",
+     "next": "end",
+     "effects": [
+      {
+       "type": "recruit",
+       "target": "rook"
+      },
+      {
+       "type": "relation",
+       "from": "garrett",
+       "to": "rook",
+       "kind": "hostility",
+       "delta": 10
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "mira_talk_records",
+   "condition": {
+    "day_min": 2
+   },
+   "nodes": {
+    "start": {
+     "speaker": "mira",
+     "expression": "normal",
+     "text": "研究所の記録には、潮の流れが『人為的に』変えられた形跡があったの。信じられる？",
+     "choices": [
+      {
+       "text": "詳しく聞かせてくれ",
+       "next": "more",
+       "effects": [
+        {
+         "type": "trust",
+         "target": "mira",
+         "delta": 5
+        },
+        {
+         "type": "flag",
+         "key": "clue_artificial_current",
+         "value": true
+        }
+       ]
+      },
+      {
+       "text": "今は生き延びるのが先だ",
+       "next": "end",
+       "effects": [
+        {
+         "type": "satisfaction",
+         "target": "mira",
+         "delta": -5
+        }
+       ]
+      }
+     ]
+    },
+    "more": {
+     "speaker": "mira",
+     "expression": "sad",
+     "text": "『アトラス』という施設の名前だけは覚えてる。いつか必ず確かめたい。",
+     "next": "end"
+    }
+   }
+  },
+  {
+   "id": "mira_talk_signal",
+   "condition": {
+    "flags_all": [
+     "heard_signal"
+    ],
+    "day_min": 3
+   },
+   "nodes": {
+    "start": {
+     "speaker": "mira",
+     "expression": "surprised",
+     "text": "昨夜の信号、規則的だった。ただの雑音じゃない。誰かが……呼んでる。",
+     "next": "end",
+     "effects": [
+      {
+       "type": "flag",
+       "key": "signal_regular",
+       "value": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "tobi_talk_sister",
+   "condition": {
+    "day_min": 4
+   },
+   "nodes": {
+    "start": {
+     "speaker": "tobi",
+     "expression": "sad",
+     "text": "姉ちゃん、海賊に入ったって噂があるんだ。……そんなはずないよね。",
+     "choices": [
+      {
+       "text": "必ず見つけよう",
+       "next": "end",
+       "effects": [
+        {
+         "type": "loyalty",
+         "target": "tobi",
+         "delta": 10
+        },
+        {
+         "type": "flag",
+         "key": "promise_tobi_sister",
+         "value": true
+        }
+       ]
+      },
+      {
+       "text": "期待しすぎるな",
+       "next": "end",
+       "effects": [
+        {
+         "type": "satisfaction",
+         "target": "tobi",
+         "delta": -8
+        }
+       ]
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "garrett_talk_unit",
+   "condition": {
+    "day_min": 6
+   },
+   "nodes": {
+    "start": {
+     "speaker": "garrett",
+     "expression": "normal",
+     "text": "崩壊の夜、我々は命令に従っただけだ。……何を封鎖したのか、知らされずにな。",
+     "next": "end",
+     "effects": [
+      {
+       "type": "flag",
+       "key": "clue_lockdown",
+       "value": true
+      },
+      {
+       "type": "trust",
+       "target": "garrett",
+       "delta": 5
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "selene_talk_trade",
+   "condition": {
+    "day_min": 7
+   },
+   "nodes": {
+    "start": {
+     "speaker": "selene",
+     "expression": "smile",
+     "text": "北東に『潮流連合』の市場があるわ。いずれ取引しに行きましょう。",
+     "next": "end",
+     "effects": [
+      {
+       "type": "flag",
+       "key": "knows_tide_union",
+       "value": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "rook_talk_past",
+   "condition": {
+    "day_min": 9
+   },
+   "nodes": {
+    "start": {
+     "speaker": "rook",
+     "expression": "angry",
+     "text": "黒潮の船長は仲間を売った。いつか落とし前をつけさせる。",
+     "choices": [
+      {
+       "text": "手を貸そう",
+       "next": "end",
+       "effects": [
+        {
+         "type": "loyalty",
+         "target": "rook",
+         "delta": 12
+        },
+        {
+         "type": "flag",
+         "key": "rook_revenge_promise",
+         "value": true
+        }
+       ]
+      },
+      {
+       "text": "復讐はやめておけ",
+       "next": "end",
+       "effects": [
+        {
+         "type": "trust",
+         "target": "rook",
+         "delta": -5
+        }
+       ]
+      }
+     ]
+    }
+   }
+  }
+ ]
 }

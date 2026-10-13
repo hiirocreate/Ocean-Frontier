@@ -1,0 +1,164 @@
+{
+ "_comment": "主人公の外見の選択肢。",
+ "appearance": {
+  "hair_styles": [
+   {
+    "id": "messy",
+    "name": "ぼさぼさ"
+   },
+   {
+    "id": "crop",
+    "name": "短髪"
+   },
+   {
+    "id": "long",
+    "name": "長髪"
+   },
+   {
+    "id": "long_wavy",
+    "name": "波打つ長髪"
+   },
+   {
+    "id": "tied",
+    "name": "結んだ髪"
+   },
+   {
+    "id": "spiky",
+    "name": "はね髪"
+   },
+   {
+    "id": "bob",
+    "name": "肩までの髪"
+   }
+  ],
+  "hair_colors": [
+   {
+    "id": "black",
+    "name": "黒",
+    "color": "#2e2a2b"
+   },
+   {
+    "id": "brown",
+    "name": "茶",
+    "color": "#6b4a3a"
+   },
+   {
+    "id": "chestnut",
+    "name": "栗色",
+    "color": "#8a4a2a"
+   },
+   {
+    "id": "blond",
+    "name": "金",
+    "color": "#d8b060"
+   },
+   {
+    "id": "silver",
+    "name": "銀",
+    "color": "#c8c8d0"
+   },
+   {
+    "id": "sea",
+    "name": "潮色",
+    "color": "#3a6a7a"
+   }
+  ],
+  "skin_colors": [
+   {
+    "id": "fair",
+    "name": "色白",
+    "color": "#f2d0b8"
+   },
+   {
+    "id": "light",
+    "name": "淡い",
+    "color": "#e8b996"
+   },
+   {
+    "id": "tan",
+    "name": "日焼け",
+    "color": "#c99a78"
+   },
+   {
+    "id": "brown",
+    "name": "褐色",
+    "color": "#9a6a4a"
+   },
+   {
+    "id": "dark",
+    "name": "濃い褐色",
+    "color": "#6a4a32"
+   }
+  ],
+  "faces": [
+   {
+    "id": "soft",
+    "name": "柔らかい目元"
+   },
+   {
+    "id": "sharp",
+    "name": "鋭い目元"
+   },
+   {
+    "id": "freckles",
+    "name": "そばかす"
+   },
+   {
+    "id": "scarred",
+    "name": "頬の古傷"
+   }
+  ],
+  "outfits": [
+   {
+    "id": "castaway",
+    "name": "漂流者の服",
+    "shirt": "#d8cfb8",
+    "outer": "#3f6b73",
+    "pants": "#4a4f5e"
+   },
+   {
+    "id": "sailor",
+    "name": "船乗りの服",
+    "shirt": "#e8e8e0",
+    "outer": "#2a4a7a",
+    "pants": "#3a3a4a"
+   },
+   {
+    "id": "scavenger",
+    "name": "拾い物の重ね着",
+    "shirt": "#b8a888",
+    "outer": "#7a5a3a",
+    "pants": "#4a4038"
+   },
+   {
+    "id": "lab",
+    "name": "研究着の名残",
+    "shirt": "#f0f0ec",
+    "outer": "#9fb4c4",
+    "pants": "#4f5a66"
+   }
+  ],
+  "accessories": [
+   {
+    "id": "scarf",
+    "name": "赤錆色のスカーフ"
+   },
+   {
+    "id": "none",
+    "name": "なし"
+   },
+   {
+    "id": "goggles",
+    "name": "ゴーグル"
+   },
+   {
+    "id": "earrings",
+    "name": "耳飾り"
+   },
+   {
+    "id": "glasses",
+    "name": "眼鏡"
+   }
+  ]
+ }
+}

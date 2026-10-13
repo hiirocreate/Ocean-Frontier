@@ -55,10 +55,38 @@ func _process(delta: float) -> void:
 		session.advance(delta * rate)
 
 
-func start_new_game() -> void:
+const CREATION := "res://scenes/main/character_creation.tscn"
+var creation_edit_mode := false
+
+
+## 主人公作成画面へ（edit=true は作成後の名前・外見の編集）
+func open_creation(edit: bool = false) -> void:
+	creation_edit_mode = edit
+	running = false
+	get_tree().paused = false
+	get_tree().change_scene_to_file(CREATION)
+
+
+func creation_back() -> void:
+	if creation_edit_mode and session:
+		get_tree().change_scene_to_file(WORLD)
+	else:
+		get_tree().change_scene_to_file(MAIN_MENU)
+
+
+## 新しいゲーム。profile が null なら既定の主人公（作成をスキップ）
+func start_new_game(profile: PlayerProfile = null) -> void:
 	_set_session(GameSession.new(data))
-	session.new_game()
-	session.message.emit("目が覚めると、小さな筏の上だった。何も思い出せない……")
+	session.new_game(0, profile)
+	get_tree().change_scene_to_file(WORLD)
+
+
+## 作成後に変更できるのは名前と外見のみ（性別・年齢・背景・特性は進行への影響があるため固定）
+func apply_profile_edit(edited: PlayerProfile) -> void:
+	if session:
+		session.profile.name = edited.name
+		session.profile.appearance = edited.appearance.duplicate()
+		SaveManager.save_session(session)
 	get_tree().change_scene_to_file(WORLD)
 
 

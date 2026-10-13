@@ -1,0 +1,70 @@
+{
+ "_comment": "主人公の初期特性（1〜2個）。exclusive_with=同時に選べない特性。",
+ "player_traits": [
+  {
+   "id": "drift_veteran",
+   "name": "漂流生活の経験者",
+   "description": "空腹と渇きの進みが少し遅い",
+   "abilities": {
+    "survival": 1
+   },
+   "exclusive_with": []
+  },
+  {
+   "id": "repair_knack",
+   "name": "修理の心得",
+   "description": "修理と建築が少し早い",
+   "abilities": {
+    "repair": 1
+   },
+   "exclusive_with": []
+  },
+  {
+   "id": "observant",
+   "name": "観察力",
+   "description": "漂流物や地点を遠くから見つけやすい",
+   "abilities": {
+    "perception": 1
+   },
+   "exclusive_with": []
+  },
+  {
+   "id": "negotiator",
+   "name": "交渉上手",
+   "description": "交易の価格が少し有利になる",
+   "abilities": {
+    "negotiation": 1
+   },
+   "exclusive_with": []
+  },
+  {
+   "id": "first_aid",
+   "name": "応急処置",
+   "description": "医療品の効果が高い",
+   "abilities": {
+    "medicine": 1
+   },
+   "exclusive_with": []
+  },
+  {
+   "id": "navigator",
+   "name": "航海の知識",
+   "description": "筏の速度が少し上がる",
+   "abilities": {
+    "navigation": 1
+   },
+   "exclusive_with": []
+  },
+  {
+   "id": "outdoorsy",
+   "name": "野外生活の経験",
+   "description": "疲労が溜まりにくい",
+   "abilities": {
+    "survival": 1
+   },
+   "exclusive_with": [
+    "drift_veteran"
+   ]
+  }
+ ]
+}

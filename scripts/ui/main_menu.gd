@@ -80,7 +80,7 @@ void fragment() {
 
 
 func _on_new() -> void:
-	Game.start_new_game()
+	Game.open_creation(false)
 
 
 func _on_continue() -> void:

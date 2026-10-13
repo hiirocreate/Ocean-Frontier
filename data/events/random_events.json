@@ -489,6 +489,129 @@
      "text": "潮目に乗って、たくさんの漂流物が流れてきた。"
     }
    ]
+  },
+  {
+   "id": "young_doubt",
+   "name": "経験不足",
+   "category": "story",
+   "severity": "minor",
+   "chance": 0.15,
+   "cooldown_hours": 9999,
+   "condition": {
+    "all": [
+     {
+      "player_age_band": [
+       "young",
+       "youth"
+      ]
+     },
+     {
+      "crew_min": 1
+     },
+     {
+      "day_min": 2
+     }
+    ]
+   },
+   "dialogue": {
+    "start": {
+     "speaker": "narrator",
+     "text": "仲間の一人が、心配そうに声をかけてきた。「{name}、無理はするなよ。分からないことは聞いてくれ」",
+     "choices": [
+      {
+       "text": "教えてほしい",
+       "next": "end",
+       "effects": [
+        {
+         "type": "counter",
+         "key": "research_points",
+         "delta": 5
+        },
+        {
+         "type": "crew_all",
+         "stat": "satisfaction",
+         "delta": 3
+        },
+        {
+         "type": "past_event",
+         "text": "仲間から海の知恵を学んだ"
+        }
+       ]
+      },
+      {
+       "text": "自分でやってみせる",
+       "next": "end",
+       "effects": [
+        {
+         "type": "reputation",
+         "kind": "fame",
+         "delta": 2
+        },
+        {
+         "type": "survival",
+         "stat": "fatigue",
+         "delta": 10
+        }
+       ]
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "veteran_advice",
+   "name": "経験の重み",
+   "category": "story",
+   "severity": "minor",
+   "chance": 0.15,
+   "cooldown_hours": 9999,
+   "condition": {
+    "all": [
+     {
+      "player_age_band": "mature"
+     },
+     {
+      "crew_min": 2
+     },
+     {
+      "day_min": 3
+     }
+    ]
+   },
+   "dialogue": {
+    "start": {
+     "speaker": "narrator",
+     "text": "仲間たちの意見が割れている。「{name}はどう思う？」と、皆があなたを見た。",
+     "choices": [
+      {
+       "text": "昔の経験から助言する",
+       "next": "end",
+       "effects": [
+        {
+         "type": "crew_all",
+         "stat": "loyalty",
+         "delta": 4
+        },
+        {
+         "type": "past_event",
+         "text": "かつての経験を語り、仲間の信頼を得た"
+        }
+       ]
+      },
+      {
+       "text": "皆で決めよう",
+       "next": "end",
+       "effects": [
+        {
+         "type": "crew_all",
+         "stat": "satisfaction",
+         "delta": 4
+        }
+       ]
+      }
+     ]
+    }
+   }
   }
  ]
 }

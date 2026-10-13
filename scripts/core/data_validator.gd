@@ -20,7 +20,43 @@ static func validate(d: GameData) -> Array[String]:
 	_sites(d, e)
 	_factions(d, e)
 	_story(d, e)
+	_player(d, e)
 	return e
+
+
+static func _player(d: GameData, e: Array[String]) -> void:
+	if d.backgrounds.is_empty() or d.player_traits.is_empty():
+		e.append("player: 背景と初期特性の定義が必要です")
+	for bid in d.backgrounds:
+		var b: Dictionary = d.backgrounds[bid]
+		_check_item_map(d, e, "background %s.initial_items" % bid, b.get("initial_items", {}))
+		var g := str(b.get("grants_trait", ""))
+		if g != "" and not d.player_traits.has(g):
+			e.append("background %s: 存在しない特性 '%s'" % [bid, g])
+		for k in b.get("abilities", {}):
+			if not (k in PlayerProfile.ABILITIES):
+				e.append("background %s: 未知の能力 '%s'" % [bid, k])
+	for tid in d.player_traits:
+		for k in d.player_traits[tid].get("abilities", {}):
+			if not (k in PlayerProfile.ABILITIES):
+				e.append("player_trait %s: 未知の能力 '%s'" % [tid, k])
+		for x in d.player_traits[tid].get("exclusive_with", []):
+			if not d.player_traits.has(str(x)):
+				e.append("player_trait %s: 存在しない特性 '%s'" % [tid, x])
+	# 年齢帯は10〜40を隙間なく覆う
+	for a in range(PlayerProfile.AGE_MIN, PlayerProfile.AGE_MAX + 1):
+		var hit := 0
+		for bid in d.age_bands:
+			if a >= int(d.age_bands[bid]["min"]) and a <= int(d.age_bands[bid]["max"]):
+				hit += 1
+		if hit != 1:
+			e.append("age_bands: %d歳が%d個の年齢帯に該当" % [a, hit])
+	for key in ["hair_styles", "hair_colors", "skin_colors", "faces", "outfits", "accessories"]:
+		if d.appearance.get(key, []).is_empty():
+			e.append("appearance: %s がありません" % key)
+	for sid in d.survivors:
+		if not (str(d.survivors[sid].get("address_style", "name")) in ["name", "military", "merchant", "pirate", "kid"]):
+			e.append("survivor %s: 不正な address_style" % sid)
 
 
 static func _cond(e: Array[String], owner: String, c: Variant) -> void:
@@ -177,7 +213,7 @@ static func _sites(d: GameData, e: Array[String]) -> void:
 
 const EFFECT_TYPES := ["recruit", "trust", "loyalty", "satisfaction", "stress", "relation", "flag", "counter", "give_item", "take_item", "message",
 	"coins", "reputation", "standing", "piracy", "start_combat", "discover_site", "weather", "damage_raft", "damage_buildings", "lose_items",
-	"refill_water", "prisoners_escape", "crew_all", "survival", "spawn_reunion"]
+	"refill_water", "prisoners_escape", "crew_all", "survival", "spawn_reunion", "past_event"]
 const SPECIAL_SPEAKERS := ["player", "narrator"]
 
 
@@ -260,6 +296,9 @@ static func _dialogues(d: GameData, e: Array[String]) -> void:
 			if n.has("next"):
 				nexts.append(str(n["next"]))
 			_check_effects(d, e, "%s.%s" % [o, nid], n.get("effects", []))
+			for v in n.get("variants", []):
+				for k in Conditions.unknown_keys(v.get("condition", {})):
+					e.append("%s.%s: 差分の未知の条件キー '%s'" % [o, nid, k])
 			for c in n.get("choices", []):
 				nexts.append(str(c.get("next", "end")))
 				_check_effects(d, e, "%s.%s" % [o, nid], c.get("effects", []))

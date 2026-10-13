@@ -61,6 +61,10 @@ static func player_force(s: GameSession, terrain: String = "raft") -> Dictionary
 			if cd > 0.0 and float(b["durability"]) > 0.0:
 				defense += cd
 				f["factors"].append("%s（防御+%d）" % [s.data.building_name(b["id"]), int(cd)])
+	var cb := s.profile.ability("combat")
+	if cb > 0:
+		atk += 2.0 * cb
+		f["factors"].append("主人公の戦闘の心得（攻撃+%d）" % (2 * cb))
 	var eff := s.survival.efficiency()
 	if eff < 0.99:
 		f["factors"].append("体調不良（効率%d%%）" % int(eff * 100))
@@ -142,7 +146,7 @@ static func resolve(s: GameSession, enemy_id: String, stance: String, terrain: S
 			return r
 		r["log"].append(prob + "。戦うしかない！")
 	if stance == "retreat":
-		var chance := 0.55 + 0.05 * s.crew.best_skill("navigation") - 0.05 * int(s.data.zones.get(s.zone_id, {}).get("danger", 1))
+		var chance := 0.55 + 0.05 * s.crew.best_skill("navigation") + 0.05 * s.profile.ability("navigation") - 0.05 * int(s.data.zones.get(s.zone_id, {}).get("danger", 1))
 		if rng.randf() < chance:
 			var dmg: float = e["attack"] * rng.randf_range(0.2, 0.6)
 			r["damage_taken"] = dmg

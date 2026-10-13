@@ -1,0 +1,124 @@
+{
+ "_comment": "主人公の過去の背景。どの背景でもメインストーリーに到達できる（追加の手段・会話が増えるだけ）。",
+ "backgrounds": [
+  {
+   "id": "amnesia",
+   "name": "記憶を失った漂流者",
+   "description": "気がつくと筏の上にいた。過去のほとんどを思い出せない。",
+   "good_at": "偏りのない基礎能力。記憶の断片が手がかりになる",
+   "initial_items": {
+    "coconut": 1
+   },
+   "abilities": {},
+   "grants_trait": "",
+   "related": "ミラ（顔に見覚えがある）／依頼『記憶の欠片』",
+   "changes": "導入で記憶の断片を見る。記録を読むと記憶が戻る演出が増える",
+   "clue_hint": "研究記録の名簿を見ると、記憶の断片がよみがえる",
+   "intro": "名前以外、ほとんど何も思い出せない。手元にあるのは赤錆色のスカーフだけ。",
+   "flags": {
+    "bg_amnesia": true
+   }
+  },
+  {
+   "id": "floating_city",
+   "name": "海上都市の住人",
+   "description": "浮遊都市で暮らしていたが、嵐で都市の一部ごと流された。",
+   "good_at": "交渉と交易",
+   "initial_items": {
+    "canned_food": 1,
+    "water_bottle": 1
+   },
+   "abilities": {
+    "negotiation": 1
+   },
+   "grants_trait": "",
+   "related": "潮流連合・セレーネ／依頼『故郷の灯』",
+   "changes": "商人や潮流連合の反応が良くなり、交渉の選択肢が増える",
+   "clue_hint": "都市の図書室で見た古い航路図を思い出す",
+   "intro": "浮遊都市の灯りが、嵐の向こうに消えていった。帰る場所は、まだあるだろうか。",
+   "flags": {
+    "bg_floating_city": true
+   }
+  },
+  {
+   "id": "drift_ship",
+   "name": "漂流船育ち",
+   "description": "生まれた時から漂流船の上で育った。海の生き方は体が覚えている。",
+   "good_at": "漂流物の回収と生存",
+   "initial_items": {
+    "rope": 2,
+    "wood": 2
+   },
+   "abilities": {},
+   "grants_trait": "drift_veteran",
+   "related": "トビ（同じ海の子）／依頼『船の仲間』",
+   "changes": "生存に関する会話の選択肢が増え、筏での暮らしに強い",
+   "clue_hint": "船の古老が語った『潮が逆さに流れた夜』の話を思い出す",
+   "intro": "育った漂流船は嵐で砕けた。だが、海での生き方なら知っている。",
+   "flags": {
+    "bg_drift_ship": true
+   }
+  },
+  {
+   "id": "research_insider",
+   "name": "沈没研究施設の関係者",
+   "description": "研究施設にいた記憶がかすかにある。専門的な知識の断片を持つ。",
+   "good_at": "研究・解読",
+   "initial_items": {
+    "tool_parts": 1
+   },
+   "abilities": {
+    "learning": 1
+   },
+   "grants_trait": "",
+   "related": "ミラ・灯台会／依頼『白衣の記憶』",
+   "changes": "研究記録の解読方法が増え、施設に関する会話が深まる",
+   "clue_hint": "暗号の一部に見覚えがある。研究机で解析すると早く読める",
+   "intro": "白い廊下、鳴り響く警報……断片的な記憶が、海の音に混じってよみがえる。",
+   "flags": {
+    "bg_research_insider": true
+   }
+  },
+  {
+   "id": "trade_crew",
+   "name": "元交易船の乗組員",
+   "description": "交易船で各地を巡っていた。船は海賊に沈められた。",
+   "good_at": "航海と交易",
+   "initial_items": {
+    "rope": 1,
+    "canned_food": 1
+   },
+   "abilities": {
+    "navigation": 1
+   },
+   "grants_trait": "",
+   "related": "潮流連合・ギャレット／依頼『沈んだ積み荷』",
+   "changes": "航海や交易の選択肢が増え、海賊への態度に関する会話が変わる",
+   "clue_hint": "船長の航海日誌に記された『存在しないはずの施設』の座標",
+   "intro": "積み荷も仲間も、黒い旗の船に奪われた。生き残ったのは自分だけだ。",
+   "flags": {
+    "bg_trade_crew": true
+   }
+  },
+  {
+   "id": "pirate_escapee",
+   "name": "海賊から逃げてきた",
+   "description": "海賊団『黒潮』に捕らわれ、隙を見て逃げ出した。",
+   "good_at": "戦闘と危機回避",
+   "initial_items": {
+    "spear": 1
+   },
+   "abilities": {
+    "combat": 1
+   },
+   "grants_trait": "",
+   "related": "ルーク・黒潮／依頼『追っ手』",
+   "changes": "海賊との会話や交渉が変わり、黒潮の内情を知っている",
+   "clue_hint": "黒潮の船長が『灯台の連中』と取引していたのを見た",
+   "intro": "追っ手の松明はもう見えない。だが黒潮は、裏切り者を決して忘れない。",
+   "flags": {
+    "bg_pirate_escapee": true
+   }
+  }
+ ]
+}

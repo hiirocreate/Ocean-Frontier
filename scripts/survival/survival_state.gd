@@ -16,6 +16,8 @@ var fatigue: float = 0.0
 var injury: float = 0.0
 var resting: bool = false
 var collapse_count: int = 0
+var rate_mult := 1.0  # 主人公の能力（漂流生活の経験など）による空腹・渇きの進み方
+var fatigue_mult := 1.0
 var _warned := {}
 
 
@@ -31,12 +33,12 @@ func tick(minutes: float) -> void:
 	if minutes <= 0.0:
 		return
 	var h := minutes / 60.0
-	hunger = clampf(hunger - _b("hunger_per_hour", 4.0) * h, 0.0, 100.0)
-	thirst = clampf(thirst - _b("thirst_per_hour", 6.0) * h, 0.0, 100.0)
+	hunger = clampf(hunger - _b("hunger_per_hour", 4.0) * rate_mult * h, 0.0, 100.0)
+	thirst = clampf(thirst - _b("thirst_per_hour", 6.0) * rate_mult * h, 0.0, 100.0)
 	if resting:
 		fatigue = clampf(fatigue - _b("fatigue_recovery_per_hour_resting", 12.0) * h, 0.0, 100.0)
 	else:
-		fatigue = clampf(fatigue + _b("fatigue_per_hour", 2.5) * h, 0.0, 100.0)
+		fatigue = clampf(fatigue + _b("fatigue_per_hour", 2.5) * fatigue_mult * h, 0.0, 100.0)
 	var dmg := 0.0
 	if hunger <= 0.0:
 		dmg += _b("starvation_damage_per_hour", 6.0) * h

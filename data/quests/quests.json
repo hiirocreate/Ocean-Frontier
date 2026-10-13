@@ -301,6 +301,275 @@
      "delta": 5
     }
    ]
+  },
+  {
+   "id": "q_bg_memory",
+   "name": "記憶の欠片",
+   "giver": "",
+   "description": "スカーフの刺繍と、夢に出てくる白い廊下。失われた記憶を辿る。",
+   "start": {
+    "all": [
+     {
+      "player_background": "amnesia"
+     },
+     {
+      "day_min": 2
+     }
+    ]
+   },
+   "objectives": [
+    {
+     "text": "手がかりを2種類集める",
+     "condition": {
+      "clue_count_min": 2
+     }
+    }
+   ],
+   "rewards": [
+    {
+     "type": "flag",
+     "key": "identity_clue",
+     "value": true
+    },
+    {
+     "type": "past_event",
+     "text": "記憶の欠片がつながり、研究所の名簿に自分の名前があったことを思い出した"
+    }
+   ]
+  },
+  {
+   "id": "q_bg_home",
+   "name": "故郷の灯",
+   "giver": "",
+   "description": "嵐で流された浮遊都市の仲間は、潮流連合に身を寄せているかもしれない。",
+   "start": {
+    "all": [
+     {
+      "player_background": "floating_city"
+     },
+     {
+      "day_min": 2
+     }
+    ]
+   },
+   "objectives": [
+    {
+     "text": "潮流連合の浮遊市場を訪れる",
+     "condition": {
+      "site_discovered": "tide_union_market"
+     }
+    }
+   ],
+   "rewards": [
+    {
+     "type": "standing",
+     "faction": "tide_union",
+     "delta": 15
+    },
+    {
+     "type": "give_item",
+     "item": "sea_chart",
+     "n": 1
+    },
+    {
+     "type": "past_event",
+     "text": "市場で同郷の人々と再会し、古い海図を譲り受けた"
+    }
+   ]
+  },
+  {
+   "id": "q_bg_shipmates",
+   "name": "船の仲間",
+   "giver": "",
+   "description": "育った漂流船の仲間の行方を探す。",
+   "start": {
+    "all": [
+     {
+      "player_background": "drift_ship"
+     },
+     {
+      "day_min": 2
+     }
+    ]
+   },
+   "objectives": [
+    {
+     "text": "筏を8枚以上に広げ、仲間を2人迎える",
+     "condition": {
+      "all": [
+       {
+        "tiles_min": 8
+       },
+       {
+        "crew_min": 2
+       }
+      ]
+     }
+    }
+   ],
+   "rewards": [
+    {
+     "type": "crew_all",
+     "stat": "loyalty",
+     "delta": 5
+    },
+    {
+     "type": "past_event",
+     "text": "新しい筏の仲間たちに、育った船の家族の面影を見た"
+    }
+   ]
+  },
+  {
+   "id": "q_bg_labcoat",
+   "name": "白衣の記憶",
+   "giver": "",
+   "description": "研究施設で自分が何をしていたのか確かめる。",
+   "start": {
+    "all": [
+     {
+      "player_background": "research_insider"
+     },
+     {
+      "day_min": 2
+     }
+    ]
+   },
+   "objectives": [
+    {
+     "text": "研究記録か暗号化データを手に入れる",
+     "condition": {
+      "any": [
+       {
+        "has_items": {
+         "research_log": 1
+        }
+       },
+       {
+        "has_items": {
+         "encrypted_data": 1
+        }
+       }
+      ]
+     }
+    }
+   ],
+   "rewards": [
+    {
+     "type": "counter",
+     "key": "research_points",
+     "delta": 15
+    },
+    {
+     "type": "flag",
+     "key": "identity_clue",
+     "value": true
+    },
+    {
+     "type": "past_event",
+     "text": "記録の筆跡が自分のものだと気づいた"
+    }
+   ]
+  },
+  {
+   "id": "q_bg_cargo",
+   "name": "沈んだ積み荷",
+   "giver": "",
+   "description": "沈められた交易船の航海日誌を回収する。",
+   "start": {
+    "all": [
+     {
+      "player_background": "trade_crew"
+     },
+     {
+      "day_min": 2
+     }
+    ]
+   },
+   "objectives": [
+    {
+     "text": "沈没船か座礁船を探索する",
+     "condition": {
+      "any": [
+       {
+        "site_explored": "sunken_ferry"
+       },
+       {
+        "site_explored": "sunken_trawler"
+       },
+       {
+        "site_explored": "wreck_fishing_boat"
+       }
+      ]
+     }
+    }
+   ],
+   "rewards": [
+    {
+     "type": "reputation",
+     "kind": "trust",
+     "delta": 5
+    },
+    {
+     "type": "flag",
+     "key": "radio_coordinates",
+     "value": true
+    },
+    {
+     "type": "past_event",
+     "text": "船長の日誌に、存在しないはずの施設の座標が記されていた"
+    }
+   ]
+  },
+  {
+   "id": "q_bg_pursuers",
+   "name": "追っ手",
+   "giver": "",
+   "description": "黒潮の追っ手から身を守る。",
+   "start": {
+    "all": [
+     {
+      "player_background": "pirate_escapee"
+     },
+     {
+      "day_min": 2
+     }
+    ]
+   },
+   "objectives": [
+    {
+     "text": "戦いに1回勝つか、黒潮との関係を改善する",
+     "condition": {
+      "any": [
+       {
+        "counter_min": {
+         "pirate_wins": 1
+        }
+       },
+       {
+        "standing_min": {
+         "black_current": 0
+        }
+       }
+      ]
+     }
+    }
+   ],
+   "rewards": [
+    {
+     "type": "reputation",
+     "kind": "fame",
+     "delta": 5
+    },
+    {
+     "type": "flag",
+     "key": "known_faction_black_current",
+     "value": true
+    },
+    {
+     "type": "past_event",
+     "text": "追っ手を退け、黒潮の船長が灯台会と通じていた記憶がよみがえった"
+    }
+   ]
   }
  ]
 }

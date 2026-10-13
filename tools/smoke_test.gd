@@ -47,16 +47,46 @@ func _run() -> void:
 	await shot("01_main_menu")
 
 	game.data.balance["events"]["chance_multiplier"] = 0.0  # E2Eではランダムイベントを止めて結果を安定させる
+	# 主人公作成画面
+	game.open_creation(false)
+	await frames(20)
+	var cc: Control = current_scene
+	check(cc != null and cc.has_method("set_age"), "主人公作成画面が表示される")
+	cc._name_edit.text = "ハル"
+	cc._name_edit.text_changed.emit("ハル")
+	cc._gender_buttons["female"].pressed.emit()
+	check(not cc.set_age(9) and not cc.set_age(41), "範囲外の年齢は拒否される")
+	check(cc.set_age(14) and int(cc._age_slider.value) == 14, "年齢入力とスライダーが同期する")
+	cc._bg_buttons["drift_ship"].pressed.emit()
+	cc._trait_checks["observant"].button_pressed = true
+	await frames(10)
+	await shot("00a_creation_basic")
+	cc._tabs.current_tab = 2
+	await frames(10)
+	await shot("00b_creation_background")
+	cc._tabs.current_tab = cc._tabs.get_tab_count() - 1
+	await frames(10)
+	await shot("00c_creation_confirm")
+	check(cc.profile.age_band() == "young" and cc.profile.has_trait(game.data, "observant") and cc.profile.has_trait(game.data, "drift_veteran"), "作成内容がプロフィールに反映される")
+	cc._start_button.pressed.emit()
+	await frames(30)
+	check(game.session != null and game.session.profile.name == "ハル" and game.session.profile.gender == "female" and game.session.profile.age == 14, "作成した主人公で開始される")
+	check(game.session.inventory.count("wood") > 0, "背景の初期アイテムを所持")
+	await frames(5)
+	await shot("00d_young_start")
+	# 以降は作成をスキップした既定の主人公で進行確認
 	game.start_new_game()
 	await frames(30)
+	check(game.session.profile.name == "ナギ", "作成スキップ時は既定の主人公")
 	var w := world()
 	check(w != null and w.name == "World", "ワールド表示")
 	var s: GameSession = game.session
 	check(not s.pending_dialogue.is_empty() or w.hud.dialogue_panel.visible, "新しいゲームで第1章の導入が表示される")
 	await frames(5)
 	await shot("02a_intro")
-	w.hud.dialogue_panel.runner.advance()
-	w.hud.dialogue_panel.runner.advance()
+	for i in 5:
+		if w.hud.dialogue_panel.visible:
+			w.hud.dialogue_panel.runner.advance()
 	await frames(3)
 	check(not w.hud.dialogue_panel.visible, "導入を読み終えると閉じる")
 	game.settings["quality"] = "high"
@@ -300,6 +330,22 @@ func _run() -> void:
 	s2.clock.total_minutes = 22 * 60.0
 	await frames(10)
 	await shot("07_night")
+
+	# 作成後の名前・外見の変更（性別・年齢は固定）
+	game.open_creation(true)
+	await frames(20)
+	var ce: Control = current_scene
+	check(ce.edit_mode and ce._age_slider.editable == false and ce._gender_buttons["male"].disabled, "変更画面では性別・年齢を変更できない")
+	ce._name_edit.text = "ナギサ"
+	ce._name_edit.text_changed.emit("ナギサ")
+	ce.profile.appearance["hair_color"] = str(game.data.appearance["hair_colors"].back()["id"])
+	ce._refresh()
+	await frames(5)
+	await shot("00e_profile_edit")
+	var age_before: int = game.session.profile.age
+	ce._start_button.pressed.emit()
+	await frames(30)
+	check(game.session.profile.name == "ナギサ" and game.session.profile.appearance["hair_color"] == str(game.data.appearance["hair_colors"].back()["id"]) and game.session.profile.age == age_before and current_scene.name == "World", "名前の変更が反映されワールドに戻る")
 
 	# エンディング画面
 	s2.flags["pirate_crew_founded"] = true

@@ -7,7 +7,7 @@
 | E2E（描画あり） | `xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --script res://tools/smoke_test.gd` | 実シーンでのプレイサイクルとスクリーンショット |
 | データ検証のみ | `godot --headless --path . --script res://tools/validate_data.gd` | |
 
-## 自動テスト一覧と状況（2026-10-13 時点：108件 全成功、E2E 43項目 全成功）
+## 自動テスト一覧と状況（2026-10-13 時点：118件 全成功、E2E 48項目 全成功）
 
 ### アイテム（仕様45）
 | 要件 | テスト | 状況 |
@@ -122,6 +122,21 @@ ID重複・存在しないアイテム参照・不正なレシピ・存在しな
 | 複数のエンディングに到達できる | test_each_ending_reachable（6種＋常時2種）, test_endings_availability, E2E | ✅ |
 | 物語・イベントのセーブ | test_story_and_events_saved | ✅ |
 | 嵐の損傷と修理 | test_repair_after_storm | ✅ |
+
+### 主人公作成・シナリオ分岐（第18部 §62、tests/unit/test_player_profile.gd）
+| 要件 | テスト | 状況 |
+|---|---|---|
+| 男性・女性の両方で新規開始できる | test_new_game_male_and_female | ✅ |
+| 年齢帯の境界 10/15/16/19/20/29/30/40 | test_age_band_boundaries | ✅ |
+| 範囲外の年齢（9・41など）を拒否 | test_age_out_of_range_rejected / E2E | ✅ |
+| 全性別×年齢帯でメインストーリー完結 | test_main_story_completable_for_all_profiles | ✅ |
+| 全背景×特性（0〜2個）の組み合わせが妥当 | test_background_trait_combinations | ✅ |
+| プロフィールと台詞・外見・能力・イベントが一致 | test_profile_drives_dialogue_look_abilities_events | ✅ |
+| NPCの反応が性格と年齢帯の組み合わせで決まる | test_npc_reaction_combines_personality | ✅ |
+| セーブ・ロードでプロフィール不変、旧セーブの移行 | test_save_load_keeps_profile_and_migrates_old_saves | ✅ |
+| 性別・年齢で必須コンテンツ（仲間・地点・エンディング・目標）が失われない | test_required_content_not_locked_by_gender_or_age | ✅ |
+| 作成スキップ時の既定値 | test_skip_creation_uses_defaults / E2E | ✅ |
+| 作成画面の操作（入力とスライダーの同期・開始・名前と外見の後変更） | E2E（00a〜00e の撮影） | ✅ |
 
 ### 長時間プレイ（仕様46）
 test_soak: 全システム稼働で20日分を進行（仲間3人の作業、設備の生産、艦隊の交易任務、ランダムイベント、戦闘）。

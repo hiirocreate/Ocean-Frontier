@@ -329,7 +329,7 @@ func _build_building_panel() -> void:
 
 
 func _build_menu() -> void:
-	_menu_panel = _modal(Vector2(460, 580))
+	_menu_panel = _modal(Vector2(460, 650))
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 12)
 	_menu_panel.add_child(v)
@@ -362,6 +362,9 @@ func _build_menu() -> void:
 		Game.save_settings())
 	vol.add_child(sl)
 	v.add_child(vol)
+	var edit_b := UiTheme.button("主人公の名前・外見を変更")
+	edit_b.pressed.connect(func(): Game.save_game(); Game.open_creation(true))
+	v.add_child(edit_b)
 	var title_b := UiTheme.button("タイトルへ戻る（自動セーブ）")
 	title_b.pressed.connect(func(): Game.save_game(); Game.return_to_menu())
 	v.add_child(title_b)

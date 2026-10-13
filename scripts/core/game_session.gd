@@ -4,7 +4,7 @@ extends RefCounted
 
 signal message(text: String)
 
-const SAVE_FORMAT_VERSION := 1
+const SAVE_FORMAT_VERSION := 2  # 2: 主人公作成情報（profile）を追加
 
 var data: GameData
 var clock: GameClock
@@ -26,6 +26,7 @@ var story: StoryManager
 var events: EventManager
 ## UIに提示待ちの会話（物語・イベント）: {"id": String, "nodes": Dictionary}
 var pending_dialogue: Dictionary = {}
+var profile: PlayerProfile
 var _story_acc := 0.0
 var rng: RandomNumberGenerator
 var zone_id: String = "starting_waters"
@@ -68,6 +69,7 @@ func _init(game_data: GameData) -> void:
 	actions.register_effect("repair_raft", _validate_repair_raft, _apply_repair_raft)
 	actions.job_started.connect(_on_job_started)
 	actions.job_cancelled.connect(_on_job_cancelled)
+	profile = PlayerProfile.create_default(data)
 	story = StoryManager.new(data)
 	events = EventManager.new(data)
 	crew = Crew.new(data)
@@ -77,7 +79,12 @@ func _init(game_data: GameData) -> void:
 	survival.collapsed.connect(_on_collapsed)
 
 
-func new_game(game_seed: int = 0) -> void:
+## player_profile が null なら既定の主人公（作成をスキップした場合）
+func new_game(game_seed: int = 0, player_profile: PlayerProfile = null) -> void:
+	if player_profile != null:
+		profile = player_profile
+	profile.finalize(data)
+	apply_profile_modifiers()
 	seed_value = game_seed if game_seed != 0 else int(Time.get_unix_time_from_system())
 	rng.seed = seed_value
 	clock.total_minutes = float(data.bal("time.start_hour", 7)) * 60.0
@@ -85,14 +92,42 @@ func new_game(game_seed: int = 0) -> void:
 	for p in data.bal("raft.start_tiles", [[0, 0]]):
 		raft.tiles[Raft.key(Vector2i(int(p[0]), int(p[1])))] = {"type": "raft_foundation", "durability": raft.tile_durability}
 	inventory.add_many(data.bal("start_inventory", {}), true)
+	inventory.add_many(profile.initial_inventory, true)
+	for f in profile.story_flags:
+		flags[f] = profile.story_flags[f]
 	update_capacity()
 	factions._last_day = clock.day()
 	crew._last_day = clock.day()
+	pending_dialogue = {"id": "chapter_1", "nodes": intro_nodes()}
+
+
+## 導入会話：共通の章導入に、背景・年齢帯・性別に応じた台詞を足す（全組み合わせの複製はしない）
+func intro_nodes() -> Dictionary:
 	var ch := story.chapter_def(1)
-	pending_dialogue = {"id": "chapter_1", "nodes": {
-		"start": {"speaker": "narrator", "text": "第1章　%s\n\n%s" % [ch.get("title", ""), ch.get("intro", "")], "next": "tips"},
-		"tips": {"speaker": "narrator", "text": "左下のスティックで筏を漕ぎ、漂流物に近づいたら「回収」。\n木材とロープが集まったら「建築」で筏を広げよう。困ったら「記録」に目標とヒントがある。", "next": "end"},
-	}}
+	var bg: Dictionary = data.backgrounds.get(profile.background_id, {})
+	var band := str(data.age_bands.get(profile.age_band(), {}).get("name", ""))
+	var self_line: String = {
+		"young": "小さな体には、筏の上の毎日は大きすぎる。それでも、生きる。",
+		"youth": "まだ若い。知らないことだらけだが、何にでも慣れてみせる。",
+		"adult": "体はまだ動く。やるべきことをひとつずつやるしかない。",
+		"mature": "これまでの経験が、きっと役に立つ。焦らず、確実に。",
+	}.get(profile.age_band(), "")
+	return {
+		"start": {"speaker": "narrator", "text": "第1章　%s\n\n%s" % [ch.get("title", ""), bg.get("intro", ch.get("intro", ""))], "next": "self"},
+		"self": {"speaker": "player", "expression": "normal", "text": "（私は{name}。%d歳。%s）" % [profile.age, self_line], "next": "tips"},
+		"tips": {"speaker": "narrator", "text": "左下のスティックで筏を漕ぎ、漂流物に近づいたら「回収」。\n木材とロープが集まったら「建築」で筏を広げよう。困ったら「記録」に目標とヒントがある。\n（%s：%s）" % [band, bg.get("good_at", "")], "next": "end"},
+	}
+
+
+## 主人公の能力を各システムの補正値に反映する（共通の入口）
+func apply_profile_modifiers() -> void:
+	survival.rate_mult = maxf(0.6, 1.0 - 0.1 * profile.ability("survival"))
+	survival.fatigue_mult = maxf(0.6, 1.0 - 0.1 * profile.ability("adaptability") - (0.1 if profile.has_trait(data, "outdoorsy") else 0.0))
+
+
+## 主人公の能力による補正（他システムからはこの関数を呼ぶ）
+func ability_mult(ability_id: String, per_point: float) -> float:
+	return 1.0 + per_point * profile.ability(ability_id)
 
 
 ## ゲーム内時間を進める。
@@ -103,7 +138,12 @@ func advance(minutes: float) -> void:
 	clock.advance(minutes)
 	survival.resting = is_sleeping()
 	survival.tick(minutes)
-	actions.advance(minutes, survival.efficiency(), crew.action_bonus(self))
+	var bonus := crew.action_bonus(self)
+	var rp := 0.15 * profile.ability("repair")
+	if rp > 0.0:
+		for cat in ["repair", "build", "raft"]:
+			bonus[cat] = float(bonus.get(cat, 0.0)) + rp
+	actions.advance(minutes, survival.efficiency(), bonus)
 	_tick_production(minutes)
 	crew.tick(minutes, self)
 	factions.tick(self)
@@ -292,6 +332,8 @@ func apply_effect(e: Dictionary) -> void:
 			survival.apply_effects({str(e.get("stat", "")): float(e.get("delta", 0))})
 		"spawn_reunion":
 			flags["reunion_requested"] = true
+		"past_event":
+			profile.past_events.append({"day": clock.day(), "text": str(e.get("text", ""))})
 		_:
 			GameLog.warn("未知の効果: %s" % t)
 
@@ -363,6 +405,12 @@ func use_item(id: String) -> bool:
 	if not inventory.remove(id, 1):
 		message.emit("%sを持っていません" % data.item_name(id))
 		return false
+	if id in ["medkit", "medicine"]:
+		var m := ability_mult("medicine", 0.3)
+		var boosted := {}
+		for k in eff:
+			boosted[k] = float(eff[k]) * m
+		eff = boosted
 	survival.apply_effects(eff)
 	message.emit("%sを使用した" % data.item_name(id))
 	return true
@@ -520,7 +568,7 @@ func update_location(pos: Vector3) -> String:
 		var sd: Dictionary = data.sites[id]
 		if bool(sd.get("hidden", false)) and not Conditions.check(sd.get("discover_condition", {}), self):
 			continue
-		if site_distance(id) <= float(sd.get("discover_radius", 150)):
+		if site_distance(id) <= float(sd.get("discover_radius", 150)) * ability_mult("perception", 0.2):
 			discover_site(id)
 	return changed_zone
 
@@ -770,6 +818,7 @@ func _on_collapsed() -> void:
 func to_dict() -> Dictionary:
 	return {
 		"seed": seed_value,
+		"profile": profile.to_dict(),
 		"rng_state": str(rng.state),
 		"zone_id": zone_id,
 		"clock": clock.to_dict(),
@@ -806,6 +855,16 @@ func from_dict(d: Dictionary) -> Dictionary:
 			errors.append("必須項目 '%s' がありません" % k)
 	if not errors.is_empty():
 		return {"errors": errors, "warnings": warnings}
+	var pd0: Variant = d.get("profile", null)
+	if pd0 is Dictionary:
+		var pr := PlayerProfile.from_dict(pd0, data)
+		profile = pr["profile"]
+		warnings.append_array(pr["warnings"])
+	else:
+		# 旧形式（主人公作成情報なし）からの移行：互換性のある既定値を設定
+		profile = PlayerProfile.create_default(data)
+		warnings.append("旧形式のセーブ: 主人公情報を既定値で補完")
+	apply_profile_modifiers()
 	seed_value = int(d.get("seed", 0))
 	rng.seed = seed_value
 	var st := str(d.get("rng_state", ""))

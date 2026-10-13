@@ -43,13 +43,27 @@ func current() -> Dictionary:
 	return nodes.get(node_id, {})
 
 
+## 表示用のノード：主人公の設定に応じた台詞差分（variants）を選び、{name} などを置換する（仕様: シナリオ分岐）
+func display_node(n: Dictionary) -> Dictionary:
+	var out := n.duplicate(true)
+	for v in n.get("variants", []):
+		if Conditions.check(v.get("condition", {}), session):
+			out["text"] = v.get("text", out.get("text", ""))
+			if v.has("expression"):
+				out["expression"] = v["expression"]
+			break
+	var sp := str(out.get("speaker", ""))
+	out["text"] = session.profile.format_text(str(out.get("text", "")), session.data.survivors.get(sp, {}))
+	return out
+
+
 ## 表示可能な選択肢（条件を満たすもの）。[{index, text}]
 func choices() -> Array:
 	var out: Array = []
 	var cs: Array = current().get("choices", [])
 	for i in cs.size():
 		if Conditions.check(cs[i].get("condition", {}), session):
-			out.append({"index": i, "text": str(cs[i].get("text", ""))})
+			out.append({"index": i, "text": session.profile.format_text(str(cs[i].get("text", "")))})
 	return out
 
 
@@ -79,7 +93,7 @@ func _go(id: String) -> void:
 		return
 	node_id = id
 	apply_effects(nodes[id].get("effects", []))
-	node_changed.emit(nodes[id])
+	node_changed.emit(display_node(nodes[id]))
 
 
 func apply_effects(effects: Array) -> void:

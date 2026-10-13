@@ -170,6 +170,7 @@ func _build_raft() -> void:
 	raft_root.add_child(raft_view)
 	raft_view.setup(session)
 	player = CharacterModel.new()
+	player.apply_look(session.profile.look(session.data))
 	raft_root.add_child(player)
 	player.position = raft_view.stand_position() + Vector3(0, 0.08, 0)
 	session.raft.changed.connect(func():
@@ -293,6 +294,7 @@ func _update_movement(delta: float) -> void:
 	speed *= maxf(float(session.data.bal("raft.min_speed_ratio", 0.4)), 1.0 - float(session.data.bal("raft.speed_penalty_per_tile", 0.02)) * (tiles - 1))
 	speed *= session.survival.efficiency()
 	speed *= 1.0 + session.crew.speed_bonus(session)
+	speed *= session.ability_mult("navigation", 0.08)
 	if session.weather_type() == "storm":
 		speed *= 0.7
 	var desired := camera_rig.to_world_dir(input) * speed
@@ -362,7 +364,7 @@ func _visual_rng() -> RandomNumberGenerator:
 
 func _update_debris(delta: float) -> void:
 	var despawn := float(session.data.bal("world.debris_despawn_radius", 75.0))
-	var reach := raft_view.radius() + float(session.data.bal("world.collect_range", 4.0))
+	var reach := raft_view.radius() + float(session.data.bal("world.collect_range", 4.0)) + 1.0 * session.profile.ability("perception")
 	var center := raft_root.to_global(raft_view.center_local())
 	_nearest = null
 	var best := INF

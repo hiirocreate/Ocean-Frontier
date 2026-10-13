@@ -6,7 +6,8 @@ extends RefCounted
 const KEYS := ["all", "any", "not", "day_min", "day_max", "tiles_min", "buildings_min", "crew_min", "crew_max",
 	"flags_all", "flags_none", "has_items", "member_aboard", "member_departed", "member_met", "trust_min",
 	"counter_min", "hour_between", "chance", "buildings_has", "site_discovered", "standing_min", "ship_type_owned", "prisoners_min",
-	"departed_min", "reputation_min", "allied_count_min", "ships_min", "crew_loyalty_avg_min", "clue_count_min", "chapter_min"]
+	"departed_min", "reputation_min", "allied_count_min", "ships_min", "crew_loyalty_avg_min", "clue_count_min", "chapter_min",
+	"player_gender", "player_age_min", "player_age_max", "player_age_band", "player_background", "player_trait", "ability_min", "site_explored"]
 
 
 static func check(cond: Variant, s: GameSession) -> bool:
@@ -107,6 +108,25 @@ static func _check_one(k: String, v: Variant, s: GameSession) -> bool:
 			return s.clue_count() >= int(v)
 		"chapter_min":
 			return s.story.chapter >= int(v)
+		"player_gender":
+			return s.profile.gender == str(v)
+		"player_age_min":
+			return s.profile.age >= int(v)
+		"player_age_max":
+			return s.profile.age <= int(v)
+		"player_age_band":
+			return s.profile.age_band() in (v if v is Array else [v])
+		"player_background":
+			return s.profile.background_id in (v if v is Array else [v])
+		"player_trait":
+			return s.profile.has_trait(s.data, str(v))
+		"site_explored":
+			return int(s.sites_state.get(str(v), {}).get("explored", 0)) > 0
+		"ability_min":
+			for ab in v:
+				if s.profile.ability(str(ab)) < int(v[ab]):
+					return false
+			return true
 	GameLog.warn("未知の条件キー: %s" % k)
 	return false
 

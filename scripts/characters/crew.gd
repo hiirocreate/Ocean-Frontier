@@ -20,6 +20,7 @@ var data: GameData
 var members: Dictionary = {}  # id -> 状態辞書
 var relations: Dictionary = {}  # "a>b" -> {kind: value}
 var _work_acc: Dictionary = {}  # id -> 作業の端数（セーブ対象）
+var _leader_mult := 1.0  # 主人公の指揮（leadership）による作業効率補正。GameSession が設定
 var _last_day: int = -1  # GameSession.new_game で初期化
 
 
@@ -184,6 +185,7 @@ func efficiency(id: String) -> float:
 	cond -= (100.0 - float(m["health"])) / 300.0
 	e *= clampf(cond, 0.2, 1.0)
 	e *= trait_value(id, "work_mult", 1.0)
+	e *= _leader_mult
 	return maxf(0.05, e)
 
 
@@ -234,6 +236,7 @@ func available_crew(s: GameSession) -> int:
 
 # ---------- 時間経過 ----------
 func tick(minutes: float, s: GameSession) -> void:
+	_leader_mult = s.ability_mult("leadership", 0.05)
 	if minutes <= 0.0 or members.is_empty():
 		return
 	var h := minutes / 60.0
@@ -299,7 +302,8 @@ func _do_work(id: String, h: float, s: GameSession) -> void:
 	var type := str(o.get("type", "none"))
 	if type == "counter":
 		var c := str(o.get("counter", ""))
-		s.counters[c] = float(s.counters.get(c, 0.0)) + float(o.get("per_hour", 0.0)) * eff * h
+		var learn := s.ability_mult("learning", 0.25) if c == "research_points" else 1.0  # 主人公の学習力
+		s.counters[c] = float(s.counters.get(c, 0.0)) + float(o.get("per_hour", 0.0)) * eff * h * learn
 	var acc := float(_work_acc.get(id, 0.0)) + float(o.get("per_hour", 0.0)) * eff * h
 	var units := int(floor(acc))
 	_work_acc[id] = acc - units

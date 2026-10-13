@@ -9,7 +9,7 @@ static func price_factor(s: GameSession, faction: String, buying: bool) -> float
 	var st := s.factions.standing(faction)
 	var trust := float(s.reputation.get("trust", 0))
 	var infamy := float(s.reputation.get("infamy", 0))
-	var m := 1.0 - st / 400.0 - trust * 0.002 + infamy * 0.004
+	var m := 1.0 - st / 400.0 - trust * 0.002 + infamy * 0.004 - 0.05 * s.profile.ability("negotiation")
 	if s.factions.factions.get(faction, {}).get("allied_player", false):
 		m -= 0.1
 	m = clampf(m, 0.7, 1.6)

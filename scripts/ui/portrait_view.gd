@@ -21,7 +21,7 @@ func _init() -> void:
 
 ## id: 仲間ID / "player"。defn: survivors.json の定義（player の場合は空）
 func set_character(id: String, defn: Dictionary, expr: String = "normal") -> void:
-	look = PLAYER_LOOK if id == "player" else defn
+	look = (defn if not defn.is_empty() else PLAYER_LOOK) if id == "player" else defn
 	expression = expr if expr != "" else "normal"
 	_texture = null
 	var path := "res://assets/characters/portraits/%s_%s.png" % [id, expression]
@@ -61,23 +61,43 @@ func _draw() -> void:
 	var shade := skin.darkened(0.18)
 	var style := str(look.get("hair_style", "short"))
 	var acc := str(look.get("accessory", ""))
+	# 年齢・性別・顔の特徴による描き分け（主人公のみ。仲間は既定の大人体型）
+	var band := str(look.get("age_band", "adult"))
+	var female := str(look.get("gender", "")) == "female"
+	var face_kind := str(look.get("face", "soft"))
+	var sh := {"young": 0.78, "youth": 0.92, "adult": 1.0, "mature": 1.03}.get(band, 1.0) as float
+	if female:
+		sh *= 0.9
+	var face_r := Vector2(52, 62)
+	if band == "young":
+		face_r = Vector2(54, 55)
+	elif female:
+		face_r = Vector2(49, 60)
+	var eye_scale := {"young": 1.3, "youth": 1.12}.get(band, 1.0) as float
+	if face_kind == "sharp":
+		eye_scale *= 0.85
 	# 背景の光輪
 	_ellipse(Vector2(120, 140), Vector2(110, 110), Color(accent, 0.18))
 	# 後ろ髪
 	if style in ["long", "long_wavy"]:
 		draw_colored_polygon(PackedVector2Array([Vector2(62, 90), Vector2(178, 90), Vector2(190, 230), Vector2(50, 230)]), hair.darkened(0.1))
+	if style == "bob":
+		draw_colored_polygon(PackedVector2Array([Vector2(62, 90), Vector2(178, 90), Vector2(182, 178), Vector2(58, 178)]), hair.darkened(0.1))
 	if style == "tied":
 		_ellipse(Vector2(120, 62), Vector2(22, 18), hair.darkened(0.15))
 	# 肩と服
-	draw_colored_polygon(PackedVector2Array([Vector2(20, 300), Vector2(40, 228), Vector2(95, 205), Vector2(145, 205), Vector2(200, 228), Vector2(220, 300)]), outer)
+	var shp := PackedVector2Array()
+	for v in [Vector2(20, 300), Vector2(40, 228), Vector2(95, 205), Vector2(145, 205), Vector2(200, 228), Vector2(220, 300)]:
+		shp.append(Vector2(120 + (v.x - 120) * sh, v.y))
+	draw_colored_polygon(shp, outer)
 	draw_colored_polygon(PackedVector2Array([Vector2(98, 206), Vector2(142, 206), Vector2(120, 262)]), shirt)
 	if acc == "scarf":
 		draw_colored_polygon(PackedVector2Array([Vector2(92, 200), Vector2(148, 200), Vector2(140, 222), Vector2(100, 222)]), accent)
 		draw_colored_polygon(PackedVector2Array([Vector2(126, 218), Vector2(140, 218), Vector2(150, 262), Vector2(134, 262)]), accent.darkened(0.15))
 	# 首
-	draw_rect(Rect2(106, 168, 28, 40), shade)
+	draw_rect(Rect2(108 if band == "young" or female else 106, 168, 24 if band == "young" or female else 28, 40), shade)
 	# 顔
-	_ellipse(Vector2(120, 122), Vector2(52, 62), skin)
+	_ellipse(Vector2(120, 122 + (6 if band == "young" else 0)), face_r, skin)
 	_ellipse(Vector2(68, 128), Vector2(8, 13), shade)
 	_ellipse(Vector2(172, 128), Vector2(8, 13), shade)
 	# 目
@@ -88,7 +108,7 @@ func _draw() -> void:
 		elif expression == "tired":
 			draw_line(Vector2(x - 9, eye_y + 2), Vector2(x + 9, eye_y + 2), Color("2a2420"), 3.0)
 		else:
-			var big := 1.25 if expression == "surprised" else 1.0
+			var big: float = (1.25 if expression == "surprised" else 1.0) * eye_scale
 			_ellipse(Vector2(x, eye_y), Vector2(10, 8) * big, Color("f8f6f0"))
 			_ellipse(Vector2(x, eye_y), Vector2(5.5, 6.5) * big, accent.darkened(0.5))
 			_ellipse(Vector2(x + 2, eye_y - 2), Vector2(1.8, 1.8), Color.WHITE)
@@ -122,13 +142,29 @@ func _draw() -> void:
 			_ellipse(Vector2(120, 160), Vector2(6, 8), mouth)
 		_:
 			draw_line(Vector2(110, 159), Vector2(130, 159), mouth, 3.0)
+	# 顔の特徴・年齢の表現（誇張しすぎない）
+	if female and band != "young":
+		for side in [-1.0, 1.0]:
+			var ex: float = 120.0 + side * 23.0 + side * 11.0
+			draw_line(Vector2(ex, 120), Vector2(ex + side * 4.0, 116), Color("2a2420"), 2.0)
+	if band == "mature":
+		draw_line(Vector2(102, 140), Vector2(106, 152), shade.darkened(0.15), 1.5)
+		draw_line(Vector2(138, 140), Vector2(134, 152), shade.darkened(0.15), 1.5)
+		if not female:
+			_ellipse(Vector2(120, 162), Vector2(30, 16), Color(hair.r, hair.g, hair.b, 0.18))
+	match face_kind:
+		"freckles":
+			for f in [Vector2(92, 138), Vector2(99, 142), Vector2(96, 147), Vector2(148, 138), Vector2(141, 142), Vector2(144, 147)]:
+				_ellipse(f, Vector2(1.6, 1.6), shade.darkened(0.25))
+		"scarred":
+			draw_line(Vector2(84, 128), Vector2(94, 146), Color("9a5a50"), 2.5)
 	# 前髪
 	match style:
 		"spiky":
 			draw_colored_polygon(PackedVector2Array([Vector2(64, 112), Vector2(70, 60), Vector2(86, 80), Vector2(98, 46), Vector2(114, 74), Vector2(128, 40), Vector2(140, 72), Vector2(158, 50), Vector2(164, 82), Vector2(178, 66), Vector2(176, 112), Vector2(150, 92), Vector2(120, 98), Vector2(90, 92)]), hair)
 		"crop":
 			draw_colored_polygon(PackedVector2Array([Vector2(68, 104), Vector2(76, 70), Vector2(120, 56), Vector2(164, 70), Vector2(172, 104), Vector2(150, 84), Vector2(90, 84)]), hair)
-		"long", "long_wavy":
+		"long", "long_wavy", "bob":
 			draw_colored_polygon(PackedVector2Array([Vector2(62, 140), Vector2(66, 82), Vector2(96, 58), Vector2(144, 58), Vector2(174, 82), Vector2(178, 140), Vector2(166, 100), Vector2(130, 82), Vector2(104, 96), Vector2(76, 104)]), hair)
 		"tied":
 			draw_colored_polygon(PackedVector2Array([Vector2(66, 110), Vector2(74, 70), Vector2(120, 58), Vector2(166, 70), Vector2(174, 110), Vector2(156, 86), Vector2(84, 86)]), hair)

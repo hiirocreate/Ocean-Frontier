@@ -91,9 +91,9 @@ func _show_node(n: Dictionary) -> void:
 			_name_label.text = ""
 			portrait.visible = false
 		"player":
-			_name_label.text = "あなた"
+			_name_label.text = session.profile.name
 			portrait.visible = true
-			portrait.set_character("player", {}, str(n.get("expression", "normal")))
+			portrait.set_character("player", session.profile.look(session.data), str(n.get("expression", "normal")))
 		_:
 			_name_label.text = session.crew.display_name(sp)
 			portrait.visible = true

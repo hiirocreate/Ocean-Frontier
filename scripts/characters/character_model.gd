@@ -12,6 +12,8 @@ extends Node3D
 @export var scarf := Color("c2553d")
 var accessory := "scarf"
 var hair_style := "messy"
+var body: Dictionary = {}  # 体格（PlayerProfile.body_params_for）。空なら標準の大人体型
+var face := "soft"
 
 var _t := 0.0
 var _arm_l: Node3D
@@ -35,6 +37,9 @@ func apply_look(defn: Dictionary) -> void:
 	scarf = Color(str(c.get("accent", scarf.to_html())))
 	accessory = str(defn.get("accessory", ""))
 	hair_style = str(defn.get("hair_style", "short"))
+	face = str(defn.get("face", "soft"))
+	if defn.has("age"):
+		body = PlayerProfile.body_params_for(str(defn.get("gender", "male")), int(defn["age"]))
 
 
 func _ready() -> void:
@@ -91,6 +96,9 @@ func _ready() -> void:
 	_body.add_child(_leg_r)
 	# 背中の小さな鞄（漂流者の唯一の持ち物）
 	_body.add_child(LowPoly.box(Vector3(0.3, 0.32, 0.14), Color("7a5a3a"), Vector3(0, 1.12, -0.26)))
+	if face == "scarred":
+		_body.add_child(LowPoly.box(Vector3(0.02, 0.08, 0.02), Color("9a5a50"), Vector3(-0.12, 1.62, 0.17)))
+	_apply_body()
 	# 描画呼び出しを減らすため、動かない部分と各手足をそれぞれ1メッシュに結合する
 	for limb in [_arm_l, _arm_r, _leg_l, _leg_r]:
 		LowPoly.merge_in_place(limb)
@@ -104,6 +112,38 @@ func _ready() -> void:
 
 
 ## 肩/股関節を支点にぶら下がる手足。
+## 年齢・性別による体格。縮小だけでなく頭身・肩幅・手足の長さの比率を変える（仕様: 若年層の外見）
+func _apply_body() -> void:
+	if body.is_empty():
+		return
+	var limb := float(body["limb"])
+	var head := float(body["head"])
+	var shoulder := float(body["shoulder"])
+	var lift := 0.82 * (limb - 1.0)
+	for leg in [_leg_l, _leg_r]:
+		leg.scale.y = limb
+		leg.position.y = 0.82 * limb
+	for c in _body.get_children():
+		if c in [_leg_l, _leg_r, _arm_l, _arm_r] or not (c is Node3D):
+			continue
+		var n := c as Node3D
+		if n.position.y >= 1.5:
+			# 頭部：頭の中心（y=1.66）を基準に拡大
+			n.position = Vector3(n.position.x * head, 1.66 + lift + (n.position.y - 1.66) * head, n.position.z * head)
+			n.scale *= head
+		else:
+			n.position.y += lift
+			if n.position.y > 0.95 + lift:
+				n.scale.x *= shoulder
+			else:
+				n.scale.x *= float(body["hip"])
+	for arm in [_arm_l, _arm_r]:
+		arm.position = Vector3(arm.position.x * shoulder, arm.position.y + lift, arm.position.z)
+		arm.scale.y = limb
+	scale = Vector3.ONE * float(body["height"])
+	rotation.x = float(body.get("posture", 0.0))
+
+
 func _limb(pivot: Vector3, r: float, length: float, upper: Color, end_color: Color) -> Node3D:
 	var n := Node3D.new()
 	n.position = pivot

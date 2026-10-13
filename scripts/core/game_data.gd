@@ -24,7 +24,11 @@ const DATA_FILES := {
 	"quests": ["res://data/quests/quests.json", "quests"],
 	"random_events": ["res://data/events/random_events.json", "random_events"],
 	"endings": ["res://data/endings/endings.json", "endings"],
+	"backgrounds": ["res://data/player/backgrounds.json", "backgrounds"],
+	"player_traits": ["res://data/player/player_traits.json", "player_traits"],
+	"age_bands": ["res://data/player/age_bands.json", "age_bands"],
 }
+const APPEARANCE_FILE := "res://data/player/appearance.json"
 const BALANCE_FILE := "res://data/balance_config.json"
 
 var items: Dictionary = {}
@@ -46,6 +50,10 @@ var story_flags: Dictionary = {}
 var quests: Dictionary = {}
 var random_events: Dictionary = {}
 var endings: Dictionary = {}
+var backgrounds: Dictionary = {}
+var player_traits: Dictionary = {}
+var age_bands: Dictionary = {}
+var appearance: Dictionary = {}  # 外見の選択肢 {hair_styles: [...], ...}
 var balance: Dictionary = {}
 var load_errors: Array[String] = []
 
@@ -77,6 +85,11 @@ func load_all() -> bool:
 	quests = _load_list("quests")
 	random_events = _load_list("random_events")
 	endings = _load_list("endings")
+	backgrounds = _load_list("backgrounds")
+	player_traits = _load_list("player_traits")
+	age_bands = _load_list("age_bands")
+	var ap: Variant = _read_json(APPEARANCE_FILE)
+	appearance = ap.get("appearance", {}) if ap is Dictionary else {}
 	# アイコンの既定パス（assets/items/<id>.png）
 	for id in items:
 		if str(items[id].get("icon", "")) == "":
