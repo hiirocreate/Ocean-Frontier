@@ -79,6 +79,8 @@ func _ready() -> void:
 	hud.dialogue_panel.closed.connect(_on_dialogue_closed)
 	session.crew.changed.connect(_rebuild_crew)
 	_rebuild_crew()
+	session.fleet.changed.connect(_rebuild_ships)
+	_rebuild_ships()
 	raft_view.ghost_selected.connect(func(t): hud.select_build_tile(t))
 	Game.settings_changed.connect(_apply_quality)
 	_apply_quality()
@@ -222,6 +224,19 @@ func _update_weather(delta: float) -> void:
 	rain.global_position = raft_root.global_position + Vector3(0, 18, 0)
 
 
+## 作業中の仲間は手を動かす（夜は休む）
+func _update_crew_anim() -> void:
+	if crew_root == null:
+		return
+	var resting := session.crew.is_resting(session)
+	for m in crew_root.get_children():
+		var id := str(m.get_meta("member", ""))
+		if id == "" or not session.crew.members.has(id):
+			continue
+		m.working = not resting and str(session.crew.members[id]["job"]) != "idle"
+		m.resting = resting
+
+
 func _update_audio() -> void:
 	Audio.set_ambient("amb_ocean", 0.55 + 0.3 * _weather_mix)
 	Audio.set_ambient("amb_rain", 0.6 if session.weather_type() == "rain" else 0.0)
@@ -248,6 +263,7 @@ func _process(delta: float) -> void:
 	_update_lighting()
 	_update_weather(delta)
 	_update_audio()
+	_update_crew_anim()
 	_update_debris(delta)
 	_update_encounter(delta)
 	_check_pending_dialogue()
@@ -551,6 +567,29 @@ func _on_dialogue_closed(_id: String) -> void:
 		session.flags["encounter_cooldown_until"] = session.clock.total_minutes + 180.0
 
 
+# ---------- 停泊中の船 ----------
+var ships_root: Node3D
+
+
+func _rebuild_ships() -> void:
+	if ships_root == null:
+		ships_root = Node3D.new()
+		raft_root.add_child(ships_root)
+	for c in ships_root.get_children():
+		c.queue_free()
+	var minx := 0
+	for p in session.raft.tile_positions():
+		minx = mini(minx, p.x)
+	var i := 0
+	for uid in session.fleet.ships:
+		if not session.fleet.at_home(uid):
+			continue
+		var m := ShipModels.make(str(session.fleet.ships[uid]["type"]))
+		m.position = Vector3((minx - 2) * raft_view.tile_size - i * 4.5, -0.1, raft_view.center_local().z)
+		ships_root.add_child(m)
+		i += 1
+
+
 # ---------- 仲間の表示 ----------
 func _rebuild_crew() -> void:
 	if crew_root == null:
@@ -569,6 +608,7 @@ func _rebuild_crew() -> void:
 		var offset := Vector3(0.5, 0, 0.4) if i >= free_tiles.size() else Vector3.ZERO
 		m.position = raft_view.tile_to_local(tile) + Vector3(0, 0.08, 0) + offset
 		m.rotation.y = float(hash(id) % 628) / 100.0
+		m.set_meta("member", id)
 		crew_root.add_child(m)
 		i += 1
 

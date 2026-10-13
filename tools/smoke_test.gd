@@ -75,7 +75,8 @@ func _run() -> void:
 	check(moved > 1.0, "筏が移動した (%.2fm)" % moved)
 	check(s.raft_position.distance_to(Vector3(w.raft_root.position.x, 0, w.raft_root.position.z)) < 0.01, "セッションに位置が反映")
 
-	# 2) 漂流物を回収 → 3) インベントリに追加
+	# 2) 漂流物を回収 → 3) インベントリに追加（抽選の偏りで重量上限に達しないよう余裕を持たせる）
+	s.inventory.max_weight += 100.0
 	var guard := 0
 	while (s.inventory.count("wood") < 8 or s.inventory.count("rope") < 4) and guard < 60:
 		guard += 1
@@ -261,6 +262,10 @@ func _run() -> void:
 	s.inventory.add_many({"water_bottle": 4}, true)
 	var mr := s.start_fleet_mission(ship, "scout", "merchant_convoy")
 	check(mr["ok"], "艦隊任務を開始 %s" % str(mr.get("problems", [])))
+	var dock := s.fleet.add_ship("gunboat", s.clock.day())
+	await frames(5)
+	check(w.ships_root.get_child_count() >= 1, "港の船が3Dで表示される")
+	await shot("16b_docked_ship")
 	w.hud.fleet_panel.open()
 	await frames(5)
 	await shot("17_fleet")

@@ -20,6 +20,8 @@ var _leg_l: Node3D
 var _leg_r: Node3D
 var _body: Node3D
 var moving := false
+var working := false  # 作業中（腕を振る）
+var resting := false  # 休憩中（座る）
 
 
 ## survivors.json の定義から外見を設定（add_child の前に呼ぶ）
@@ -111,10 +113,15 @@ func _limb(pivot: Vector3, r: float, length: float, upper: Color, end_color: Col
 
 
 func _process(delta: float) -> void:
-	_t += delta * (7.0 if moving else 1.6)
+	_t += delta * (7.0 if moving else (5.0 if working else 1.6))
 	var swing := sin(_t) * (0.55 if moving else 0.05)
 	_arm_l.rotation.x = swing
 	_arm_r.rotation.x = -swing
-	_leg_l.rotation.x = -swing * 0.8 if moving else 0.0
-	_leg_r.rotation.x = swing * 0.8 if moving else 0.0
-	_body.position.y = absf(sin(_t)) * 0.04 if moving else sin(_t) * 0.01
+	if working and not moving:
+		# 金槌を振るような動き
+		_arm_r.rotation.x = -1.2 - absf(sin(_t)) * 0.9
+		_arm_l.rotation.x = -0.4
+	_leg_l.rotation.x = -swing * 0.8 if moving else (-1.4 if resting else 0.0)
+	_leg_r.rotation.x = swing * 0.8 if moving else (-1.4 if resting else 0.0)
+	var base_y := -0.45 if resting and not moving else 0.0
+	_body.position.y = base_y + (absf(sin(_t)) * 0.04 if moving else sin(_t) * 0.01)
