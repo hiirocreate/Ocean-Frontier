@@ -9,10 +9,14 @@
 | アイテムアイコン | `assets/items/*.png` | `tools/generate_icons.gd` で図形描画 | プロジェクト独自 | UI |
 | ランチャーアイコン | `assets/ui/icon_*.png` | `assets/ui/icon.svg` から生成 | プロジェクト独自 | Android |
 | 3D仮モデル一式 | `scripts/characters/character_model.gd`, `scripts/world/raft_view.gd`, `scripts/world/debris.gd` | 本プロジェクトでコード生成 | プロジェクト独自 | 主人公・筏・漂流物 |
+| 主人公セル調立ち絵（青年層） | `assets/characters/portraits/protagonist_youth_cel.svg` | `tools/art/gen_protagonist_svg.py` で生成 | プロジェクト独自 | 立ち絵・作成画面（予定） |
+| 斧のローポリモデル | `assets/items/models/axe.glb` | `tools/blender/axe_lowpoly.py`（Blender 5.2 / bpy で生成） | プロジェクト独自 | アイテム表示・手持ち（予定） |
+| トゥーンシェーダー | `assets/shaders/toon_cel.gdshader`, `assets/shaders/toon_outline.gdshader` | 本プロジェクトで作成 | プロジェクト独自 | セルルック描画 |
 
 ## ソフトウェア
 | ソフトウェア | ライセンス | 備考 |
 |---|---|---|
+| Blender（bpy 5.2.2） | GPL（生成物の .glb は制作者に帰属） | 斧モデル生成。ゲームには同梱しない |
 | Godot Engine 4.3 | MIT | ゲーム本体に同梱される。ビルドの「著作権表示」に Godot のライセンス表記が必要 |
 
 有料素材・有料APIは使用していない。

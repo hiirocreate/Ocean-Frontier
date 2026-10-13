@@ -39,3 +39,10 @@
 
 ## 撮影による確認
 `xvfb-run ... --script res://tools/smoke_test.gd` で `build/screenshots/` に昼・建築・夜の画面を出力し、色調の確認に使う。
+
+## セルルック素材（追加）
+- 2D立ち絵（SVG）: 輪郭 `#1A1A2E`、ベース面と影面（2度塗り）を別パスに分け、影面はベース形状でクリップする。グラデーションは使わない。基調色は深海ブルー `#0A192F`・星痕ゴールド `#FFD700`・魔力ライトブルー `#00F2FE`。生成元は `tools/art/gen_protagonist_svg.py`。
+- 3D: `Toon.material(color)` / `Toon.apply(node)`（scripts/visual/toon.gd）で `toon_cel` ＋ 輪郭線（next_pass の `toon_outline`）を適用する。
+- フラットシェーディングで頂点を結合したメッシュ（現在のキャラクター・筏）は、角で輪郭線が割れることがある。滑らかな法線を持つメッシュで使うか、`extrude_from_center` を使う。
+- Blender素材は `tools/blender/*.py` で生成し、三角形数の上限をスクリプト内で検証する（小物は200以下）。
+- 確認: `xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --script res://tools/art/preview_assets.gd` → `build/screenshots/art_preview.png`

@@ -108,6 +108,7 @@
 | T-905 | 外見差分（年齢帯・性別の体格と立ち絵の描き分け、外見の選択肢） | 中 | 実装済み | E2E撮影（若年層と成人の比較） | 正式イラスト・Blenderモデル（T-801） |
 | T-906 | セーブ・ロード（profile とスキーマ version 2、旧セーブの移行） | 高 | 検証済み | test_save_load_keeps_profile_and_migrates_old_saves | — |
 | T-907 | 能力のゲームへの反映（生存・修理・観察・交渉・医療・航海・戦闘・指揮・学習） | 中 | 検証済み | test_profile_drives_dialogue_look_abilities_events | 数値バランスの実プレイ調整 |
+| T-908 | セルルック素材: 主人公SVG立ち絵・斧ローポリ（Blender Python）・トゥーンシェーダー＋輪郭線 | 中 | 実装済み | tools/art/preview_assets.gd（読込・三角形数・適用・描画） | ゲーム画面への組み込み（立ち絵の差し替え、全体のセルルック化）は未実施 |
 
 ## 次に行うタスク
 1. ユーザーの実機（Android）での動作確認と不具合修正（KI-001）
