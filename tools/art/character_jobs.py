@@ -15,7 +15,7 @@ FULL = "full body, standing, straight-on, front view, arms at sides, looking at 
 NPC = {
     "mira": ("1girl, solo, original, adult woman, marine researcher, round glasses, long brown hair, gentle eyes, "
              "white waterproof coat, light gray-blue shirt, small data terminal hanging from neck", 1101),
-    "tobi": ("1boy, solo, original, teenage boy, young mechanic, spiky orange hair, goggles on head, oil stain on cheek, "
+    "tobi": ("1boy, solo, original, teenage boy, mechanic, spiky orange hair, goggles on head, oil stain on cheek, "
              "ochre jacket, tool belt, energetic", 1202),
     "garrett": ("1boy, solo, original, old man, former soldier, short gray hair, stubble, muscular, scar on arm, "
                 "olive military jacket, stern", 1303),
@@ -42,6 +42,8 @@ EXPR = {
     "surprised": "surprised, open mouth, wide-eyed",
 }
 PLAYER_EXPR = ["smile", "sad", "surprised"]  # 主人公はこの3種（怒りは通常で代用）
+# 全身画像の乱数シードの個別指定（頭が切れた・背景に大きな物が入った画像を選び直した結果）
+FULL_SEED = {"garrett": 1371, "tobi": 1277}
 
 
 def characters():
@@ -57,7 +59,8 @@ def main() -> None:
     for cid, desc, seed, exprs in characters():
         if mode == "base":
             jobs.append({"id": f"{cid}_normal", "prompt": f"{desc}, {PORTRAIT}, {STYLE}", "seed": seed, "w": 768, "h": 1024})
-            jobs.append({"id": f"{cid}_full", "prompt": f"{desc}, {FULL}, {STYLE}", "seed": seed + 50, "w": 832, "h": 1216})
+            jobs.append({"id": f"{cid}_full", "prompt": f"{desc}, {FULL}, {STYLE}", "seed": FULL_SEED.get(cid, seed + 50),
+                         "w": 832, "h": 1216})
         else:
             for e in exprs:
                 jobs.append({"id": f"{cid}_{e}", "prompt": f"{desc}, {EXPR[e]}, {PORTRAIT}, {STYLE}", "seed": seed,
