@@ -79,6 +79,65 @@
         "minutes": 480,
         "max_stored": 4
       }
+    },
+    {
+      "id": "medical_station",
+      "name": "医療設備",
+      "kind": "building",
+      "description": "医療用品を作り、負傷した仲間の回復を早める。",
+      "max_durability": 60,
+      "build_action": "build_medical_station",
+      "heal_bonus": 1.5
+    },
+    {
+      "id": "weapon_bench",
+      "name": "武器製作台",
+      "kind": "building",
+      "description": "刃物・弾薬・船の武器を作る。",
+      "max_durability": 90,
+      "build_action": "build_weapon_bench"
+    },
+    {
+      "id": "shipyard",
+      "name": "船舶修理台",
+      "kind": "building",
+      "description": "船の建造と修理に必要。",
+      "max_durability": 120,
+      "build_action": "build_shipyard"
+    },
+    {
+      "id": "radio_station",
+      "name": "通信設備",
+      "kind": "building",
+      "description": "アンテナと増幅器。遠くの通信を傍受する。",
+      "max_durability": 60,
+      "build_action": "build_radio_station"
+    },
+    {
+      "id": "defense_wall",
+      "name": "防御柵",
+      "kind": "building",
+      "description": "襲撃に備える尖った柵。戦闘時の防御が上がる。",
+      "max_durability": 100,
+      "build_action": "build_defense_wall",
+      "combat_defense": 4
+    },
+    {
+      "id": "prison",
+      "name": "捕虜の檻",
+      "kind": "building",
+      "description": "捕虜を収容する。",
+      "max_durability": 100,
+      "build_action": "build_prison",
+      "prison_capacity": 2
+    },
+    {
+      "id": "research_desk",
+      "name": "研究机",
+      "kind": "building",
+      "description": "記録の解析や装置の研究を行う。",
+      "max_durability": 60,
+      "build_action": "build_research_desk"
     }
   ]
 }

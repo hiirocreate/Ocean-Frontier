@@ -1,0 +1,1032 @@
+{
+ "_comment": "追加の行動（装備・探索・設備）。keep_items=所持が必要だが消費しないアイテム。",
+ "actions": [
+  {
+   "id": "craft_harpoon",
+   "name": "銛を作る",
+   "category": "craft",
+   "duration_minutes": 15,
+   "inputs": {
+    "wood": 3,
+    "scrap_metal": 2,
+    "rope": 1
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 1,
+     "wear": 2
+    }
+   ],
+   "facilities": [
+    "workbench"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {
+    "harpoon": 1
+   },
+   "fatigue": 2
+  },
+  {
+   "id": "craft_machete",
+   "name": "山刀を作る",
+   "category": "craft",
+   "duration_minutes": 20,
+   "inputs": {
+    "scrap_metal": 4,
+    "wood": 1,
+    "cloth": 1
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 1,
+     "wear": 3
+    }
+   ],
+   "facilities": [
+    "weapon_bench"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {
+    "machete": 1
+   },
+   "fatigue": 2
+  },
+  {
+   "id": "craft_bow",
+   "name": "弓を作る",
+   "category": "craft",
+   "duration_minutes": 20,
+   "inputs": {
+    "wood": 3,
+    "rope": 2,
+    "plastic": 1
+   },
+   "tools": [],
+   "facilities": [
+    "workbench"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {
+    "bow": 1
+   },
+   "fatigue": 2
+  },
+  {
+   "id": "craft_leather_armor",
+   "name": "革の防具を作る",
+   "category": "craft",
+   "duration_minutes": 30,
+   "inputs": {
+    "cloth": 5,
+    "rope": 2,
+    "scrap_metal": 1
+   },
+   "tools": [],
+   "facilities": [
+    "workbench"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {
+    "leather_armor": 1
+   },
+   "fatigue": 2
+  },
+  {
+   "id": "craft_scrap_shield",
+   "name": "廃材の盾を作る",
+   "category": "craft",
+   "duration_minutes": 20,
+   "inputs": {
+    "scrap_metal": 4,
+    "wood": 2
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 1,
+     "wear": 2
+    }
+   ],
+   "facilities": [],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {
+    "scrap_shield": 1
+   },
+   "fatigue": 2
+  },
+  {
+   "id": "craft_ammo",
+   "name": "弾薬を作る",
+   "category": "craft",
+   "duration_minutes": 20,
+   "inputs": {
+    "scrap_metal": 1,
+    "fuel": 1
+   },
+   "tools": [],
+   "facilities": [
+    "weapon_bench"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {
+    "ammo": 6
+   },
+   "fatigue": 2
+  },
+  {
+   "id": "craft_diving_gear",
+   "name": "潜水装備を作る",
+   "category": "craft",
+   "duration_minutes": 40,
+   "inputs": {
+    "plastic": 4,
+    "cloth": 2,
+    "rope": 2,
+    "scrap_metal": 2
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 1,
+     "wear": 2
+    }
+   ],
+   "facilities": [
+    "workbench"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {
+    "diving_gear": 1
+   },
+   "fatigue": 2
+  },
+  {
+   "id": "craft_oxygen_tank",
+   "name": "酸素ボンベを作る",
+   "category": "craft",
+   "duration_minutes": 25,
+   "inputs": {
+    "scrap_metal": 3,
+    "plastic": 2,
+    "tool_parts": 1
+   },
+   "tools": [],
+   "facilities": [
+    "workbench"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {
+    "oxygen_tank": 1
+   },
+   "fatigue": 2
+  },
+  {
+   "id": "craft_repair_supplies",
+   "name": "修理用消耗品を作る",
+   "category": "craft",
+   "duration_minutes": 10,
+   "inputs": {
+    "wood": 3,
+    "scrap_metal": 1
+   },
+   "tools": [],
+   "facilities": [],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {
+    "repair_supplies": 2
+   },
+   "fatigue": 2
+  },
+  {
+   "id": "craft_medkit",
+   "name": "医療用品を作る",
+   "category": "craft",
+   "duration_minutes": 30,
+   "inputs": {
+    "cloth": 2,
+    "fuel": 1,
+    "plastic": 1
+   },
+   "tools": [],
+   "facilities": [
+    "medical_station"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {
+    "medkit": 1
+   },
+   "fatigue": 2
+  },
+  {
+   "id": "craft_radio",
+   "name": "無線機を作る",
+   "category": "craft",
+   "duration_minutes": 60,
+   "inputs": {
+    "electronics": 3,
+    "tool_parts": 2,
+    "scrap_metal": 2
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 1,
+     "wear": 1
+    }
+   ],
+   "facilities": [
+    "workbench"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {
+    "radio": 1
+   },
+   "fatigue": 2
+  },
+  {
+   "id": "craft_survey_kit",
+   "name": "測量機器を作る",
+   "category": "craft",
+   "duration_minutes": 45,
+   "inputs": {
+    "electronics": 1,
+    "tool_parts": 2,
+    "scrap_metal": 2
+   },
+   "tools": [],
+   "facilities": [
+    "workbench"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {
+    "survey_kit": 1
+   },
+   "fatigue": 2
+  },
+  {
+   "id": "craft_resonance_scanner",
+   "name": "共鳴探知機を作る",
+   "category": "craft",
+   "duration_minutes": 120,
+   "inputs": {
+    "electronics": 3,
+    "tool_parts": 2,
+    "comm_device": 1
+   },
+   "tools": [],
+   "facilities": [
+    "research_desk"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {
+    "resonance_scanner": 1
+   },
+   "fatigue": 2
+  },
+  {
+   "id": "craft_hull_plank",
+   "name": "船体部品を作る",
+   "category": "craft",
+   "duration_minutes": 15,
+   "inputs": {
+    "wood": 4,
+    "rope": 1
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 1,
+     "wear": 1
+    }
+   ],
+   "facilities": [],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {
+    "hull_plank": 1
+   },
+   "fatigue": 2
+  },
+  {
+   "id": "craft_sail_cloth",
+   "name": "帆を作る",
+   "category": "craft",
+   "duration_minutes": 20,
+   "inputs": {
+    "cloth": 6,
+    "rope": 2
+   },
+   "tools": [],
+   "facilities": [],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {
+    "sail_cloth": 1
+   },
+   "fatigue": 2
+  },
+  {
+   "id": "craft_rudder",
+   "name": "舵を作る",
+   "category": "craft",
+   "duration_minutes": 20,
+   "inputs": {
+    "wood": 4,
+    "scrap_metal": 2
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 1,
+     "wear": 1
+    }
+   ],
+   "facilities": [
+    "workbench"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {
+    "rudder": 1
+   },
+   "fatigue": 2
+  },
+  {
+   "id": "craft_ship_cannon",
+   "name": "武器設備を作る",
+   "category": "craft",
+   "duration_minutes": 45,
+   "inputs": {
+    "scrap_metal": 6,
+    "wood": 3,
+    "rope": 2
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 1,
+     "wear": 3
+    }
+   ],
+   "facilities": [
+    "weapon_bench"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {
+    "ship_cannon": 1
+   },
+   "fatigue": 2
+  },
+  {
+   "id": "craft_cargo_crate",
+   "name": "収納設備を作る",
+   "category": "craft",
+   "duration_minutes": 15,
+   "inputs": {
+    "wood": 5,
+    "scrap_metal": 1
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 1,
+     "wear": 1
+    }
+   ],
+   "facilities": [],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {
+    "cargo_crate": 1
+   },
+   "fatigue": 2
+  },
+  {
+   "id": "craft_armor_plate",
+   "name": "装甲を作る",
+   "category": "craft",
+   "duration_minutes": 30,
+   "inputs": {
+    "scrap_metal": 6
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 1,
+     "wear": 2
+    }
+   ],
+   "facilities": [
+    "workbench"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {
+    "armor_plate": 1
+   },
+   "fatigue": 2
+  },
+  {
+   "id": "decode_data",
+   "name": "暗号化データを解析する",
+   "category": "craft",
+   "duration_minutes": 120,
+   "inputs": {
+    "encrypted_data": 1
+   },
+   "tools": [],
+   "facilities": [
+    "research_desk"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.0
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {
+    "decoded_report": 1
+   },
+   "fatigue": 4
+  },
+  {
+   "id": "listen_radio",
+   "name": "無線を傍受する",
+   "category": "rest",
+   "duration_minutes": 60,
+   "inputs": {},
+   "tools": [
+    {
+     "item": "radio",
+     "min_durability": 1,
+     "wear": 1
+    }
+   ],
+   "facilities": [
+    "radio_station"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "fatigue": 1,
+   "effect": "story_beat",
+   "effect_params": {
+    "flags": {
+     "radio_coordinates": true
+    },
+    "reveal_sites": [
+     "atlas_outpost"
+    ],
+    "text": "雑音の奥から座標が読み上げられた。北の海溝だ。"
+   }
+  },
+  {
+   "id": "explore_surface",
+   "name": "探索する（甲板）",
+   "category": "explore",
+   "duration_minutes": 30,
+   "inputs": {},
+   "tools": [],
+   "facilities": [],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "fatigue": 6,
+   "effect": "explore_site"
+  },
+  {
+   "id": "explore_ruin",
+   "name": "探索する（廃墟）",
+   "category": "explore",
+   "duration_minutes": 45,
+   "inputs": {},
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 1,
+     "wear": 2
+    }
+   ],
+   "facilities": [],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "fatigue": 8,
+   "effect": "explore_site"
+  },
+  {
+   "id": "explore_underwater",
+   "name": "潜水して探索する",
+   "category": "explore",
+   "duration_minutes": 40,
+   "inputs": {
+    "oxygen_tank": 1
+   },
+   "tools": [
+    {
+     "item": "diving_gear",
+     "min_durability": 1,
+     "wear": 3
+    }
+   ],
+   "facilities": [],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 0.9,
+   "on_fail": {
+    "lose_ratio": 1.0
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "fatigue": 10,
+   "effect": "explore_site"
+  },
+  {
+   "id": "explore_research",
+   "name": "研究施設に潜入する",
+   "category": "explore",
+   "duration_minutes": 60,
+   "inputs": {
+    "oxygen_tank": 2
+   },
+   "tools": [
+    {
+     "item": "diving_gear",
+     "min_durability": 1,
+     "wear": 3
+    },
+    {
+     "item": "repair_kit",
+     "min_durability": 1,
+     "wear": 2
+    }
+   ],
+   "facilities": [],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 0.9,
+   "on_fail": {
+    "lose_ratio": 1.0
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "fatigue": 12,
+   "effect": "explore_site"
+  },
+  {
+   "id": "explore_core",
+   "name": "アトラス中枢へ潜る",
+   "category": "explore",
+   "duration_minutes": 90,
+   "inputs": {
+    "oxygen_tank": 3
+   },
+   "tools": [
+    {
+     "item": "diving_gear",
+     "min_durability": 2,
+     "wear": 4
+    },
+    {
+     "item": "resonance_scanner",
+     "min_durability": 1,
+     "wear": 5
+    }
+   ],
+   "facilities": [],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 1.0
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "fatigue": 15,
+   "keep_items": {
+    "old_key": 1
+   },
+   "effect": "explore_site"
+  },
+  {
+   "id": "build_medical_station",
+   "name": "医療設備を建てる",
+   "category": "build",
+   "duration_minutes": 40,
+   "inputs": {
+    "wood": 6,
+    "cloth": 4,
+    "plastic": 2
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 1,
+     "wear": 2
+    }
+   ],
+   "facilities": [],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "fatigue": 4,
+   "effect": "place_building",
+   "effect_params": {
+    "building": "medical_station"
+   }
+  },
+  {
+   "id": "build_weapon_bench",
+   "name": "武器製作台を建てる",
+   "category": "build",
+   "duration_minutes": 40,
+   "inputs": {
+    "wood": 6,
+    "scrap_metal": 6,
+    "rope": 2
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 1,
+     "wear": 2
+    }
+   ],
+   "facilities": [
+    "workbench"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "fatigue": 4,
+   "effect": "place_building",
+   "effect_params": {
+    "building": "weapon_bench"
+   }
+  },
+  {
+   "id": "build_shipyard",
+   "name": "船舶修理台を建てる",
+   "category": "build",
+   "duration_minutes": 60,
+   "inputs": {
+    "wood": 12,
+    "scrap_metal": 6,
+    "rope": 4
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 1,
+     "wear": 2
+    }
+   ],
+   "facilities": [],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "fatigue": 4,
+   "effect": "place_building",
+   "effect_params": {
+    "building": "shipyard"
+   }
+  },
+  {
+   "id": "build_radio_station",
+   "name": "通信設備を建てる",
+   "category": "build",
+   "duration_minutes": 60,
+   "inputs": {
+    "scrap_metal": 6,
+    "electronics": 2,
+    "rope": 2,
+    "wood": 4
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 1,
+     "wear": 2
+    }
+   ],
+   "facilities": [],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "fatigue": 4,
+   "effect": "place_building",
+   "effect_params": {
+    "building": "radio_station"
+   }
+  },
+  {
+   "id": "build_defense_wall",
+   "name": "防御柵を建てる",
+   "category": "build",
+   "duration_minutes": 30,
+   "inputs": {
+    "wood": 8,
+    "scrap_metal": 3
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 1,
+     "wear": 2
+    }
+   ],
+   "facilities": [],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "fatigue": 4,
+   "effect": "place_building",
+   "effect_params": {
+    "building": "defense_wall"
+   }
+  },
+  {
+   "id": "build_prison",
+   "name": "捕虜の檻を建てる",
+   "category": "build",
+   "duration_minutes": 40,
+   "inputs": {
+    "scrap_metal": 8,
+    "wood": 4,
+    "rope": 2
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 1,
+     "wear": 2
+    }
+   ],
+   "facilities": [],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "fatigue": 4,
+   "effect": "place_building",
+   "effect_params": {
+    "building": "prison"
+   }
+  },
+  {
+   "id": "build_research_desk",
+   "name": "研究机を建てる",
+   "category": "build",
+   "duration_minutes": 45,
+   "inputs": {
+    "wood": 6,
+    "electronics": 1,
+    "tool_parts": 2,
+    "cloth": 2
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 1,
+     "wear": 2
+    }
+   ],
+   "facilities": [],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "fatigue": 4,
+   "effect": "place_building",
+   "effect_params": {
+    "building": "research_desk"
+   }
+  }
+ ]
+}

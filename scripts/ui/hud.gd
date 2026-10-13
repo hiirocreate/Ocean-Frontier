@@ -22,6 +22,14 @@ var build_button: Button
 var bag_button: Button
 var crew_button: Button
 var crew_panel: CrewPanel
+var combat_panel: CombatPanel
+var map_panel: MapPanel
+var map_button: Button
+var inspect_button: Button
+var _site_panel: PanelContainer
+var _site_info: VBoxContainer
+var _site_id := ""
+var _nav_label: Label
 var dialogue_panel: DialoguePanel
 var menu_button: Button
 var _inventory_panel: PanelContainer
@@ -69,9 +77,31 @@ func setup(s: GameSession) -> void:
 	crew_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
 	crew_panel.talk_requested.connect(_on_talk)
 	session.crew.changed.connect(func(): if crew_panel.visible: crew_panel.refresh())
+	map_panel = MapPanel.new()
+	root.add_child(map_panel)
+	map_panel.setup(session)
+	map_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	map_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	map_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	_site_panel = PanelContainer.new()
+	_site_panel.custom_minimum_size = Vector2(500, 0)
+	_site_panel.visible = false
+	_site_info = VBoxContainer.new()
+	_site_panel.add_child(_site_info)
+	root.add_child(_site_panel)
+	_site_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 24)
+	_site_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_site_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_shift_left(_site_panel)
 	dialogue_panel = DialoguePanel.new()
 	root.add_child(dialogue_panel)
 	dialogue_panel.setup(session)
+	combat_panel = CombatPanel.new()
+	root.add_child(combat_panel)
+	combat_panel.setup(session)
+	combat_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	combat_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	combat_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
 	session.inventory.changed.connect(_queue_refresh)
 	session.actions.job_completed.connect(func(_j, _r): _queue_refresh())
 	session.raft.changed.connect(_queue_refresh)
@@ -140,21 +170,39 @@ func _build_controls() -> void:
 	grid.add_child(bag_button)
 	grid.add_child(build_button)
 	grid.add_child(crew_button)
+	inspect_button = UiTheme.button("調べる", Vector2(380, 76))
+	inspect_button.visible = false
+	inspect_button.pressed.connect(func(): show_site_panel(_site_id))
 	var wrap := VBoxContainer.new()
 	wrap.add_theme_constant_override("separation", 16)
 	wrap.add_child(grid)
+	wrap.add_child(inspect_button)
 	wrap.add_child(collect_button)
 	root.add_child(wrap)
 	wrap.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 36)
+	wrap.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	wrap.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	collect_button.pressed.connect(func(): collect_pressed.emit())
 	build_button.pressed.connect(func(): set_build_mode(not build_mode))
 	bag_button.pressed.connect(toggle_inventory)
 	crew_button.pressed.connect(toggle_crew)
 
 	menu_button = UiTheme.button("メニュー", Vector2(140, 64))
-	root.add_child(menu_button)
-	menu_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 20)
+	var top := HBoxContainer.new()
+	top.add_theme_constant_override("separation", 12)
+	map_button = UiTheme.button("海図", Vector2(110, 64))
+	map_button.pressed.connect(toggle_map)
+	top.add_child(map_button)
+	top.add_child(menu_button)
+	root.add_child(top)
+	top.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 20)
+	top.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	menu_button.pressed.connect(toggle_menu)
+	_nav_label = UiTheme.label("", 20, UiTheme.C_GOLD)
+	_nav_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	root.add_child(_nav_label)
+	_nav_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 130)
+	_nav_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
 
 
 func _build_jobs() -> void:
@@ -211,7 +259,7 @@ func _scroll_tab(title: String) -> VBoxContainer:
 
 func _build_build_panel() -> void:
 	_build_panel = PanelContainer.new()
-	_build_panel.custom_minimum_size = Vector2(520, 0)
+	_build_panel.custom_minimum_size = Vector2(500, 0)
 	_build_panel.visible = false
 	_build_info = VBoxContainer.new()
 	_build_panel.add_child(_build_info)
@@ -219,11 +267,18 @@ func _build_build_panel() -> void:
 	_build_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 24)
 	_build_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_build_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_shift_left(_build_panel)
+
+
+## 画面下中央のパネルを右下のボタン群と重ならないよう左に寄せる
+func _shift_left(c: Control) -> void:
+	c.offset_left -= 110
+	c.offset_right -= 110
 
 
 func _build_building_panel() -> void:
 	_building_panel = PanelContainer.new()
-	_building_panel.custom_minimum_size = Vector2(520, 0)
+	_building_panel.custom_minimum_size = Vector2(500, 0)
 	_building_panel.visible = false
 	_building_info = VBoxContainer.new()
 	_building_panel.add_child(_building_info)
@@ -231,6 +286,7 @@ func _build_building_panel() -> void:
 	_building_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 24)
 	_building_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_building_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_shift_left(_building_panel)
 
 
 func _build_menu() -> void:
@@ -276,8 +332,9 @@ func _process(_delta: float) -> void:
 	_weight_label.text = "重量 %.1f / %.0f   効率 %d%%" % [session.inventory.total_weight(), session.inventory.max_weight, int(sv.efficiency() * 100)]
 	_update_jobs()
 	_update_sleep_overlay()
+	_update_nav()
 	_panel_timer += _delta
-	if _panel_timer > 1.0 and _building_panel.visible:
+	if _panel_timer > 1.0 and (_building_panel.visible or _site_panel.visible):
 		_panel_timer = 0.0
 		_refresh_pending = true
 	if _refresh_pending:
@@ -288,6 +345,8 @@ func _process(_delta: float) -> void:
 			_refresh_build_panel()
 		if _building_panel.visible:
 			_refresh_building_panel()
+		if _site_panel.visible:
+			_refresh_site_panel()
 
 
 func _queue_refresh() -> void:
@@ -373,6 +432,100 @@ func set_collect_available(available: bool, label: String = "回収") -> void:
 
 
 # ---------- インベントリ / クラフト ----------
+# ---------- 海図・目的地 ----------
+func toggle_map() -> void:
+	var show := not map_panel.visible
+	_close_modals()
+	if show:
+		map_panel.open()
+
+
+func _close_modals() -> void:
+	_inventory_panel.visible = false
+	_menu_panel.visible = false
+	crew_panel.visible = false
+	map_panel.visible = false
+
+
+func _update_nav() -> void:
+	var t := str(session.flags.get("nav_target", ""))
+	if t == "" or not session.data.sites.has(t):
+		_nav_label.text = ""
+		return
+	var d := session.site_distance(t)
+	var to := session.site_position(t) - session.raft_position
+	var cam_yaw: float = get_parent().camera_rig.yaw if get_parent() and "camera_rig" in get_parent() else 0.0
+	# カメラ基準での方向（画面上が前方）
+	var ang := atan2(to.x, to.z) - cam_yaw
+	var arrows := ["↓", "↘", "→", "↗", "↑", "↖", "←", "↙"]
+	var idx := int(round(wrapf(ang, 0.0, TAU) / (TAU / 8.0))) % 8
+	_nav_label.text = "%s %s  %dm" % [arrows[idx], session.data.sites[t]["name"], int(d)]
+
+
+# ---------- 探索地点 ----------
+## 近くの地点（world から毎フレーム通知）
+func set_nearby_site(site_id: String) -> void:
+	_site_id = site_id
+	inspect_button.visible = site_id != ""
+	if site_id != "":
+		inspect_button.text = "調べる: %s" % session.data.sites[site_id].get("name", site_id)
+	elif _site_panel.visible:
+		_site_panel.visible = false
+
+
+func show_site_panel(site_id: String) -> void:
+	if site_id == "":
+		return
+	_site_id = site_id
+	_site_panel.visible = true
+	hide_building_panel()
+	_refresh_site_panel()
+
+
+func _refresh_site_panel() -> void:
+	_clear(_site_info)
+	var sd: Dictionary = session.data.sites.get(_site_id, {})
+	if sd.is_empty():
+		_site_panel.visible = false
+		return
+	var head := HBoxContainer.new()
+	head.add_child(UiTheme.label(str(sd.get("name", _site_id)), 24, UiTheme.C_GOLD))
+	var sp := Control.new()
+	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(sp)
+	var close := UiTheme.button("×", Vector2(56, 52))
+	close.pressed.connect(func(): _site_panel.visible = false)
+	head.add_child(close)
+	_site_info.add_child(head)
+	var desc := UiTheme.label(str(sd.get("description", "")), 17)
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_site_info.add_child(desc)
+	var aid := str(sd.get("explore_action", ""))
+	if aid == "":
+		var fac := str(sd.get("faction", ""))
+		_site_info.add_child(UiTheme.label("勢力の拠点。交易・外交はフェーズ6で実装予定。" if fac != "" else "ここで探索できるものはない。", 16, Color(0.8, 0.85, 0.88)))
+		return
+	var left := session.site_explorations_left(_site_id)
+	_site_info.add_child(UiTheme.label("探索できる回数: 残り%d回" % left, 16))
+	var a := session.data.action(aid)
+	_site_info.add_child(UiTheme.label("%s（%d分）" % [a.get("name", aid), int(a.get("duration_minutes", 0))], 19))
+	if not a.get("inputs", {}).is_empty() or not a.get("tools", []).is_empty() or not a.get("keep_items", {}).is_empty():
+		_site_info.add_child(_requirements_label(aid))
+	var problems := session.actions.check(aid, {"site": _site_id})
+	for p in problems:
+		_site_info.add_child(UiTheme.label("・" + str(p["message"]), 17, UiTheme.C_WARN))
+	var b := UiTheme.button("探索する", Vector2(220, 64))
+	b.disabled = not problems.is_empty()
+	b.pressed.connect(func():
+		var r := session.actions.start(aid, {"site": _site_id})
+		if not r["ok"]:
+			show_toast(str(r["problems"][0]["message"]), UiTheme.C_WARN)
+		else:
+			show_toast("「%s」を開始しました" % a.get("name", aid), UiTheme.C_OK)
+		_refresh_site_panel())
+	_site_info.add_child(b)
+
+
 func toggle_crew() -> void:
 	var show := not crew_panel.visible
 	_inventory_panel.visible = false
@@ -493,6 +646,8 @@ func _requirements_label(action_id: String) -> RichTextLabel:
 					text += "（%d不足）" % (int(r["need"]) - int(r["have"]))
 			"tool":
 				text = "工具:%s" % r["name"]
+			"keep":
+				text = "所持:%s" % r["name"]
 			_:
 				text = "設備:%s" % r["name"]
 		parts.append("[color=%s]%s[/color]" % [col, text])
@@ -700,7 +855,7 @@ func _update_quality_buttons() -> void:
 
 
 func is_modal_open() -> bool:
-	return _inventory_panel.visible or _menu_panel.visible or crew_panel.visible or dialogue_panel.visible
+	return _inventory_panel.visible or _menu_panel.visible or crew_panel.visible or dialogue_panel.visible or map_panel.visible or combat_panel.visible
 
 
 ## 画面上の点がUI部品の上にあるか（カメラ操作やタップ選択と競合させないため）
@@ -709,7 +864,7 @@ func is_point_on_ui(pos: Vector2) -> bool:
 		return true
 	if _sleep_overlay.visible:
 		return true
-	for c in [joystick, collect_button, build_button, bag_button, crew_button, menu_button, _build_panel, _building_panel, _jobs_box]:
+	for c in [joystick, collect_button, build_button, bag_button, crew_button, menu_button, map_button, inspect_button, _build_panel, _building_panel, _site_panel, _jobs_box]:
 		if c.is_visible_in_tree() and c.get_global_rect().has_point(pos):
 			return true
 	return false

@@ -3,9 +3,12 @@ extends RefCounted
 ## data/ 以下のJSON定義を読み込み、IDで参照できるようにする。
 ## 定義データ（静的）であり、プレイヤーの所持状態などは持たない。
 
+## キー: [ファイル（または同じ形式の複数ファイルの配列）, リストのキー]
 const DATA_FILES := {
-	"items": ["res://data/items/items.json", "items"],
-	"actions": ["res://data/recipes/actions.json", "actions"],
+	"items": [["res://data/items/items.json", "res://data/items/items_equipment.json", "res://data/items/items_story.json"], "items"],
+	"actions": [["res://data/recipes/actions.json", "res://data/recipes/actions_extra.json"], "actions"],
+	"sites": ["res://data/world/sites.json", "sites"],
+	"enemies": ["res://data/combat/enemies.json", "enemies"],
 	"buildings": ["res://data/buildings/buildings.json", "buildings"],
 	"zones": ["res://data/world/world_zones.json", "zones"],
 	"survivors": ["res://data/characters/survivors.json", "survivors"],
@@ -20,6 +23,8 @@ var actions: Dictionary = {}
 var buildings: Dictionary = {}
 var zones: Dictionary = {}
 var survivors: Dictionary = {}
+var sites: Dictionary = {}
+var enemies: Dictionary = {}
 var dialogues: Dictionary = {}
 var jobs: Dictionary = {}
 var traits: Dictionary = {}
@@ -40,6 +45,8 @@ func load_all() -> bool:
 	buildings = _load_list("buildings")
 	zones = _load_list("zones")
 	survivors = _load_list("survivors")
+	sites = _load_list("sites")
+	enemies = _load_list("enemies")
 	dialogues = _load_list("dialogues")
 	jobs = _load_list("jobs")
 	traits = _load_list("traits")
@@ -63,23 +70,26 @@ func _read_json(path: String) -> Variant:
 
 func _load_list(key: String) -> Dictionary:
 	var out := {}
-	var path: String = DATA_FILES[key][0]
+	var paths: Variant = DATA_FILES[key][0]
+	if paths is String:
+		paths = [paths]
 	var list_key: String = DATA_FILES[key][1]
-	var root: Variant = _read_json(path)
-	if root == null:
-		return out
-	if not (root is Dictionary) or not (root.get(list_key) is Array):
-		load_errors.append("%s: '%s' 配列がありません" % [path, list_key])
-		return out
-	for entry in root[list_key]:
-		if not (entry is Dictionary) or not entry.has("id"):
-			load_errors.append("%s: idのない項目があります" % path)
+	for path in paths:
+		var root: Variant = _read_json(path)
+		if root == null:
 			continue
-		var id := str(entry["id"])
-		if out.has(id):
-			load_errors.append("%s: ID重複 '%s'" % [path, id])
+		if not (root is Dictionary) or not (root.get(list_key) is Array):
+			load_errors.append("%s: '%s' 配列がありません" % [path, list_key])
 			continue
-		out[id] = entry
+		for entry in root[list_key]:
+			if not (entry is Dictionary) or not entry.has("id"):
+				load_errors.append("%s: idのない項目があります" % path)
+				continue
+			var id := str(entry["id"])
+			if out.has(id):
+				load_errors.append("%s: ID重複 '%s'" % [path, id])
+				continue
+			out[id] = entry
 	return out
 
 

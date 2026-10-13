@@ -1,0 +1,511 @@
+{
+ "_comment": "探索地点。position=[x,z]（ワールド座標m）。explore_action の行動で探索。unique_items は初回のみ。hidden=true は discover_condition を満たすまで地図に出ない。",
+ "sites": [
+  {
+   "id": "wreck_fishing_boat",
+   "name": "座礁した漁船",
+   "type": "shipwreck",
+   "zone": "starting_waters",
+   "position": [
+    70,
+    -110
+   ],
+   "explore_action": "explore_surface",
+   "max_explorations": 2,
+   "description": "船首を空に向けて傾いた漁船。",
+   "loot": {
+    "rolls": [
+     2,
+     4
+    ],
+    "entries": [
+     {
+      "item": "wood",
+      "min": 2,
+      "max": 5,
+      "weight": 5
+     },
+     {
+      "item": "rope",
+      "min": 1,
+      "max": 3,
+      "weight": 4
+     },
+     {
+      "item": "scrap_metal",
+      "min": 1,
+      "max": 3,
+      "weight": 4
+     },
+     {
+      "item": "canned_food",
+      "min": 1,
+      "max": 2,
+      "weight": 2
+     },
+     {
+      "item": "harpoon",
+      "min": 1,
+      "max": 1,
+      "weight": 0.6
+     }
+    ]
+   },
+   "discover_radius": 140
+  },
+  {
+   "id": "drone_ship",
+   "name": "漂う無人船",
+   "type": "drone_ship",
+   "zone": "starting_waters",
+   "position": [
+    -190,
+    150
+   ],
+   "explore_action": "explore_surface",
+   "max_explorations": 1,
+   "description": "誰も乗っていない灰色の船。甲板のランプだけが点滅している。",
+   "loot": {
+    "rolls": [
+     2,
+     3
+    ],
+    "entries": [
+     {
+      "item": "electronics",
+      "min": 1,
+      "max": 2,
+      "weight": 4
+     },
+     {
+      "item": "tool_parts",
+      "min": 1,
+      "max": 2,
+      "weight": 4
+     },
+     {
+      "item": "fuel",
+      "min": 1,
+      "max": 2,
+      "weight": 3
+     }
+    ]
+   },
+   "unique_items": {
+    "encrypted_data": 1
+   },
+   "flags": {
+    "found_drone_ship": true
+   },
+   "discover_radius": 160,
+   "combat": {
+    "group": "drone_sentinel",
+    "chance": 0.5
+   }
+  },
+  {
+   "id": "sunken_ferry",
+   "name": "沈んだ連絡船",
+   "type": "underwater_wreck",
+   "zone": "starting_waters",
+   "position": [
+    -90,
+    -230
+   ],
+   "explore_action": "explore_underwater",
+   "max_explorations": 3,
+   "description": "浅瀬に沈んだ客船。窓から魚が出入りしている。",
+   "loot": {
+    "rolls": [
+     2,
+     4
+    ],
+    "entries": [
+     {
+      "item": "scrap_metal",
+      "min": 2,
+      "max": 4,
+      "weight": 5
+     },
+     {
+      "item": "medkit",
+      "min": 1,
+      "max": 1,
+      "weight": 2
+     },
+     {
+      "item": "plastic",
+      "min": 2,
+      "max": 4,
+      "weight": 3
+     },
+     {
+      "item": "tool_parts",
+      "min": 1,
+      "max": 1,
+      "weight": 2
+     },
+     {
+      "item": "compass",
+      "min": 1,
+      "max": 1,
+      "weight": 0.5
+     }
+    ]
+   },
+   "discover_radius": 120,
+   "combat": {
+    "group": "sharks",
+    "chance": 0.25
+   }
+  },
+  {
+   "id": "sunken_trawler",
+   "name": "沈んだトロール船",
+   "type": "underwater_wreck",
+   "zone": "rust_reef",
+   "position": [
+    620,
+    -60
+   ],
+   "explore_action": "explore_underwater",
+   "max_explorations": 3,
+   "description": "網に絡まったまま沈んだ大型漁船。",
+   "loot": {
+    "rolls": [
+     2,
+     4
+    ],
+    "entries": [
+     {
+      "item": "scrap_metal",
+      "min": 2,
+      "max": 5,
+      "weight": 5
+     },
+     {
+      "item": "fuel",
+      "min": 1,
+      "max": 2,
+      "weight": 3
+     },
+     {
+      "item": "engine_part",
+      "min": 1,
+      "max": 1,
+      "weight": 0.6
+     },
+     {
+      "item": "rope",
+      "min": 2,
+      "max": 4,
+      "weight": 3
+     }
+    ]
+   },
+   "discover_radius": 150,
+   "combat": {
+    "group": "sharks",
+    "chance": 0.3
+   }
+  },
+  {
+   "id": "ruined_platform",
+   "name": "崩れた海上基地",
+   "type": "ruin",
+   "zone": "rust_reef",
+   "position": [
+    860,
+    220
+   ],
+   "explore_action": "explore_ruin",
+   "max_explorations": 3,
+   "description": "かつての海洋プラットフォーム。略奪者が住み着いている。",
+   "loot": {
+    "rolls": [
+     3,
+     5
+    ],
+    "entries": [
+     {
+      "item": "scrap_metal",
+      "min": 3,
+      "max": 6,
+      "weight": 5
+     },
+     {
+      "item": "tool_parts",
+      "min": 1,
+      "max": 3,
+      "weight": 4
+     },
+     {
+      "item": "electronics",
+      "min": 1,
+      "max": 1,
+      "weight": 2
+     },
+     {
+      "item": "fuel",
+      "min": 1,
+      "max": 2,
+      "weight": 3
+     },
+     {
+      "item": "machete",
+      "min": 1,
+      "max": 1,
+      "weight": 0.5
+     },
+     {
+      "item": "sea_chart",
+      "min": 1,
+      "max": 1,
+      "weight": 0.4
+     }
+    ]
+   },
+   "flags": {
+    "found_platform_logs": true
+   },
+   "discover_radius": 200,
+   "combat": {
+    "group": "scavengers",
+    "chance": 0.6
+   }
+  },
+  {
+   "id": "atlas_outpost",
+   "name": "アトラス観測所",
+   "type": "research_facility",
+   "zone": "deep_trench",
+   "position": [
+    120,
+    -820
+   ],
+   "explore_action": "explore_research",
+   "max_explorations": 2,
+   "description": "海溝の縁に沈んだ観測所。『ATLAS』のロゴが残っている。",
+   "loot": {
+    "rolls": [
+     2,
+     3
+    ],
+    "entries": [
+     {
+      "item": "electronics",
+      "min": 1,
+      "max": 3,
+      "weight": 4
+     },
+     {
+      "item": "tool_parts",
+      "min": 1,
+      "max": 2,
+      "weight": 3
+     },
+     {
+      "item": "medicine",
+      "min": 1,
+      "max": 1,
+      "weight": 2
+     }
+    ]
+   },
+   "unique_items": {
+    "research_log": 1,
+    "comm_device": 1
+   },
+   "flags": {
+    "found_atlas_outpost": true
+   },
+   "discover_radius": 160,
+   "combat": {
+    "group": "drone_sentinel",
+    "chance": 0.4
+   }
+  },
+  {
+   "id": "underwater_city",
+   "name": "海底都市ネレイス",
+   "type": "underwater_city",
+   "zone": "deep_trench",
+   "position": [
+    420,
+    -1010
+   ],
+   "explore_action": "explore_underwater",
+   "max_explorations": 4,
+   "description": "海底に沈んだ街並み。ドームの中にはまだ空気が残っている。",
+   "loot": {
+    "rolls": [
+     3,
+     5
+    ],
+    "entries": [
+     {
+      "item": "electronics",
+      "min": 1,
+      "max": 2,
+      "weight": 4
+     },
+     {
+      "item": "medicine",
+      "min": 1,
+      "max": 2,
+      "weight": 3
+     },
+     {
+      "item": "stone",
+      "min": 2,
+      "max": 4,
+      "weight": 3
+     },
+     {
+      "item": "relic",
+      "min": 1,
+      "max": 1,
+      "weight": 0.3
+     }
+    ]
+   },
+   "unique_items": {
+    "old_key": 1
+   },
+   "flags": {
+    "found_nereis": true
+   },
+   "discover_radius": 180,
+   "combat": {
+    "group": "sharks",
+    "chance": 0.35
+   }
+  },
+  {
+   "id": "atlas_core",
+   "name": "アトラス中枢",
+   "type": "research_facility",
+   "zone": "deep_trench",
+   "position": [
+    -110,
+    -1080
+   ],
+   "explore_action": "explore_core",
+   "max_explorations": 1,
+   "description": "海溝の底で脈打つように光る巨大な構造物。",
+   "loot": {
+    "rolls": [
+     1,
+     2
+    ],
+    "entries": [
+     {
+      "item": "electronics",
+      "min": 2,
+      "max": 4,
+      "weight": 3
+     }
+    ]
+   },
+   "unique_items": {
+    "relic": 1
+   },
+   "flags": {
+    "reached_atlas_core": true
+   },
+   "hidden": true,
+   "discover_condition": {
+    "flags_all": [
+     "decoded_atlas_location"
+    ]
+   },
+   "discover_radius": 100
+  },
+  {
+   "id": "red_tide_anomaly",
+   "name": "赤潮の渦",
+   "type": "special",
+   "zone": "red_tide",
+   "position": [
+    -780,
+    -60
+   ],
+   "explore_action": "explore_surface",
+   "max_explorations": 2,
+   "description": "海面がゆっくりと渦を巻き、計器が狂う場所。",
+   "loot": {
+    "rolls": [
+     1,
+     2
+    ],
+    "entries": [
+     {
+      "item": "fuel",
+      "min": 1,
+      "max": 2,
+      "weight": 2
+     },
+     {
+      "item": "electronics",
+      "min": 1,
+      "max": 1,
+      "weight": 1
+     }
+    ]
+   },
+   "flags": {
+    "measured_anomaly": true
+   },
+   "discover_radius": 220,
+   "combat": {
+    "group": "pirate_raiders",
+    "chance": 0.3
+   }
+  },
+  {
+   "id": "tide_union_market",
+   "name": "潮流連合の浮遊市場",
+   "type": "settlement",
+   "zone": "tide_union_waters",
+   "position": [
+    40,
+    720
+   ],
+   "faction": "tide_union",
+   "explore_action": "",
+   "max_explorations": 0,
+   "description": "何十もの筏と船をつないだ巨大な市場。暖かな灯りがともる。",
+   "discover_radius": 260
+  },
+  {
+   "id": "iron_reef_fort",
+   "name": "鉄礁要塞",
+   "type": "fortress",
+   "zone": "rust_reef",
+   "position": [
+    1020,
+    -280
+   ],
+   "faction": "iron_reef",
+   "explore_action": "",
+   "max_explorations": 0,
+   "description": "鉄骨と装甲板で固めた軍事拠点。",
+   "discover_radius": 240
+  },
+  {
+   "id": "black_current_hideout",
+   "name": "黒潮の隠れ家",
+   "type": "pirate_base",
+   "zone": "red_tide",
+   "position": [
+    -1010,
+    290
+   ],
+   "faction": "black_current",
+   "explore_action": "",
+   "max_explorations": 0,
+   "description": "沈没船をつないだ海賊の根城。",
+   "discover_radius": 200
+  }
+ ]
+}

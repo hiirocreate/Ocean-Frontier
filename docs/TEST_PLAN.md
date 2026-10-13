@@ -7,7 +7,7 @@
 | E2E（描画あり） | `xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --script res://tools/smoke_test.gd` | 実シーンでのプレイサイクルとスクリーンショット |
 | データ検証のみ | `godot --headless --path . --script res://tools/validate_data.gd` | |
 
-## 自動テスト一覧と状況（2026-10-13 時点：60件 全成功、E2E 22項目 全成功）
+## 自動テスト一覧と状況（2026-10-13 時点：73件 全成功、E2E 31項目 全成功）
 
 ### アイテム（仕様45）
 | 要件 | テスト | 状況 |
@@ -77,6 +77,22 @@ ID重複・存在しないアイテム参照・不正なレシピ・存在しな
 | 再加入 | test_rejoin_conditions | ✅ |
 | 会話の条件・既読管理 | test_talk_dialogue_selection | ✅ |
 | 主要ストーリーが進行不能にならない | — | フェーズ7で検証 |
+
+### 探索・戦闘
+| 要件 | テスト | 状況 |
+|---|---|---|
+| 海域の判定・移動 | test_zone_detection, E2E | ✅ |
+| 地点の発見（隠し地点の条件） | test_site_discovery | ✅ |
+| 探索の距離・回数・枯渇 | test_explore_requires_distance_and_depletes | ✅ |
+| 潜水の装備・酸素 | test_underwater_requires_gear_and_oxygen | ✅ |
+| 初回限定アイテム | test_unique_items_only_first_time | ✅ |
+| 消費しない必要アイテム（鍵） | test_keep_items_required_not_consumed | ✅ |
+| 勝利・弾薬・摩耗 | test_combat_victory_with_weapon | ✅ |
+| 敗北でもゲームオーバーにならない | test_defeat_is_not_game_over | ✅ |
+| 壊れた武器・弾なしの銃は使わない | test_broken_weapon_is_skipped | ✅ |
+| 交渉の条件 | test_negotiate_requires_bribe | ✅ |
+| 捕虜には檻が必要 | test_prisoners_need_prison | ✅ |
+| 戦闘状態・発見・評判のセーブ | test_pending_combat_saved | ✅ |
 
 ### 勢力・海賊（仕様45）
 未実装（フェーズ6）。

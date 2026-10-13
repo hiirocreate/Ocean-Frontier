@@ -49,6 +49,9 @@ func requirement_rows(action_id: String) -> Array:
 		var need := int(inputs[id])
 		var have := inventory.count(id)
 		rows.append({"kind": "item", "id": id, "name": data.item_name(id), "need": need, "have": have, "ok": have >= need})
+	var keep: Dictionary = a.get("keep_items", {})
+	for id in keep:
+		rows.append({"kind": "keep", "id": id, "name": data.item_name(id), "need": int(keep[id]), "have": inventory.count(id), "ok": inventory.count(id) >= int(keep[id])})
 	for t in a.get("tools", []):
 		var tid := str(t["item"])
 		var ok := not inventory.find_tool(tid, float(t.get("min_durability", 1))).is_empty()
@@ -78,6 +81,10 @@ func check(action_id: String, params: Dictionary = {}, exclude_job_id: int = -1)
 ## アイテム数以外の条件（工具・設備・技能・人数・容量・効果）。
 func _check_conditions(a: Dictionary, params: Dictionary, inputs_in_inventory: bool, exclude_job_id: int) -> Array:
 	var problems: Array = []
+	var keep: Dictionary = a.get("keep_items", {})
+	for id in keep:
+		if inventory.count(id) < int(keep[id]):
+			problems.append(problem("missing_key_item", "%sが必要です" % data.item_name(id), {"item": id}))
 	for t in a.get("tools", []):
 		var tid := str(t["item"])
 		var min_d := float(t.get("min_durability", 1))

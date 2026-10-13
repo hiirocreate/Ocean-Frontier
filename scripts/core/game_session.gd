@@ -14,6 +14,10 @@ var raft: Raft
 var actions: ActionSystem
 var crew: Crew
 var counters: Dictionary = {}  # research_points, guard_hours, piracy_today など
+var reputation: Dictionary = {"fame": 0.0, "fear": 0.0, "trust": 0.0, "infamy": 0.0}
+var prisoners: Array = []  # [{from, faction, day}]
+var sites_state: Dictionary = {}  # site_id -> {"discovered": bool, "explored": int}
+var pending_combat: Dictionary = {}  # {"enemy": id, "terrain": String, "source": String}
 var rng: RandomNumberGenerator
 var zone_id: String = "starting_waters"
 var raft_position: Vector3 = Vector3.ZERO
@@ -37,6 +41,8 @@ func _init(game_data: GameData) -> void:
 	actions.register_effect("repair_item", _validate_repair, _apply_repair)
 	actions.register_effect("place_building", _validate_building, _apply_building)
 	actions.register_effect("rest", func(_p, _e): return "", func(_p): message.emit("よく眠った。疲れが取れた"))
+	actions.register_effect("explore_site", _validate_explore, _apply_explore)
+	actions.register_effect("story_beat", func(_p, _e): return "", _apply_story_beat)
 	raft.changed.connect(update_capacity)
 	actions.job_completed.connect(_on_job_completed)
 	actions.job_blocked.connect(func(_j, problems): message.emit("作業が中断待ち: " + str(problems[0]["message"])))
@@ -314,6 +320,160 @@ func is_sleeping() -> bool:
 	return false
 
 
+# ---- 海域・探索地点 ----
+func zone_at(pos: Vector3) -> String:
+	for id in data.zones:
+		var b: Array = data.zones[id].get("bounds", [])
+		if b.size() == 4 and pos.x >= float(b[0]) and pos.z >= float(b[1]) and pos.x < float(b[2]) and pos.z < float(b[3]):
+			return id
+	return str(data.bal("world.open_sea_zone", "starting_waters"))
+
+
+## 位置を更新し、海域の変化と探索地点の発見を処理する。変化があれば海域IDを返す。
+func update_location(pos: Vector3) -> String:
+	raft_position = Vector3(pos.x, 0, pos.z)
+	var z := zone_at(raft_position)
+	var changed_zone := ""
+	if z != zone_id:
+		zone_id = z
+		changed_zone = z
+		message.emit("「%s」に入った" % data.zones[z].get("name", z))
+		flags["visited_" + z] = true
+	for id in data.sites:
+		if is_site_discovered(id):
+			continue
+		var sd: Dictionary = data.sites[id]
+		if bool(sd.get("hidden", false)) and not Conditions.check(sd.get("discover_condition", {}), self):
+			continue
+		if site_distance(id) <= float(sd.get("discover_radius", 150)):
+			discover_site(id)
+	return changed_zone
+
+
+func site_position(id: String) -> Vector3:
+	var p: Array = data.sites.get(id, {}).get("position", [0, 0])
+	return Vector3(float(p[0]), 0, float(p[1]))
+
+
+func site_distance(id: String) -> float:
+	return Vector2(raft_position.x, raft_position.z).distance_to(Vector2(site_position(id).x, site_position(id).z))
+
+
+func is_site_discovered(id: String) -> bool:
+	return bool(sites_state.get(id, {}).get("discovered", false))
+
+
+func discover_site(id: String) -> void:
+	if not data.sites.has(id) or is_site_discovered(id):
+		return
+	var st: Dictionary = sites_state.get(id, {"discovered": false, "explored": 0})
+	st["discovered"] = true
+	sites_state[id] = st
+	message.emit("発見: %s" % data.sites[id].get("name", id))
+
+
+func site_explorations_left(id: String) -> int:
+	return int(data.sites.get(id, {}).get("max_explorations", 0)) - int(sites_state.get(id, {}).get("explored", 0))
+
+
+## 近くにある（探索や訪問ができる）地点
+func nearby_site(max_dist: float = 30.0) -> String:
+	var best := ""
+	var best_d := max_dist
+	for id in data.sites:
+		if not is_site_discovered(id):
+			continue
+		var d := site_distance(id)
+		if d <= best_d:
+			best_d = d
+			best = id
+	return best
+
+
+func _validate_explore(params: Dictionary, _exclude: int) -> String:
+	var id := str(params.get("site", ""))
+	if not data.sites.has(id):
+		return "探索地点が指定されていません"
+	if site_distance(id) > float(data.bal("world.explore_range", 30.0)):
+		return "%sから離れすぎています" % data.sites[id].get("name", id)
+	if site_explorations_left(id) <= 0:
+		return "%sはもう探索し尽くした" % data.sites[id].get("name", id)
+	return ""
+
+
+func _apply_explore(params: Dictionary) -> void:
+	var id := str(params["site"])
+	var sd: Dictionary = data.sites[id]
+	var st: Dictionary = sites_state.get(id, {"discovered": true, "explored": 0})
+	var first := int(st.get("explored", 0)) == 0
+	st["explored"] = int(st.get("explored", 0)) + 1
+	sites_state[id] = st
+	var loot := LootRoller.roll_table(sd.get("loot", {}), rng)
+	if first:
+		var uniq: Dictionary = sd.get("unique_items", {})
+		for k in uniq:
+			loot[k] = int(loot.get(k, 0)) + int(uniq[k])
+	var got := {}
+	var lost := {}
+	for k in loot:
+		var clue := bool(data.item(k).get("clue", false))
+		if inventory.add_many({k: int(loot[k])}, clue):  # 物語アイテムは重量超過でも必ず受け取る
+			got[k] = loot[k]
+		else:
+			lost[k] = loot[k]
+	if not got.is_empty():
+		message.emit("%sで見つけた: %s" % [sd.get("name", id), describe_items(got)])
+	if not lost.is_empty():
+		message.emit("持ちきれず置いてきた: " + describe_items(lost))
+	if first:
+		for f in sd.get("flags", {}):
+			flags[f] = sd["flags"][f]
+	stats["sites_explored"] = int(stats.get("sites_explored", 0)) + 1
+	var cb: Dictionary = sd.get("combat", {})
+	if not cb.is_empty() and rng.randf() < float(cb.get("chance", 0.0)):
+		var terrain := "underwater" if str(sd.get("type", "")).begins_with("underwater") or sd.get("explore_action", "") in ["explore_underwater", "explore_research", "explore_core"] else "site"
+		start_combat(str(cb["group"]), terrain, "site:" + id)
+
+
+func _apply_story_beat(params: Dictionary) -> void:
+	var fl: Dictionary = params.get("flags", {})
+	for f in fl:
+		flags[f] = fl[f]
+	for sid in params.get("reveal_sites", []):
+		discover_site(str(sid))
+	if str(params.get("text", "")) != "":
+		message.emit(str(params["text"]))
+
+
+# ---- 戦闘 ----
+func start_combat(enemy_id: String, terrain: String = "raft", source: String = "") -> void:
+	if not data.enemies.has(enemy_id):
+		return
+	pending_combat = {"enemy": enemy_id, "terrain": terrain, "source": source}
+	message.emit("%sが現れた！" % data.enemies[enemy_id].get("name", enemy_id))
+
+
+func resolve_combat(stance: String) -> Dictionary:
+	if pending_combat.is_empty():
+		return {}
+	var r := CombatSystem.resolve(self, str(pending_combat["enemy"]), stance, str(pending_combat.get("terrain", "raft")))
+	r["messages"] = CombatSystem.apply_result(self, r)
+	pending_combat = {}
+	return r
+
+
+func change_reputation(kind: String, delta: float) -> void:
+	if reputation.has(kind):
+		reputation[kind] = clampf(float(reputation[kind]) + delta, 0.0, 100.0)
+
+
+func prison_capacity() -> int:
+	var cap := 0
+	for uid in raft.buildings:
+		cap += int(data.buildings.get(raft.buildings[uid]["id"], {}).get("prison_capacity", 0))
+	return cap
+
+
 # ---- 修理 ----
 func _validate_repair(params: Dictionary, _exclude: int) -> String:
 	var id := str(params.get("item", ""))
@@ -363,6 +523,10 @@ func to_dict() -> Dictionary:
 		"stats": stats.duplicate(),
 		"crew": crew.to_dict(),
 		"counters": counters.duplicate(),
+		"reputation": reputation.duplicate(),
+		"prisoners": prisoners.duplicate(true),
+		"sites_state": sites_state.duplicate(true),
+		"pending_combat": pending_combat.duplicate(),
 	}
 
 
@@ -408,6 +572,22 @@ func from_dict(d: Dictionary) -> Dictionary:
 	if cn is Dictionary:
 		for k in cn:
 			counters[str(k)] = float(cn[k])
+	var rep: Variant = d.get("reputation", {})
+	if rep is Dictionary:
+		for k in reputation:
+			reputation[k] = clampf(float(rep.get(k, 0.0)), 0.0, 100.0)
+	var pr: Variant = d.get("prisoners", [])
+	prisoners = pr.duplicate(true) if pr is Array else []
+	sites_state.clear()
+	var ss: Variant = d.get("sites_state", {})
+	if ss is Dictionary:
+		for k in ss:
+			if data.sites.has(str(k)) and ss[k] is Dictionary:
+				sites_state[str(k)] = {"discovered": bool(ss[k].get("discovered", false)), "explored": maxi(0, int(ss[k].get("explored", 0)))}
+			else:
+				warnings.append("未知の探索地点 '%s' を除外" % str(k))
+	var pc: Variant = d.get("pending_combat", {})
+	pending_combat = pc.duplicate() if pc is Dictionary and data.enemies.has(str(pc.get("enemy", ""))) else {}
 	var sts: Variant = d.get("stats", {})
 	if sts is Dictionary:
 		for k in sts:

@@ -36,7 +36,9 @@
     "debris_spawn_radius_max": 55.0,
     "debris_despawn_radius": 75.0,
     "current_speed": 0.6,
-    "collect_range": 4.0
+    "collect_range": 4.0,
+    "explore_range": 30.0,
+    "open_sea_zone": "starting_waters"
   },
   "start_inventory": {
     "wood": 6,

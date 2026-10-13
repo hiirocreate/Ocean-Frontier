@@ -1,0 +1,33 @@
+{
+  "_comment": "装備・追加素材・探索用品・船舶部品。combat: attack/defense/ammo(消費する弾薬ID)/slot(weapon|armor|shield)。",
+  "items": [
+    {"id": "stone", "name": "石材", "description": "海底から引き上げた石。重いが建材になる。", "category": "material", "rarity": "common", "weight": 2.0, "stackable": true, "sell_price": 2, "obtain": ["explore"]},
+    {"id": "tool_parts", "name": "工具部品", "description": "ネジやバネ。精密な道具に使う。", "category": "material", "rarity": "uncommon", "weight": 0.4, "stackable": true, "sell_price": 6, "obtain": ["explore", "trade"]},
+    {"id": "electronics", "name": "電子部品", "description": "旧時代の基板。通信機や装置の材料。", "category": "material", "rarity": "rare", "weight": 0.3, "stackable": true, "sell_price": 14, "obtain": ["explore", "trade"]},
+    {"id": "fuel", "name": "燃料", "description": "密閉容器の燃料。エンジンや灯りに使う。", "category": "material", "rarity": "uncommon", "weight": 1.2, "stackable": true, "sell_price": 9, "obtain": ["explore", "trade"]},
+    {"id": "medicine", "name": "薬品", "description": "抗生物質。重い負傷やストレスを和らげる。", "category": "consumable", "rarity": "rare", "weight": 0.2, "stackable": true, "sell_price": 18, "use_effects": {"injury": -60, "health": 15}, "obtain": ["explore", "trade"]},
+    {"id": "ammo", "name": "弾薬", "description": "手製の弾。銃に必要。", "category": "consumable", "rarity": "uncommon", "weight": 0.1, "stackable": true, "sell_price": 4, "obtain": ["craft", "trade"]},
+    {"id": "oxygen_tank", "name": "酸素ボンベ", "description": "潜水1回分の酸素。", "category": "consumable", "rarity": "uncommon", "weight": 2.0, "stackable": true, "sell_price": 10, "obtain": ["craft", "trade"]},
+    {"id": "repair_supplies", "name": "修理用消耗品", "description": "板・釘・樹脂のセット。船の修理に使う。", "category": "consumable", "rarity": "common", "weight": 1.0, "stackable": true, "sell_price": 5, "obtain": ["craft"]},
+    {"id": "harpoon", "name": "銛", "description": "漁にも戦いにも使える長い銛。", "category": "weapon", "rarity": "common", "weight": 2.5, "stackable": false, "max_durability": 35, "sell_price": 15, "combat": {"attack": 9, "slot": "weapon"}, "obtain": ["craft"]},
+    {"id": "machete", "name": "山刀", "description": "錆を落とした大振りの刃物。", "category": "weapon", "rarity": "uncommon", "weight": 1.5, "stackable": false, "max_durability": 40, "sell_price": 18, "combat": {"attack": 8, "slot": "weapon"}, "obtain": ["craft", "explore"]},
+    {"id": "bow", "name": "弓", "description": "竹と釣り糸で作った弓。遠くから狙える。", "category": "weapon", "rarity": "uncommon", "weight": 1.2, "stackable": false, "max_durability": 30, "sell_price": 16, "combat": {"attack": 10, "slot": "weapon", "ranged": true}, "obtain": ["craft"]},
+    {"id": "pistol", "name": "拳銃", "description": "旧時代の拳銃。弾薬が必要。", "category": "weapon", "rarity": "rare", "weight": 1.0, "stackable": false, "max_durability": 50, "sell_price": 45, "combat": {"attack": 18, "slot": "weapon", "ammo": "ammo", "ranged": true}, "obtain": ["explore", "trade"]},
+    {"id": "leather_armor", "name": "革の防具", "description": "サメ革を重ねた胴当て。", "category": "armor", "rarity": "uncommon", "weight": 3.0, "stackable": false, "max_durability": 45, "sell_price": 20, "combat": {"defense": 5, "slot": "armor"}, "obtain": ["craft"]},
+    {"id": "scrap_shield", "name": "廃材の盾", "description": "看板を加工した盾。", "category": "armor", "rarity": "common", "weight": 3.5, "stackable": false, "max_durability": 40, "sell_price": 12, "combat": {"defense": 4, "slot": "shield"}, "obtain": ["craft"]},
+    {"id": "diving_gear", "name": "潜水装備", "description": "マスクと足ひれ、重り。潜水探索に必要。", "category": "tool", "rarity": "uncommon", "weight": 3.0, "stackable": false, "max_durability": 30, "sell_price": 30, "obtain": ["craft"]},
+    {"id": "binoculars", "name": "双眼鏡", "description": "遠くの船や施設を偵察できる。", "category": "tool", "rarity": "uncommon", "weight": 0.6, "stackable": false, "max_durability": 60, "sell_price": 22, "obtain": ["explore", "trade"]},
+    {"id": "compass", "name": "方位磁針", "description": "針が時々、北ではない方向を指す。", "category": "tool", "rarity": "uncommon", "weight": 0.2, "stackable": false, "max_durability": 100, "sell_price": 12, "obtain": ["explore"]},
+    {"id": "sea_chart", "name": "海図", "description": "周辺海域の古い海図。施設の位置が書き込まれている。", "category": "tool", "rarity": "rare", "weight": 0.1, "stackable": false, "max_durability": 100, "sell_price": 25, "obtain": ["explore", "trade"]},
+    {"id": "radio", "name": "無線機", "description": "遠くの通信を拾える。", "category": "tool", "rarity": "rare", "weight": 1.5, "stackable": false, "max_durability": 80, "sell_price": 40, "obtain": ["craft"]},
+    {"id": "survey_kit", "name": "測量機器", "description": "潮流と水深を測る道具。", "category": "tool", "rarity": "rare", "weight": 2.0, "stackable": false, "max_durability": 50, "sell_price": 35, "obtain": ["craft"]},
+    {"id": "resonance_scanner", "name": "共鳴探知機", "description": "特殊な信号の発信源を探る装置。", "category": "tool", "rarity": "epic", "weight": 1.5, "stackable": false, "max_durability": 40, "sell_price": 0, "obtain": ["craft"]},
+    {"id": "hull_plank", "name": "船体部品", "description": "防水処理した厚板。", "category": "ship_part", "rarity": "common", "weight": 3.0, "stackable": true, "sell_price": 8, "obtain": ["craft"]},
+    {"id": "sail_cloth", "name": "帆", "description": "継ぎはぎの大きな帆布。", "category": "ship_part", "rarity": "common", "weight": 2.0, "stackable": true, "sell_price": 10, "obtain": ["craft"]},
+    {"id": "rudder", "name": "舵", "description": "船の向きを変える板。", "category": "ship_part", "rarity": "uncommon", "weight": 3.0, "stackable": true, "sell_price": 14, "obtain": ["craft"]},
+    {"id": "engine_part", "name": "エンジン", "description": "動く小型エンジン。燃料で船を速くする。", "category": "ship_part", "rarity": "rare", "weight": 8.0, "stackable": true, "sell_price": 60, "obtain": ["explore", "trade"]},
+    {"id": "ship_cannon", "name": "武器設備", "description": "船に据え付ける投石機と銛撃ち。", "category": "ship_part", "rarity": "uncommon", "weight": 6.0, "stackable": true, "sell_price": 30, "obtain": ["craft"]},
+    {"id": "cargo_crate", "name": "収納設備", "description": "船倉用の固定箱。", "category": "ship_part", "rarity": "common", "weight": 3.0, "stackable": true, "sell_price": 8, "obtain": ["craft"]},
+    {"id": "armor_plate", "name": "装甲", "description": "船体に打ち付ける金属板。", "category": "ship_part", "rarity": "uncommon", "weight": 5.0, "stackable": true, "sell_price": 20, "obtain": ["craft"]}
+  ]
+}

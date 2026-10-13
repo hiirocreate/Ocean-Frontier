@@ -129,6 +129,612 @@
             }
           ]
         }
+      },
+      "bounds": [
+        -400,
+        -400,
+        400,
+        400
+      ],
+      "danger": 1,
+      "description": "穏やかな浅瀬。漂流物が多い。"
+    },
+    {
+      "id": "rust_reef",
+      "name": "錆の礁",
+      "bounds": [
+        400,
+        -400,
+        1200,
+        400
+      ],
+      "ocean_shallow_color": "#4f8a86",
+      "ocean_deep_color": "#24414f",
+      "fog_color": "#9aa6a8",
+      "danger": 2,
+      "description": "沈んだ工業地帯。錆びた鉄骨が海面から突き出ている。",
+      "debris_kinds": [
+        {
+          "kind": "plank",
+          "weight": 3
+        },
+        {
+          "kind": "barrel",
+          "weight": 3
+        },
+        {
+          "kind": "crate",
+          "weight": 4
+        }
+      ],
+      "drift_tables": {
+        "plank": {
+          "rolls": [
+            1,
+            2
+          ],
+          "entries": [
+            {
+              "item": "wood",
+              "min": 1,
+              "max": 3,
+              "weight": 8
+            },
+            {
+              "item": "rope",
+              "min": 1,
+              "max": 1,
+              "weight": 3
+            },
+            {
+              "item": "cloth",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            }
+          ]
+        },
+        "barrel": {
+          "rolls": [
+            1,
+            2
+          ],
+          "entries": [
+            {
+              "item": "water_bottle",
+              "min": 1,
+              "max": 1,
+              "weight": 4
+            },
+            {
+              "item": "coconut",
+              "min": 1,
+              "max": 2,
+              "weight": 4
+            },
+            {
+              "item": "plastic",
+              "min": 1,
+              "max": 3,
+              "weight": 4
+            },
+            {
+              "item": "scrap_metal",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            },
+            {
+              "item": "fuel",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            }
+          ]
+        },
+        "crate": {
+          "rolls": [
+            2,
+            3
+          ],
+          "entries": [
+            {
+              "item": "scrap_metal",
+              "min": 1,
+              "max": 3,
+              "weight": 5
+            },
+            {
+              "item": "rope",
+              "min": 1,
+              "max": 2,
+              "weight": 4
+            },
+            {
+              "item": "canned_food",
+              "min": 1,
+              "max": 1,
+              "weight": 3
+            },
+            {
+              "item": "cloth",
+              "min": 1,
+              "max": 3,
+              "weight": 3
+            },
+            {
+              "item": "medkit",
+              "min": 1,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "item": "old_letter",
+              "min": 1,
+              "max": 1,
+              "weight": 0.3
+            },
+            {
+              "item": "potato",
+              "min": 1,
+              "max": 2,
+              "weight": 2
+            },
+            {
+              "item": "tool_parts",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            },
+            {
+              "item": "fuel",
+              "min": 1,
+              "max": 1,
+              "weight": 2
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "deep_trench",
+      "name": "深淵の海溝",
+      "bounds": [
+        -400,
+        -1200,
+        400,
+        -400
+      ],
+      "ocean_shallow_color": "#14466a",
+      "ocean_deep_color": "#05162c",
+      "fog_color": "#5a7690",
+      "danger": 3,
+      "description": "底の見えない濃紺の海。研究施設の残骸が眠るという。",
+      "debris_kinds": [
+        {
+          "kind": "plank",
+          "weight": 4
+        },
+        {
+          "kind": "barrel",
+          "weight": 2
+        },
+        {
+          "kind": "crate",
+          "weight": 2
+        }
+      ],
+      "drift_tables": {
+        "plank": {
+          "rolls": [
+            1,
+            2
+          ],
+          "entries": [
+            {
+              "item": "wood",
+              "min": 1,
+              "max": 3,
+              "weight": 8
+            },
+            {
+              "item": "rope",
+              "min": 1,
+              "max": 1,
+              "weight": 3
+            },
+            {
+              "item": "cloth",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            }
+          ]
+        },
+        "barrel": {
+          "rolls": [
+            1,
+            2
+          ],
+          "entries": [
+            {
+              "item": "water_bottle",
+              "min": 1,
+              "max": 1,
+              "weight": 4
+            },
+            {
+              "item": "coconut",
+              "min": 1,
+              "max": 2,
+              "weight": 4
+            },
+            {
+              "item": "plastic",
+              "min": 1,
+              "max": 3,
+              "weight": 4
+            },
+            {
+              "item": "scrap_metal",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            }
+          ]
+        },
+        "crate": {
+          "rolls": [
+            2,
+            3
+          ],
+          "entries": [
+            {
+              "item": "scrap_metal",
+              "min": 1,
+              "max": 3,
+              "weight": 5
+            },
+            {
+              "item": "rope",
+              "min": 1,
+              "max": 2,
+              "weight": 4
+            },
+            {
+              "item": "canned_food",
+              "min": 1,
+              "max": 1,
+              "weight": 3
+            },
+            {
+              "item": "cloth",
+              "min": 1,
+              "max": 3,
+              "weight": 3
+            },
+            {
+              "item": "medkit",
+              "min": 1,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "item": "old_letter",
+              "min": 1,
+              "max": 1,
+              "weight": 0.3
+            },
+            {
+              "item": "potato",
+              "min": 1,
+              "max": 2,
+              "weight": 2
+            },
+            {
+              "item": "electronics",
+              "min": 1,
+              "max": 1,
+              "weight": 1.5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "red_tide",
+      "name": "赤潮の海",
+      "bounds": [
+        -1200,
+        -400,
+        -400,
+        400
+      ],
+      "ocean_shallow_color": "#5a3a4a",
+      "ocean_deep_color": "#2a1424",
+      "fog_color": "#7a5a6a",
+      "danger": 4,
+      "description": "濁った赤紫の海。奇妙な潮流と海賊の噂。",
+      "debris_kinds": [
+        {
+          "kind": "plank",
+          "weight": 3
+        },
+        {
+          "kind": "barrel",
+          "weight": 2
+        },
+        {
+          "kind": "crate",
+          "weight": 3
+        }
+      ],
+      "drift_tables": {
+        "plank": {
+          "rolls": [
+            1,
+            2
+          ],
+          "entries": [
+            {
+              "item": "wood",
+              "min": 1,
+              "max": 3,
+              "weight": 8
+            },
+            {
+              "item": "rope",
+              "min": 1,
+              "max": 1,
+              "weight": 3
+            },
+            {
+              "item": "cloth",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            }
+          ]
+        },
+        "barrel": {
+          "rolls": [
+            1,
+            2
+          ],
+          "entries": [
+            {
+              "item": "water_bottle",
+              "min": 1,
+              "max": 1,
+              "weight": 4
+            },
+            {
+              "item": "coconut",
+              "min": 1,
+              "max": 2,
+              "weight": 4
+            },
+            {
+              "item": "plastic",
+              "min": 1,
+              "max": 3,
+              "weight": 4
+            },
+            {
+              "item": "scrap_metal",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            }
+          ]
+        },
+        "crate": {
+          "rolls": [
+            2,
+            3
+          ],
+          "entries": [
+            {
+              "item": "scrap_metal",
+              "min": 1,
+              "max": 3,
+              "weight": 5
+            },
+            {
+              "item": "rope",
+              "min": 1,
+              "max": 2,
+              "weight": 4
+            },
+            {
+              "item": "canned_food",
+              "min": 1,
+              "max": 1,
+              "weight": 3
+            },
+            {
+              "item": "cloth",
+              "min": 1,
+              "max": 3,
+              "weight": 3
+            },
+            {
+              "item": "medkit",
+              "min": 1,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "item": "old_letter",
+              "min": 1,
+              "max": 1,
+              "weight": 0.3
+            },
+            {
+              "item": "potato",
+              "min": 1,
+              "max": 2,
+              "weight": 2
+            },
+            {
+              "item": "ammo",
+              "min": 2,
+              "max": 5,
+              "weight": 2
+            },
+            {
+              "item": "medicine",
+              "min": 1,
+              "max": 1,
+              "weight": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "tide_union_waters",
+      "name": "潮流連合の海",
+      "bounds": [
+        -400,
+        400,
+        400,
+        1200
+      ],
+      "ocean_shallow_color": "#2aa69a",
+      "ocean_deep_color": "#0e5a6a",
+      "fog_color": "#c8e0d8",
+      "danger": 1,
+      "description": "交易船が行き交う安全な海。浮遊市場がある。",
+      "debris_kinds": [
+        {
+          "kind": "plank",
+          "weight": 5
+        },
+        {
+          "kind": "barrel",
+          "weight": 4
+        },
+        {
+          "kind": "crate",
+          "weight": 2
+        }
+      ],
+      "drift_tables": {
+        "plank": {
+          "rolls": [
+            1,
+            2
+          ],
+          "entries": [
+            {
+              "item": "wood",
+              "min": 1,
+              "max": 3,
+              "weight": 8
+            },
+            {
+              "item": "rope",
+              "min": 1,
+              "max": 1,
+              "weight": 3
+            },
+            {
+              "item": "cloth",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            }
+          ]
+        },
+        "barrel": {
+          "rolls": [
+            1,
+            2
+          ],
+          "entries": [
+            {
+              "item": "water_bottle",
+              "min": 1,
+              "max": 1,
+              "weight": 4
+            },
+            {
+              "item": "coconut",
+              "min": 1,
+              "max": 2,
+              "weight": 4
+            },
+            {
+              "item": "plastic",
+              "min": 1,
+              "max": 3,
+              "weight": 4
+            },
+            {
+              "item": "scrap_metal",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            },
+            {
+              "item": "canned_food",
+              "min": 1,
+              "max": 1,
+              "weight": 2
+            }
+          ]
+        },
+        "crate": {
+          "rolls": [
+            2,
+            3
+          ],
+          "entries": [
+            {
+              "item": "scrap_metal",
+              "min": 1,
+              "max": 3,
+              "weight": 5
+            },
+            {
+              "item": "rope",
+              "min": 1,
+              "max": 2,
+              "weight": 4
+            },
+            {
+              "item": "canned_food",
+              "min": 1,
+              "max": 1,
+              "weight": 3
+            },
+            {
+              "item": "cloth",
+              "min": 1,
+              "max": 3,
+              "weight": 3
+            },
+            {
+              "item": "medkit",
+              "min": 1,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "item": "old_letter",
+              "min": 1,
+              "max": 1,
+              "weight": 0.3
+            },
+            {
+              "item": "potato",
+              "min": 1,
+              "max": 2,
+              "weight": 2
+            }
+          ]
+        }
       }
     }
   ]

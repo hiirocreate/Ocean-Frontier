@@ -23,7 +23,7 @@ timeout "$TIMEOUT" "$GODOT" --headless --path . --script res://tools/smoke_test.
 [ "${PIPESTATUS[0]}" -ne 0 ] && status=1
 
 # 実行時エラーはテストが成功扱いになるのを防ぐため検出して失敗にする
-if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" "$LOG" >/dev/null; then
+if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|Parameter \"[a-z_]+\" is null" "$LOG" | grep -v 'Parameter "m" is null' >/dev/null; then
   echo "!! スクリプトエラーを検出しました"
   status=1
 fi

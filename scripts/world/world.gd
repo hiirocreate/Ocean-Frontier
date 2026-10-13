@@ -30,6 +30,9 @@ var _zone: Dictionary
 var encounter: Encounter
 var crew_root: Node3D
 var _encounter_timer := 0.0
+var landmarks_root: Node3D
+var _landmarks := {}  # site_id -> Node3D
+var _loc_timer := 0.0
 
 
 func _ready() -> void:
@@ -44,6 +47,8 @@ func _ready() -> void:
 	_build_raft()
 	debris_root = Node3D.new()
 	add_child(debris_root)
+	landmarks_root = Node3D.new()
+	add_child(landmarks_root)
 	camera_rig = CameraRig.new()
 	add_child(camera_rig)
 	camera_rig.target = raft_root
@@ -183,6 +188,10 @@ func _process(delta: float) -> void:
 	_update_lighting()
 	_update_debris(delta)
 	_update_encounter(delta)
+	_loc_timer += delta
+	if _loc_timer > 0.5:
+		_loc_timer = 0.0
+		_update_location()
 	_autosave_timer += delta
 	if _autosave_timer > 120.0:
 		_autosave_timer = 0.0
@@ -190,7 +199,7 @@ func _process(delta: float) -> void:
 
 
 func _input_vector() -> Vector2:
-	if hud.is_modal_open() or session.is_sleeping() or hud.dialogue_panel.visible:
+	if hud.is_modal_open() or session.is_sleeping():
 		return Vector2.ZERO
 	var v := hud.joystick.value
 	if v == Vector2.ZERO:
@@ -308,6 +317,35 @@ func collect_nearest() -> void:
 	session.collect_debris(_nearest.kind)
 	_nearest.fly_to(player)
 	_nearest = null
+
+
+# ---------- 海域・探索地点 ----------
+func _update_location() -> void:
+	var changed := session.update_location(raft_root.position)
+	if changed != "":
+		_zone = session.data.zones.get(changed, {})
+		_apply_zone_colors()
+	# 近くの地点の3D目印を出し入れ
+	for sid in session.data.sites:
+		var sd: Dictionary = session.data.sites[sid]
+		var near := session.site_distance(sid) < 320.0 and (not bool(sd.get("hidden", false)) or session.is_site_discovered(sid))
+		if near and not _landmarks.has(sid):
+			var m := SiteModels.make(str(sd.get("type", "")))
+			m.position = session.site_position(sid)
+			landmarks_root.add_child(m)
+			_landmarks[sid] = m
+		elif not near and _landmarks.has(sid):
+			_landmarks[sid].queue_free()
+			_landmarks.erase(sid)
+	hud.set_nearby_site(session.nearby_site(float(session.data.bal("world.explore_range", 30.0))))
+
+
+func _apply_zone_colors() -> void:
+	var tw := create_tween().set_parallel(true)
+	tw.tween_method(func(c): ocean_mat.set_shader_parameter("shallow_color", c), ocean_mat.get_shader_parameter("shallow_color"), Color(_zone.get("ocean_shallow_color", "#1b9a98")), 3.0)
+	tw.tween_method(func(c): ocean_mat.set_shader_parameter("deep_color", c), ocean_mat.get_shader_parameter("deep_color"), Color(_zone.get("ocean_deep_color", "#0a3f66")), 3.0)
+	var far: MeshInstance3D = ocean.get_node("FarOcean")
+	far.material_override = LowPoly.mat(Color(_zone.get("ocean_deep_color", "#0a3f66")), 0.4)
 
 
 # ---------- 遭遇（救助・再会） ----------
@@ -441,5 +479,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		hud.toggle_inventory()
 	elif event.is_action_pressed("crew"):
 		hud.toggle_crew()
+	elif event.is_action_pressed("map"):
+		hud.toggle_map()
 	elif event.is_action_pressed("menu"):
 		hud.toggle_menu()

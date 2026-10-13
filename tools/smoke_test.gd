@@ -185,6 +185,45 @@ func _run() -> void:
 	await shot("09_crew_panel")
 	w.hud.toggle_crew()
 
+	# 探索: 座礁した漁船へ移動 → 調べる → 探索
+	w.raft_root.position = s.site_position("wreck_fishing_boat") + Vector3(14, 0, 8)
+	await frames(5)
+	await create_timer(0.7).timeout
+	check(s.is_site_discovered("wreck_fishing_boat"), "近づくと地点を発見")
+	check(w.hud.inspect_button.visible, "「調べる」ボタンが出る")
+	w.hud.show_site_panel(s.nearby_site())
+	await frames(5)
+	await shot("10_site_panel")
+	var exp0: int = s.stats.get("sites_explored", 0)
+	var rr := s.actions.start("explore_surface", {"site": "wreck_fishing_boat"})
+	check(rr["ok"], "探索を開始できる")
+	s.advance(40)
+	check(int(s.stats.get("sites_explored", 0)) == exp0 + 1, "探索が完了")
+	w.hud._site_panel.visible = false
+	# 戦闘
+	s.inventory.add_many({"harpoon": 1}, true)
+	s.start_combat("scavengers", "raft")
+	await frames(5)
+	check(w.hud.combat_panel.visible, "戦闘画面が出る")
+	await shot("11_combat")
+	w.hud.combat_panel._choose("fight")
+	await frames(5)
+	await shot("12_combat_result")
+	check(s.pending_combat.is_empty(), "戦闘が解決")
+	w.hud.combat_panel._result = {}
+	await frames(3)
+	# 海域の移動
+	w.raft_root.position = Vector3(700, 0, 100)
+	await frames(3)
+	await create_timer(0.7).timeout
+	check(s.zone_id == "rust_reef", "錆の礁に入った")
+	await create_timer(3.2).timeout
+	await shot("13_rust_reef")
+	w.hud.toggle_map()
+	await frames(5)
+	await shot("14_map")
+	w.hud.toggle_map()
+
 	# 6) セーブ → 状態を変える → 7) ロードして確認
 	var snapshot := JSON.stringify(s.to_dict())
 	check(game.save_game()["ok"], "セーブ成功")

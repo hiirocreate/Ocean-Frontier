@@ -2,7 +2,7 @@ class_name DataValidator
 extends RefCounted
 ## 開発用データ検証（仕様44）。問題点の文字列配列を返す（空なら正常）。
 
-const KNOWN_EFFECTS := ["raft_add_tile", "repair_item", "place_building", "rest"]
+const KNOWN_EFFECTS := ["raft_add_tile", "repair_item", "place_building", "rest", "explore_site", "story_beat"]
 const KNOWN_USE_EFFECTS := ["health", "hunger", "thirst", "fatigue", "injury"]
 const CATEGORIES := ["material", "consumable", "weapon", "armor", "tool", "ship_part", "story"]
 
@@ -17,7 +17,51 @@ static func validate(d: GameData) -> Array[String]:
 	_balance(d, e)
 	_characters(d, e)
 	_dialogues(d, e)
+	_sites(d, e)
 	return e
+
+
+static func _loot_table(d: GameData, e: Array[String], owner: String, t: Variant) -> void:
+	if not (t is Dictionary) or t.is_empty():
+		return
+	for en in t.get("entries", []):
+		if not d.items.has(str(en.get("item", ""))):
+			e.append("%s: 存在しないアイテム '%s'" % [owner, str(en.get("item"))])
+
+
+static func _sites(d: GameData, e: Array[String]) -> void:
+	for zid in d.zones:
+		var b: Variant = d.zones[zid].get("bounds", [])
+		if not (b is Array) or b.size() != 4 or float(b[0]) >= float(b[2]) or float(b[1]) >= float(b[3]):
+			e.append("zone %s: bounds は [x0,z0,x1,z1]（x0<x1, z0<z1）" % zid)
+	for sid in d.sites:
+		var sd: Dictionary = d.sites[sid]
+		var o := "site " + str(sid)
+		if not d.zones.has(str(sd.get("zone", ""))):
+			e.append("%s: 存在しない海域" % o)
+		var pos: Variant = sd.get("position", [])
+		if not (pos is Array) or pos.size() != 2:
+			e.append("%s: position は [x,z]" % o)
+		var ea := str(sd.get("explore_action", ""))
+		if ea != "":
+			if not d.actions.has(ea):
+				e.append("%s: 探索行動 '%s' が存在しません" % [o, ea])
+			elif d.actions[ea].get("effect") != "explore_site":
+				e.append("%s: 探索行動の effect が explore_site ではありません" % o)
+		_loot_table(d, e, o + ".loot", sd.get("loot", {}))
+		_check_item_map(d, e, o + ".unique_items", sd.get("unique_items", {}))
+		var cb: Dictionary = sd.get("combat", {})
+		if not cb.is_empty() and not d.enemies.has(str(cb.get("group", ""))):
+			e.append("%s: 存在しない敵 '%s'" % [o, str(cb.get("group"))])
+		for k in Conditions.unknown_keys(sd.get("discover_condition", {})):
+			e.append("%s: 未知の条件キー '%s'" % [o, k])
+	for eid in d.enemies:
+		var en: Dictionary = d.enemies[eid]
+		_loot_table(d, e, "enemy %s.loot" % eid, en.get("loot", {}))
+		_check_item_map(d, e, "enemy %s.bribe" % eid, en.get("bribe", {}))
+		for k in ["attack", "defense", "hp", "morale"]:
+			if not _num_ok(en.get(k), 0.0):
+				e.append("enemy %s: %s が不正" % [eid, k])
 
 
 const EFFECT_TYPES := ["recruit", "trust", "loyalty", "satisfaction", "stress", "relation", "flag", "counter", "give_item", "take_item", "message"]
@@ -190,11 +234,16 @@ static func _actions(d: GameData, e: Array[String]) -> void:
 			e.append("%s: 建てる設備が存在しません" % owner)
 		if eff != "" and not (eff in KNOWN_EFFECTS):
 			e.append("%s: 未知の effect '%s'" % [owner, eff])
+		if eff == "story_beat":
+			for sid in a.get("effect_params", {}).get("reveal_sites", []):
+				if not d.sites.has(str(sid)):
+					e.append("%s: 存在しない地点 '%s'" % [owner, sid])
 		for k in ["on_fail", "on_cancel"]:
 			var lr: Variant = a.get(k, {}).get("lose_ratio", 0.0)
 			if not _num_ok(lr) or float(lr) > 1.0:
 				e.append("%s: %s.lose_ratio は0〜1" % [owner, k])
-		if not (a.get("category") in ["raft", "craft", "build", "repair", "rest"]):
+		_check_item_map(d, e, owner + ".keep_items", a.get("keep_items", {}))
+		if not (a.get("category") in ["raft", "craft", "build", "repair", "rest", "explore"]):
 			e.append("%s: 不正なカテゴリ %s" % [owner, str(a.get("category"))])
 		if a.get("inputs", {}).is_empty() and a.get("outputs", {}).is_empty() and eff == "":
 			e.append("%s: 入力・出力・効果がすべて空です" % owner)

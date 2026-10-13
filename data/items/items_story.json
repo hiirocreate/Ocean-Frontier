@@ -1,0 +1,11 @@
+{
+  "_comment": "物語アイテム。売却不可。clue=手がかりとして物語の進行に使われる。",
+  "items": [
+    {"id": "research_log", "name": "研究記録", "description": "防水ケースの研究日誌。『潮流制御試験 第3段階』と書かれている。", "category": "story", "rarity": "rare", "weight": 0.2, "stackable": true, "sell_price": 0, "clue": true, "obtain": ["explore"]},
+    {"id": "encrypted_data", "name": "暗号化データ", "description": "読めないデータ端末。解析には研究が必要。", "category": "story", "rarity": "rare", "weight": 0.3, "stackable": true, "sell_price": 0, "clue": true, "obtain": ["explore"]},
+    {"id": "old_key", "name": "古い鍵", "description": "『ATLAS - 第七区画』と刻印された金属の鍵。", "category": "story", "rarity": "epic", "weight": 0.1, "stackable": true, "sell_price": 0, "clue": true, "obtain": ["explore"]},
+    {"id": "comm_device", "name": "通信装置", "description": "規則的な信号を受信し続けている小型装置。", "category": "story", "rarity": "epic", "weight": 1.0, "stackable": true, "sell_price": 0, "clue": true, "obtain": ["explore"]},
+    {"id": "relic", "name": "遺物", "description": "淡く青白く光る結晶。触れると潮の音が聞こえる。", "category": "story", "rarity": "legendary", "weight": 0.5, "stackable": true, "sell_price": 0, "clue": true, "obtain": ["explore"]},
+    {"id": "decoded_report", "name": "解読された報告書", "description": "暗号化データを解読した内容。世界の水没が『計画』だった可能性を示す。", "category": "story", "rarity": "epic", "weight": 0.1, "stackable": true, "sell_price": 0, "clue": true, "obtain": ["research"]}
+  ]
+}
