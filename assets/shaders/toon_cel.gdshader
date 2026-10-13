@@ -4,6 +4,7 @@
 // GL Compatibility（Android）と Forward+ の両方で動作。独自制作（CC0扱い）。
 shader_type spatial;
 render_mode blend_mix, depth_draw_opaque, cull_back, specular_disabled, ambient_light_disabled;
+#include "res://assets/shaders/recolor.gdshaderinc"
 
 group_uniforms base;
 uniform vec4 albedo : source_color = vec4(1.0);
@@ -40,6 +41,7 @@ void fragment() {
 	if (use_vertex_color) {
 		c *= COLOR.rgb;
 	}
+	c = recolor(c); // 主人公の髪色・肌の色（生成モデルのみ有効）
 	ALBEDO = c;
 	// 環境光の代わりに一定の底上げ（ambient_light_disabled と組み合わせて階調を崩さない）
 	EMISSION = c * ambient_color.rgb;

@@ -24,9 +24,11 @@ func set_character(id: String, defn: Dictionary, expr: String = "normal") -> voi
 	look = (defn if not defn.is_empty() else PLAYER_LOOK) if id == "player" else defn
 	expression = expr if expr != "" else "normal"
 	_texture = null
-	var path := "res://assets/characters/portraits/%s_%s.png" % [id, expression]
-	if ResourceLoader.exists(path):
-		_texture = load(path)
+	material = null
+	if CharacterArt.enabled(look):
+		_texture = CharacterArt.portrait(CharacterArt.art_id(id, look), expression)
+		if _texture:
+			material = CharacterArt.portrait_material(look)
 	queue_redraw()
 
 
@@ -48,7 +50,11 @@ func _draw() -> void:
 	var w := size.x
 	var h := size.y
 	if _texture:
-		draw_texture_rect(_texture, Rect2(Vector2.ZERO, size), false)
+		# 縦横比を保って下端・中央揃え
+		var ts := _texture.get_size()
+		var k := minf(w / ts.x, h / ts.y)
+		var r := Rect2(Vector2((w - ts.x * k) / 2.0, h - ts.y * k), ts * k)
+		draw_texture_rect(_texture, r, false)
 		return
 	var s := minf(w / 240.0, h / 300.0)
 	var o := Vector2((w - 240.0 * s) / 2.0, h - 300.0 * s)

@@ -24,7 +24,7 @@ var past_events: Array = []  # [{day, text}] 過去・背景に関する出来�
 
 
 static func default_appearance(g: String = "male") -> Dictionary:
-	return {"hair_style": "messy" if g == "male" else "bob", "hair_color": "black", "skin_color": "light", "face": "soft", "outfit": "castaway", "accessory": "scarf"}
+	return {"hair_style": "messy" if g == "male" else "bob", "hair_color": "black", "skin_color": "light", "face": "soft", "outfit": "castaway", "accessory": "scarf", "art_mode": "illust"}
 
 
 ## 主人公作成をスキップした場合・古いセーブの移行時の既定値
@@ -181,6 +181,7 @@ func look(data: GameData) -> Dictionary:
 			"outer": outfit.get("outer", "#3f6b73"), "pants": outfit.get("pants", "#4a4f5e"), "accent": "#c2553d"},
 		"hair_style": str(appearance.get("hair_style", "messy")), "accessory": "" if acc == "none" else acc,
 		"face": str(appearance.get("face", "soft")), "gender": gender, "age": age, "age_band": age_band(),
+		"art_id": "player_%s_%s" % [gender, age_band()], "art_mode": str(appearance.get("art_mode", "illust")),
 	}
 
 

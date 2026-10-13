@@ -7,12 +7,14 @@ const OUTLINE := preload("res://assets/shaders/toon_outline.gdshader")
 
 
 ## 色（と頂点カラー）からセルルック＋輪郭線のマテリアルを作る
-static func material(color: Color, use_vertex_color := false, outline_px := 3.5, bands := 2) -> ShaderMaterial:
+static func material(color: Color, use_vertex_color := false, outline_px := 3.5, bands := 2, extra := {}) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
 	m.shader = CEL
 	m.set_shader_parameter("albedo", color)
 	m.set_shader_parameter("use_vertex_color", use_vertex_color)
 	m.set_shader_parameter("bands", bands)
+	for k in extra:
+		m.set_shader_parameter(k, extra[k])
 	if outline_px > 0.0:
 		var o := ShaderMaterial.new()
 		o.shader = OUTLINE
@@ -22,7 +24,7 @@ static func material(color: Color, use_vertex_color := false, outline_px := 3.5,
 
 
 ## ノード以下の MeshInstance3D の StandardMaterial3D をセルルックに置き換える（色・頂点カラー・テクスチャを引き継ぐ）
-static func apply(root: Node, outline_px := 3.5, bands := 2) -> int:
+static func apply(root: Node, outline_px := 3.5, bands := 2, extra := {}) -> int:
 	var count := 0
 	var stack: Array[Node] = [root]
 	while not stack.is_empty():
@@ -34,7 +36,8 @@ static func apply(root: Node, outline_px := 3.5, bands := 2) -> int:
 		for i in mi.mesh.get_surface_count():
 			var src := mi.get_active_material(i) as BaseMaterial3D
 			var col := src.albedo_color if src else Color.WHITE
-			var m := material(col, src != null and src.vertex_color_use_as_albedo, outline_px, bands)
+			var vc: bool = src != null and src.vertex_color_use_as_albedo or mi.mesh.surface_get_format(i) & Mesh.ARRAY_FORMAT_COLOR != 0
+			var m := material(col, vc, outline_px, bands, extra)
 			if src and src.albedo_texture:
 				m.set_shader_parameter("albedo_texture", src.albedo_texture)
 				m.set_shader_parameter("use_texture", true)

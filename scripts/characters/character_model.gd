@@ -2,7 +2,8 @@ class_name CharacterModel
 extends Node3D
 ## 探索用キャラクターの仮モデル（ローポリのプリミティブ構成）。
 ## 外見パラメータは docs/CHARACTER_GUIDE.md の設定と一致させる。
-## 完成版では Blender 製 .glb に置き換える（ASSET_STATUS: char_protagonist_model）。
+## 生成した3Dモデル（assets/characters/models/<art_id>.glb、待機・歩行・作業・休憩のアニメーション付き）が
+## あればそちらを使い、セルルック（Toon）で描く。なければこのプリミティブ構成で描く。
 
 @export var skin := Color("e8b996")
 @export var hair := Color("2e2a2b")
@@ -24,10 +25,14 @@ var _body: Node3D
 var moving := false
 var working := false  # 作業中（腕を振る）
 var resting := false  # 休憩中（座る）
+var _defn: Dictionary = {}
+var _art: Node3D  # 生成モデル（ある場合）
+var _anim: AnimationPlayer
 
 
 ## survivors.json の定義から外見を設定（add_child の前に呼ぶ）
 func apply_look(defn: Dictionary) -> void:
+	_defn = defn
 	var c: Dictionary = defn.get("colors", {})
 	skin = Color(str(c.get("skin", skin.to_html())))
 	hair = Color(str(c.get("hair", hair.to_html())))
@@ -43,6 +48,8 @@ func apply_look(defn: Dictionary) -> void:
 
 
 func _ready() -> void:
+	if _setup_generated():
+		return
 	_body = Node3D.new()
 	add_child(_body)
 	_leg_l = _limb(Vector3(-0.13, 0.82, 0), 0.09, 0.8, pants, Color("3b2a20"))
@@ -152,7 +159,34 @@ func _limb(pivot: Vector3, r: float, length: float, upper: Color, end_color: Col
 	return n
 
 
+## 生成モデルを使う。体格は年齢帯・性別の身長比のみ反映（体型の差は生成画像側で描き分け済み）
+func _setup_generated() -> bool:
+	if not CharacterArt.enabled(_defn):
+		return false
+	var scene := CharacterArt.model_scene(CharacterArt.art_id(str(_defn.get("id", "")), _defn))
+	if scene == null:
+		return false
+	_art = scene.instantiate() as Node3D
+	add_child(_art)
+	if not body.is_empty():
+		_art.scale = Vector3.ONE * float(body.get("height", 1.0))
+	Toon.apply(_art, 3.0, 2, CharacterArt.recolor_params(_defn))
+	_anim = _art.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	if _anim:
+		for a in ["idle", "walk", "work"]:
+			if _anim.has_animation(a):
+				_anim.get_animation(a).loop_mode = Animation.LOOP_LINEAR
+		_anim.play("idle")
+	return true
+
+
 func _process(delta: float) -> void:
+	if _art:
+		if _anim:
+			var want := "walk" if moving else ("work" if working else ("rest" if resting else "idle"))
+			if _anim.current_animation != want and _anim.has_animation(want):
+				_anim.play(want, 0.2)
+		return
 	_t += delta * (7.0 if moving else (5.0 if working else 1.6))
 	var swing := sin(_t) * (0.55 if moving else 0.05)
 	_arm_l.rotation.x = swing

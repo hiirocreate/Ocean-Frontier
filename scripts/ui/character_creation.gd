@@ -203,7 +203,7 @@ func set_age(a: int) -> bool:
 func _build_appearance() -> VBoxContainer:
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 10)
-	for spec in [["hair_style", "hair_styles", "髪型"], ["hair_color", "hair_colors", "髪色"], ["skin_color", "skin_colors", "肌の色"], ["face", "faces", "顔の特徴"], ["outfit", "outfits", "衣装"], ["accessory", "accessories", "アクセサリー"]]:
+	for spec in [["art_mode", "art_modes", "表示スタイル"], ["hair_style", "hair_styles", "髪型"], ["hair_color", "hair_colors", "髪色"], ["skin_color", "skin_colors", "肌の色"], ["face", "faces", "顔の特徴"], ["outfit", "outfits", "衣装"], ["accessory", "accessories", "アクセサリー"]]:
 		var h := HBoxContainer.new()
 		var l := UiTheme.label(spec[2], 18)
 		l.custom_minimum_size = Vector2(160, 0)
@@ -220,9 +220,14 @@ func _build_appearance() -> VBoxContainer:
 		h.add_child(ob)
 		v.add_child(h)
 		_appearance_opts[spec[0]] = ob
+	var note := UiTheme.label("イラスト表示では髪色・肌の色が立ち絵と3Dモデルに反映されます。髪型・顔・衣装・アクセサリーはシンプル表示で反映されます。", 15, Color(0.8, 0.86, 0.88))
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(note)
 	var rnd := UiTheme.button("ランダム", Vector2(200, 56))
 	rnd.pressed.connect(func():
 		for k in _appearance_opts:
+			if k == "art_mode":
+				continue
 			var ob: OptionButton = _appearance_opts[k]
 			var i := randi() % ob.item_count
 			ob.select(i)

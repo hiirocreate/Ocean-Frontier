@@ -1,6 +1,16 @@
 {
  "_comment": "主人公の外見の選択肢。",
  "appearance": {
+  "art_modes": [
+   {
+    "id": "illust",
+    "name": "イラスト（髪色・肌の色を反映）"
+   },
+   {
+    "id": "simple",
+    "name": "シンプル（全項目を反映）"
+   }
+  ],
   "hair_styles": [
    {
     "id": "messy",
