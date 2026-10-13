@@ -40,6 +40,10 @@
     "explore_range": 30.0,
     "open_sea_zone": "starting_waters"
   },
+  "events": {
+    "major_spacing_hours": 36,
+    "chance_multiplier": 1.0
+  },
   "start_inventory": {
     "wood": 6,
     "rope": 1,

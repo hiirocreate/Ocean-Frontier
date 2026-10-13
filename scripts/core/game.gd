@@ -9,6 +9,7 @@ signal settings_changed
 const SETTINGS_PATH := "user://settings.cfg"
 const MAIN_MENU := "res://scenes/main/main_menu.tscn"
 const WORLD := "res://scenes/world/world.tscn"
+const ENDING := "res://scenes/main/ending.tscn"
 
 var data: GameData
 var session: GameSession
@@ -87,6 +88,21 @@ func load_game() -> Dictionary:
 	else:
 		message.emit("ロードに失敗しました: " + str(r["error"]))
 	return r
+
+
+## エンディング画面へ（自動セーブしてから）
+func show_ending() -> void:
+	if session:
+		SaveManager.save_session(session)
+	running = false
+	get_tree().change_scene_to_file(ENDING)
+
+
+## エンディング後も同じ世界で遊び続ける
+func continue_after_ending() -> void:
+	if session:
+		session.flags["epilogue"] = true
+	get_tree().change_scene_to_file(WORLD)
 
 
 func return_to_menu() -> void:

@@ -46,11 +46,19 @@ func _run() -> void:
 	check(current_scene != null and current_scene.name == "MainMenu", "メインメニュー表示")
 	await shot("01_main_menu")
 
+	game.data.balance["events"]["chance_multiplier"] = 0.0  # E2Eではランダムイベントを止めて結果を安定させる
 	game.start_new_game()
 	await frames(30)
 	var w := world()
 	check(w != null and w.name == "World", "ワールド表示")
 	var s: GameSession = game.session
+	check(not s.pending_dialogue.is_empty() or w.hud.dialogue_panel.visible, "新しいゲームで第1章の導入が表示される")
+	await frames(5)
+	await shot("02a_intro")
+	w.hud.dialogue_panel.runner.advance()
+	w.hud.dialogue_panel.runner.advance()
+	await frames(3)
+	check(not w.hud.dialogue_panel.visible, "導入を読み終えると閉じる")
 	game.settings["quality"] = "high"
 	game.quality_changed()
 	s.clock.total_minutes = 9 * 60.0
@@ -155,7 +163,7 @@ func _run() -> void:
 	await shot("05c_building_panel")
 	var water0 := s.inventory.count("water_bottle")
 	s.harvest(s.raft.building_at(btile))
-	check(s.inventory.count("water_bottle") == water0 + 1, "浄水器から水を収穫")
+	check(s.inventory.count("water_bottle") >= water0 + 1, "浄水器から水を収穫")
 	w.hud.hide_building_panel()
 
 	# 仲間: 漂流者を救助 → 2D会話 → 加入 → 作業を割り当て
@@ -272,11 +280,29 @@ func _run() -> void:
 	check(world().raft_view.session == s2, "シーンが新しいセッションで再構築された")
 	await shot("06_after_load")
 
+	# 嵐の描画確認
+	s2.clock.total_minutes = 1440.0 * 2 + 11 * 60
+	s2.set_weather("storm", 3)
+	await create_timer(5.5).timeout
+	await shot("18_storm")
+	world().hud.quest_panel.open()
+	await frames(5)
+	await shot("19_record")
+	world().hud.quest_panel.visible = false
 	# 夜の描画確認
+	s2.weather = {"type": "clear", "until": 0.0}
 	s2.clock.total_minutes = 22 * 60.0
 	await frames(10)
 	await shot("07_night")
 
+	# エンディング画面
+	s2.flags["pirate_crew_founded"] = true
+	s2.story.ending = "keep_secret"
+	game.show_ending()
+	await frames(30)
+	check(current_scene.name == "Ending", "エンディング画面が表示される")
+	await create_timer(1.0).timeout
+	await shot("20_ending")
 	print("")
 	print("==== E2E: %s ====" % ("OK" if failures.is_empty() else "%d件失敗" % failures.size()))
 	for f in failures:

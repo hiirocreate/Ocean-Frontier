@@ -21,6 +21,12 @@ var pending_combat: Dictionary = {}  # {"enemy": id, "terrain": String, "source"
 var factions: FactionSim
 var fleet: Fleet
 var money: float = 0.0  # 貝貨
+var weather: Dictionary = {"type": "clear", "until": 0.0}
+var story: StoryManager
+var events: EventManager
+## UIに提示待ちの会話（物語・イベント）: {"id": String, "nodes": Dictionary}
+var pending_dialogue: Dictionary = {}
+var _story_acc := 0.0
 var rng: RandomNumberGenerator
 var zone_id: String = "starting_waters"
 var raft_position: Vector3 = Vector3.ZERO
@@ -58,8 +64,12 @@ func _init(game_data: GameData) -> void:
 	actions.register_effect("repair_ship", _validate_repair_ship, _apply_repair_ship)
 	actions.register_effect("fleet_mission", _validate_fleet_mission, _apply_fleet_mission)
 	actions.register_effect("found_pirate_crew", _validate_found_crew, _apply_found_crew)
+	actions.register_effect("repair_building", _validate_repair_building, _apply_repair_building)
+	actions.register_effect("repair_raft", _validate_repair_raft, _apply_repair_raft)
 	actions.job_started.connect(_on_job_started)
 	actions.job_cancelled.connect(_on_job_cancelled)
+	story = StoryManager.new(data)
+	events = EventManager.new(data)
 	crew = Crew.new(data)
 	crew.member_joined.connect(func(id): message.emit("%sが仲間になった" % crew.display_name(id)))
 	crew.member_warning.connect(func(_id, text): message.emit(text))
@@ -78,6 +88,11 @@ func new_game(game_seed: int = 0) -> void:
 	update_capacity()
 	factions._last_day = clock.day()
 	crew._last_day = clock.day()
+	var ch := story.chapter_def(1)
+	pending_dialogue = {"id": "chapter_1", "nodes": {
+		"start": {"speaker": "narrator", "text": "第1章　%s\n\n%s" % [ch.get("title", ""), ch.get("intro", "")], "next": "tips"},
+		"tips": {"speaker": "narrator", "text": "左下のスティックで筏を漕ぎ、漂流物に近づいたら「回収」。\n木材とロープが集まったら「建築」で筏を広げよう。困ったら「記録」に目標とヒントがある。", "next": "end"},
+	}}
 
 
 ## ゲーム内時間を進める。
@@ -92,8 +107,15 @@ func advance(minutes: float) -> void:
 	_tick_production(minutes)
 	crew.tick(minutes, self)
 	factions.tick(self)
+	if float(weather.get("until", 0.0)) > 0.0 and clock.total_minutes >= float(weather["until"]):
+		weather = {"type": "clear", "until": 0.0}
 	if clock.day() != day_before:
 		_on_new_day()
+	events.tick(minutes, self)
+	_story_acc += minutes
+	if _story_acc >= 10.0:
+		_story_acc = 0.0
+		story.check(self)
 
 
 func _on_new_day() -> void:
@@ -104,6 +126,84 @@ func _on_new_day() -> void:
 		var raider := factions.roll_raid_on_player(self)
 		if raider != "":
 			start_combat(raider, "raft", "raid")
+
+
+# ---- 天候 ----
+func set_weather(type: String, hours: float) -> void:
+	weather = {"type": type, "until": clock.total_minutes + hours * 60.0}
+
+
+func weather_type() -> String:
+	return str(weather.get("type", "clear"))
+
+
+## 戦闘への天候の影響（嵐・霧は不利）
+func weather_combat_mult() -> float:
+	return {"storm": 0.75, "fog": 0.9, "rain": 0.95}.get(weather_type(), 1.0)
+
+
+func _validate_repair_building(p: Dictionary, _e: int) -> String:
+	var uid := str(p.get("building_uid", ""))
+	if not raft.buildings.has(uid):
+		return "修理する設備を選んでください"
+	var mx := float(data.buildings.get(raft.buildings[uid]["id"], {}).get("max_durability", 50))
+	if float(raft.buildings[uid]["durability"]) >= mx:
+		return "修理の必要がありません"
+	return ""
+
+
+func _apply_repair_building(p: Dictionary) -> void:
+	var uid := str(p["building_uid"])
+	if raft.buildings.has(uid):
+		var mx := float(data.buildings.get(raft.buildings[uid]["id"], {}).get("max_durability", 50))
+		raft.buildings[uid]["durability"] = minf(mx, float(raft.buildings[uid]["durability"]) + mx * float(p.get("amount", 50)) / 100.0)
+		update_capacity()
+		raft.changed.emit()
+
+
+func _validate_repair_raft(_p: Dictionary, _e: int) -> String:
+	for k in raft.tiles:
+		if float(raft.tiles[k]["durability"]) < raft.tile_durability:
+			return ""
+	return "筏の床は傷んでいない"
+
+
+func _apply_repair_raft(p: Dictionary) -> void:
+	for k in raft.tiles:
+		raft.tiles[k]["durability"] = minf(raft.tile_durability, float(raft.tiles[k]["durability"]) + float(p.get("amount", 40)))
+	raft.changed.emit()
+
+
+## 筏の床の平均耐久（%）
+func raft_condition() -> float:
+	if raft.tiles.is_empty():
+		return 100.0
+	var t := 0.0
+	for k in raft.tiles:
+		t += float(raft.tiles[k]["durability"])
+	return t / raft.tiles.size() / raft.tile_durability * 100.0
+
+
+func _damage_raft(amount: float) -> void:
+	var defense := 0.0
+	for uid in raft.buildings:
+		defense += float(data.buildings.get(raft.buildings[uid]["id"], {}).get("combat_defense", 0)) * 0.5
+	var dmg := maxf(1.0, amount - defense)
+	for k in raft.tiles:
+		raft.tiles[k]["durability"] = maxf(1.0, float(raft.tiles[k]["durability"]) - dmg * rng.randf_range(0.3, 1.0))
+	for uid in raft.buildings:
+		raft.buildings[uid]["durability"] = maxf(0.0, float(raft.buildings[uid]["durability"]) - dmg * rng.randf_range(0.2, 0.8))
+	update_capacity()
+	raft.changed.emit()
+
+
+## 所持している手がかり（物語アイテム）の種類数
+func clue_count() -> int:
+	var n := 0
+	for id in data.items:
+		if bool(data.items[id].get("clue", false)) and inventory.count(id) > 0:
+			n += 1
+	return n
 
 
 # ---- 外部条件（ActionSystem.context） ----
@@ -156,6 +256,42 @@ func apply_effect(e: Dictionary) -> void:
 			start_combat(str(e.get("enemy", "")), str(e.get("terrain", "sea")), "event")
 		"discover_site":
 			discover_site(str(e.get("site", "")))
+		"weather":
+			set_weather(str(e.get("weather", "clear")), float(e.get("hours", 3)))
+		"damage_raft":
+			_damage_raft(float(e.get("amount", 10)))
+		"damage_buildings":
+			var uids := raft.buildings.keys()
+			for i in mini(int(e.get("count", 1)), uids.size()):
+				var uid: String = uids[rng.randi_range(0, uids.size() - 1)]
+				raft.buildings[uid]["durability"] = maxf(0.0, float(raft.buildings[uid]["durability"]) - float(e.get("amount", 20)))
+			update_capacity()
+		"lose_items":
+			var lost := {}
+			for id in inventory.stacks:
+				if data.item(id).get("category") in ["material", "consumable"]:
+					var n := int(floor(int(inventory.stacks[id]) * float(e.get("ratio", 0.1))))
+					if n > 0:
+						lost[id] = n
+			inventory.remove_many(lost)
+			if not lost.is_empty():
+				message.emit("失った物資: " + describe_items(lost))
+		"refill_water":
+			for uid in raft.buildings:
+				var b: Dictionary = raft.buildings[uid]
+				var prod: Dictionary = data.buildings.get(b["id"], {}).get("production", {})
+				if prod.get("item") == "water_bottle":
+					b["stored"] = mini(int(prod.get("max_stored", 1)), int(b["stored"]) + int(e.get("amount", 1)))
+		"prisoners_escape":
+			for i in mini(int(e.get("count", 1)), prisoners.size()):
+				prisoners.pop_back()
+		"crew_all":
+			for id in crew.aboard_ids():
+				crew.change(id, str(e.get("stat", "")), float(e.get("delta", 0)))
+		"survival":
+			survival.apply_effects({str(e.get("stat", "")): float(e.get("delta", 0))})
+		"spawn_reunion":
+			flags["reunion_requested"] = true
 		_:
 			GameLog.warn("未知の効果: %s" % t)
 
@@ -488,6 +624,8 @@ func _apply_story_beat(params: Dictionary) -> void:
 func start_combat(enemy_id: String, terrain: String = "raft", source: String = "") -> void:
 	if not data.enemies.has(enemy_id):
 		return
+	if str(data.enemies[enemy_id].get("faction", "")) == "black_current":
+		counters["pirate_encounters"] = float(counters.get("pirate_encounters", 0)) + 1.0
 	pending_combat = {"enemy": enemy_id, "terrain": terrain, "source": source}
 	message.emit("%sが現れた！" % data.enemies[enemy_id].get("name", enemy_id))
 
@@ -652,6 +790,10 @@ func to_dict() -> Dictionary:
 		"factions": factions.to_dict(),
 		"fleet": fleet.to_dict(),
 		"money": money,
+		"weather": weather.duplicate(),
+		"story": story.to_dict(),
+		"events": events.to_dict(),
+		"pending_dialogue": pending_dialogue.duplicate(true),
 	}
 
 
@@ -716,6 +858,14 @@ func from_dict(d: Dictionary) -> Dictionary:
 	var fl2: Variant = d.get("fleet", {})
 	warnings.append_array(fleet.from_dict(fl2 if fl2 is Dictionary else {}, self))
 	money = maxf(0.0, float(d.get("money", 0.0)))
+	var wd: Variant = d.get("weather", {})
+	weather = {"type": str(wd.get("type", "clear")), "until": float(wd.get("until", 0.0))} if wd is Dictionary else {"type": "clear", "until": 0.0}
+	var sd: Variant = d.get("story", {})
+	warnings.append_array(story.from_dict(sd if sd is Dictionary else {}))
+	var ed: Variant = d.get("events", {})
+	warnings.append_array(events.from_dict(ed if ed is Dictionary else {}))
+	var pd: Variant = d.get("pending_dialogue", {})
+	pending_dialogue = pd.duplicate(true) if pd is Dictionary and pd.get("nodes") is Dictionary else {}
 	# 任務中の船と進行中の任務を照合（不整合なら帰港扱い）
 	for uid in fleet.ships:
 		if fleet.ships[uid]["location"] == "mission" and not actions.jobs.any(func(j): return j["action"] == "fleet_mission" and str(j["params"].get("ship", "")) == uid):

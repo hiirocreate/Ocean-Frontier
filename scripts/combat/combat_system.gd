@@ -83,7 +83,7 @@ static func player_force(s: GameSession, terrain: String = "raft") -> Dictionary
 	defense *= float(t["defense"])
 	if terrain != "raft":
 		f["factors"].append("地形: %s" % {"site": "探索地点", "underwater": "水中（不利）", "sea": "海上"}.get(terrain, terrain))
-	var weather := float(s.flags.get("weather_combat_mult", 1.0))
+	var weather := s.weather_combat_mult()
 	if weather < 1.0:
 		f["factors"].append("悪天候")
 	atk *= weather
@@ -255,6 +255,8 @@ static func apply_result(s: GameSession, r: Dictionary) -> Array[String]:
 		for k in enemy.get("reputation", {}):
 			s.change_reputation(str(k), float(enemy["reputation"][k]))
 		s.stats["battles_won"] = int(s.stats.get("battles_won", 0)) + 1
+		if str(enemy.get("faction", "")) == "black_current":
+			s.counters["pirate_wins"] = float(s.counters.get("pirate_wins", 0)) + 1.0
 	elif r["outcome"] == "defeat":
 		s.stats["battles_lost"] = int(s.stats.get("battles_lost", 0)) + 1
 	return msgs

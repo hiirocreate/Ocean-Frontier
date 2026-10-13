@@ -1,0 +1,142 @@
+{
+ "_comment": "エンディング。最終選択では condition を満たすものだけが選べる（keep_secret と leave_partially は常に選べる）。",
+ "endings": [
+  {
+   "id": "reveal_truth",
+   "name": "真実の灯",
+   "description": "世界の真相を公表する",
+   "priority": 5,
+   "condition": {
+    "all": [
+     {
+      "clue_count_min": 3
+     },
+     {
+      "buildings_has": "radio_station"
+     }
+    ]
+   },
+   "requires_text": "手がかり3種以上と通信設備",
+   "text": "あなたは通信設備から、アトラスの記録を全ての周波数に流した。世界は混乱し、怒り、そしてゆっくりと——自分たちの足で立ち直り始めた。灯台の灯は、その夜を境に消えた。"
+  },
+  {
+   "id": "keep_secret",
+   "name": "静かな海",
+   "description": "世界の秘密を隠す",
+   "priority": 1,
+   "condition": {},
+   "requires_text": "",
+   "text": "真実は重すぎた。あなたは中枢を封じ、記録を海の底に沈めた。人々は今日も、気候のせいだと信じて生きていく。それが優しさだったのか、今もわからない。"
+  },
+  {
+   "id": "rebuild_society",
+   "name": "潮流の街",
+   "description": "海上社会を再建する",
+   "priority": 6,
+   "condition": {
+    "all": [
+     {
+      "reputation_min": {
+       "trust": 35
+      }
+     },
+     {
+      "allied_count_min": 1
+     }
+    ]
+   },
+   "requires_text": "信頼35以上と同盟1つ以上",
+   "text": "中枢の力で潮流を穏やかに整え、あなたは勢力の垣根を越えた海上都市を築いた。市場には笑い声が戻り、子どもたちは海を怖がらなくなった。"
+  },
+  {
+   "id": "found_nation",
+   "name": "新しき国",
+   "description": "独自の国家を築く",
+   "priority": 7,
+   "condition": {
+    "all": [
+     {
+      "tiles_min": 20
+     },
+     {
+      "crew_min": 4
+     },
+     {
+      "ships_min": 2
+     }
+    ]
+   },
+   "requires_text": "床20枚以上・仲間4人以上・船2隻以上",
+   "text": "筏はいつしか島になり、島は国になった。あなたの旗のもとに、行き場をなくした人々が集まってくる。"
+  },
+  {
+   "id": "pirate_king",
+   "name": "黒き潮の王",
+   "description": "海賊勢力の頂点に立つ",
+   "priority": 8,
+   "condition": {
+    "all": [
+     {
+      "flags_all": [
+       "pirate_crew_founded"
+      ]
+     },
+     {
+      "reputation_min": {
+       "infamy": 40
+      }
+     }
+    ]
+   },
+   "requires_text": "海賊団の創設と悪名40以上",
+   "text": "潮流を操る力を手にしたあなたに、逆らう者はいなくなった。全ての航路は、あなたの許しなしには通れない。"
+  },
+  {
+   "id": "life_with_crew",
+   "name": "いつもの筏",
+   "description": "仲間との生活を優先する",
+   "priority": 6,
+   "condition": {
+    "all": [
+     {
+      "crew_min": 3
+     },
+     {
+      "crew_loyalty_avg_min": 60
+     }
+    ]
+   },
+   "requires_text": "仲間3人以上・平均忠誠60以上",
+   "text": "世界の行く末は、誰かが決めればいい。あなたは中枢に背を向け、仲間の待つ筏へ帰った。今夜も焼き魚の匂いと、くだらない冗談が待っている。"
+  },
+  {
+   "id": "solve_mystery",
+   "name": "潮の記憶",
+   "description": "世界の謎を解明する",
+   "priority": 9,
+   "condition": {
+    "all": [
+     {
+      "clue_count_min": 5
+     },
+     {
+      "counter_min": {
+       "research_points": 20
+      }
+     }
+    ]
+   },
+   "requires_text": "手がかり5種以上・研究20以上",
+   "text": "記録、遺物、信号——全ての断片がつながった。崩壊は、ひとつの研究所の暴走だった。そしてその暴走を止めようとして記憶を失ったのが、あなただった。"
+  },
+  {
+   "id": "leave_partially",
+   "name": "水平線の向こう",
+   "description": "真相の一部を残して旅立つ",
+   "priority": 2,
+   "condition": {},
+   "requires_text": "",
+   "text": "あなたは鍵だけを持ち帰り、残りを海に返した。いつか誰かが、自分の手でこの真実に辿り着くだろう。あなたは新しい水平線に向けて帆を上げた。"
+  }
+ ]
+}

@@ -7,7 +7,7 @@
 | E2E（描画あり） | `xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --script res://tools/smoke_test.gd` | 実シーンでのプレイサイクルとスクリーンショット |
 | データ検証のみ | `godot --headless --path . --script res://tools/validate_data.gd` | |
 
-## 自動テスト一覧と状況（2026-10-13 時点：90件 全成功、E2E 39項目 全成功）
+## 自動テスト一覧と状況（2026-10-13 時点：106件 全成功、E2E 43項目 全成功）
 
 ### アイテム（仕様45）
 | 要件 | テスト | 状況 |
@@ -29,7 +29,7 @@
 | 抽選結果がセーブと整合 | test_save::test_rng_continuity | ✅ |
 | 壊れたデータを検出できる | test_save::test_corrupted_file_detected_and_backup_used / test_garbage_file_fails_safely / test_missing_required_section / test_future_format_rejected | ✅ |
 | キャラクターの履歴が維持される | test_crew::test_crew_saved_and_loaded | ✅ |
-| ストーリー進行が維持される | flags の保存のみ確認 | 一部 |
+| ストーリー進行が維持される | test_story_and_events_saved | ✅ |
 
 ### 建築物
 | 要件 | テスト | 状況 |
@@ -107,6 +107,21 @@ ID重複・存在しないアイテム参照・不正なレシピ・存在しな
 | 交易・外交 | test_trade_*, test_hostile_faction_refuses_trade, test_alliance_requires_standing, test_hire_sailor | ✅ |
 | 捕虜 | test_prisoners_release_ransom_recruit_and_escape | ✅ |
 | 敵対勢力の襲撃 | test_hostile_faction_raids_player | ✅ |
+
+### 物語・イベント・エンディング
+| 要件 | テスト | 状況 |
+|---|---|---|
+| 章の進行 | test_chapter1_progression, test_new_game_shows_intro | ✅ |
+| 主要ストーリーが進行不能にならない（仲間なし・離脱後） | test_full_main_story_without_companions, test_story_not_blocked_by_departed_companion | ✅ |
+| 代替ルート | test_chapter3_alternative_routes | ✅ |
+| トリガーは一度だけ | test_triggers_fire_once | ✅ |
+| クエスト | test_quest_start_complete_and_rewards | ✅ |
+| イベントの再現性・履歴 | test_events_deterministic_and_history | ✅ |
+| 重大イベントの連続防止・クールダウン | test_major_events_are_spaced, test_cooldown_respected | ✅ |
+| 会話イベント | test_dialogue_event_and_storm_damage | ✅ |
+| 複数のエンディングに到達できる | test_each_ending_reachable（6種＋常時2種）, test_endings_availability, E2E | ✅ |
+| 物語・イベントのセーブ | test_story_and_events_saved | ✅ |
+| 嵐の損傷と修理 | test_repair_after_storm | ✅ |
 
 ## Android テスト（仕様46）
 | 項目 | 状況 |

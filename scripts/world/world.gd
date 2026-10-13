@@ -33,6 +33,9 @@ var _encounter_timer := 0.0
 var landmarks_root: Node3D
 var _landmarks := {}  # site_id -> Node3D
 var _loc_timer := 0.0
+var rain: CPUParticles3D
+var _weather_mix := 0.0  # 0=晴れ 1=嵐
+var _fog_mix := 0.0
 
 
 func _ready() -> void:
@@ -45,6 +48,7 @@ func _ready() -> void:
 	_build_environment()
 	_build_ocean()
 	_build_raft()
+	_build_rain()
 	debris_root = Node3D.new()
 	add_child(debris_root)
 	landmarks_root = Node3D.new()
@@ -173,6 +177,38 @@ func _build_raft() -> void:
 	raft_root.add_child(mast)
 
 
+func _build_rain() -> void:
+	rain = CPUParticles3D.new()
+	rain.amount = 600
+	rain.lifetime = 1.2
+	rain.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	rain.emission_box_extents = Vector3(25, 1, 25)
+	rain.direction = Vector3(0.15, -1, 0)
+	rain.spread = 4.0
+	rain.gravity = Vector3(0, -30, 0)
+	rain.initial_velocity_min = 18.0
+	rain.initial_velocity_max = 24.0
+	var m := BoxMesh.new()
+	m.size = Vector3(0.02, 0.6, 0.02)
+	rain.mesh = m
+	rain.material_override = LowPoly.mat(Color(0.8, 0.88, 0.95, 0.5), 0.5)
+	rain.emitting = false
+	add_child(rain)
+
+
+## 天候の見た目（波の高さ・霧・雨・空の暗さ）
+func _update_weather(delta: float) -> void:
+	var w := session.weather_type()
+	var target: float = {"storm": 1.0, "rain": 0.45}.get(w, 0.0)
+	_weather_mix = move_toward(_weather_mix, target, delta * 0.2)
+	_fog_mix = move_toward(_fog_mix, 1.0 if w == "fog" else 0.0, delta * 0.25)
+	wave_amp = 0.45 + 0.75 * _weather_mix
+	ocean_mat.set_shader_parameter("wave_height", wave_amp)
+	env.fog_density = 0.0035 + 0.012 * _fog_mix + 0.006 * _weather_mix
+	rain.emitting = _weather_mix > 0.3 and Game.quality_preset()["fog"]
+	rain.global_position = raft_root.global_position + Vector3(0, 18, 0)
+
+
 func _apply_quality() -> void:
 	var q := Game.quality_preset()
 	sun.shadow_enabled = q["shadows"]
@@ -186,8 +222,10 @@ func _process(delta: float) -> void:
 	ocean_mat.set_shader_parameter("time_sec", _time)
 	_update_movement(delta)
 	_update_lighting()
+	_update_weather(delta)
 	_update_debris(delta)
 	_update_encounter(delta)
+	_check_pending_dialogue()
 	_loc_timer += delta
 	if _loc_timer > 0.5:
 		_loc_timer = 0.0
@@ -213,6 +251,9 @@ func _update_movement(delta: float) -> void:
 	var speed := float(session.data.bal("raft.base_speed", 4.0))
 	speed *= maxf(float(session.data.bal("raft.min_speed_ratio", 0.4)), 1.0 - float(session.data.bal("raft.speed_penalty_per_tile", 0.02)) * (tiles - 1))
 	speed *= session.survival.efficiency()
+	speed *= 1.0 + session.crew.speed_bonus(session)
+	if session.weather_type() == "storm":
+		speed *= 0.7
 	var desired := camera_rig.to_world_dir(input) * speed
 	_velocity = _velocity.lerp(desired, minf(1.0, delta * 2.0))
 	raft_root.position += _velocity * delta
@@ -237,15 +278,15 @@ func _update_lighting() -> void:
 	sun.rotation = Vector3(-sin(sun_angle) * PI * 0.45 - 0.08, deg_to_rad(-35.0), 0)
 	var daylight := clampf(sin(sun_angle) * 1.6 + 0.25, 0.0, 1.0)
 	var dusk := clampf(1.0 - absf(sin(sun_angle)) * 3.0, 0.0, 1.0)
-	sun.light_energy = lerpf(0.0, 0.95, daylight)
+	sun.light_energy = lerpf(0.0, 0.95, daylight) * (1.0 - 0.6 * _weather_mix)
 	sun.visible = daylight > 0.01
 	moon.light_energy = (1.0 - daylight) * 0.35
 	moon.visible = daylight < 0.99
 	lantern.light_energy = (1.0 - daylight) * 1.6
 	sun.light_color = Color.WHITE.lerp(SUNSET, dusk * 0.8)
-	sky_mat.sky_top_color = NIGHT_SKY_TOP.lerp(DAY_SKY_TOP, daylight)
+	sky_mat.sky_top_color = NIGHT_SKY_TOP.lerp(DAY_SKY_TOP, daylight).lerp(Color("4a5560"), _weather_mix * 0.7)
 	sky_mat.sky_top_color = sky_mat.sky_top_color.lerp(Color("6a5a8a"), dusk * 0.4)
-	var horizon := NIGHT_HORIZON.lerp(Color(_zone.get("fog_color", "#a9d8e6")), daylight).lerp(SUNSET, dusk * 0.5)
+	var horizon := NIGHT_HORIZON.lerp(Color(_zone.get("fog_color", "#a9d8e6")), daylight).lerp(SUNSET, dusk * 0.5).lerp(Color("6a747c"), _weather_mix * 0.6 + _fog_mix * 0.3)
 	sky_mat.sky_horizon_color = horizon
 	sky_mat.ground_horizon_color = horizon
 	env.fog_light_color = horizon
@@ -319,6 +360,28 @@ func collect_nearest() -> void:
 	_nearest = null
 
 
+# ---------- 物語・イベントの会話 ----------
+var _story_dialogue_id := ""
+
+
+func _check_pending_dialogue() -> void:
+	if session.pending_dialogue.is_empty() or hud.dialogue_panel.visible or hud.combat_panel.visible:
+		return
+	_story_dialogue_id = str(session.pending_dialogue["id"])
+	hud.dialogue_panel.open_inline(_story_dialogue_id, session.pending_dialogue["nodes"])
+
+
+func _finish_story_dialogue(id: String) -> void:
+	if id != _story_dialogue_id:
+		return
+	_story_dialogue_id = ""
+	session.pending_dialogue = {}
+	if id == "final_choice":
+		var pick := str(session.flags.get("ending_pick", ""))
+		if session.story.choose_ending(session, pick):
+			Game.show_ending()
+
+
 # ---------- 海域・探索地点 ----------
 func _update_location() -> void:
 	var changed := session.update_location(raft_root.position)
@@ -376,8 +439,10 @@ func _update_encounter(delta: float) -> void:
 	if session.clock.day() >= 2 and _visual_rng().randf() < mchance:
 		spawn_encounter("merchant", "")
 		return
+	var reunion_req := bool(session.flags.get("reunion_requested", false))
+	session.flags.erase("reunion_requested")
 	for id in session.crew.departed_ids():
-		if session.crew.rejoin_problem(id, session.clock.day()) == "" and _visual_rng().randf() < 0.3:
+		if session.crew.rejoin_problem(id, session.clock.day()) == "" and (reunion_req or _visual_rng().randf() < 0.3):
 			spawn_encounter("reunion", id)
 			return
 
@@ -439,6 +504,7 @@ func _reunion_nodes(id: String) -> Dictionary:
 
 
 func _on_dialogue_closed(_id: String) -> void:
+	_finish_story_dialogue(_id)
 	if encounter and encounter.kind == "merchant":
 		var c := str(session.flags.get("merchant_choice", "leave"))
 		session.flags.erase("merchant_choice")

@@ -28,6 +28,8 @@ var map_button: Button
 var fleet_panel: FleetPanel
 var faction_panel: FactionPanel
 var fleet_button: Button
+var quest_panel: QuestPanel
+var quest_button: Button
 var faction_button: Button
 var inspect_button: Button
 var _site_panel: PanelContainer
@@ -87,8 +89,8 @@ func setup(s: GameSession) -> void:
 	map_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
 	map_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	map_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
-	for pn in ["fleet_panel", "faction_panel"]:
-		var panel: PanelContainer = FleetPanel.new() if pn == "fleet_panel" else FactionPanel.new()
+	for pn in ["fleet_panel", "faction_panel", "quest_panel"]:
+		var panel: PanelContainer = {"fleet_panel": FleetPanel, "faction_panel": FactionPanel, "quest_panel": QuestPanel}[pn].new()
 		root.add_child(panel)
 		panel.setup(session)
 		panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
@@ -199,26 +201,33 @@ func _build_controls() -> void:
 	bag_button.pressed.connect(toggle_inventory)
 	crew_button.pressed.connect(toggle_crew)
 
-	menu_button = UiTheme.button("メニュー", Vector2(120, 64))
+	menu_button = UiTheme.button("メニュー", Vector2(110, 64))
 	var top := HBoxContainer.new()
 	top.add_theme_constant_override("separation", 12)
-	map_button = UiTheme.button("海図", Vector2(100, 64))
+	map_button = UiTheme.button("海図", Vector2(92, 64))
 	map_button.pressed.connect(toggle_map)
 	top.add_child(map_button)
-	faction_button = UiTheme.button("勢力", Vector2(100, 64))
+	faction_button = UiTheme.button("勢力", Vector2(92, 64))
 	faction_button.pressed.connect(func():
 		var show := not faction_panel.visible
 		_close_modals()
 		if show:
 			faction_panel.open_info())
 	top.add_child(faction_button)
-	fleet_button = UiTheme.button("船団", Vector2(100, 64))
+	fleet_button = UiTheme.button("船団", Vector2(92, 64))
 	fleet_button.pressed.connect(func():
 		var show := not fleet_panel.visible
 		_close_modals()
 		if show:
 			fleet_panel.open())
 	top.add_child(fleet_button)
+	quest_button = UiTheme.button("記録", Vector2(92, 64))
+	quest_button.pressed.connect(func():
+		var show := not quest_panel.visible
+		_close_modals()
+		if show:
+			quest_panel.open())
+	top.add_child(quest_button)
 	top.add_child(menu_button)
 	root.add_child(top)
 	top.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 20)
@@ -355,8 +364,10 @@ func _process(_delta: float) -> void:
 	_bars["hunger"].value = sv.hunger
 	_bars["thirst"].value = sv.thirst
 	_bars["fatigue"].value = 100.0 - sv.fatigue
-	_time_label.text = session.clock.label()
-	_weight_label.text = "重量 %.1f/%.0f  効率%d%%  貝貨 %d" % [session.inventory.total_weight(), session.inventory.max_weight, int(sv.efficiency() * 100), int(session.money)]
+	var wname: String = {"clear": "", "rain": "　雨", "storm": "　嵐", "fog": "　霧"}.get(session.weather_type(), "")
+	_time_label.text = "%s%s　第%d章" % [session.clock.label(), wname, session.story.chapter]
+	var rc := session.raft_condition()
+	_weight_label.text = "重量 %.1f/%.0f  効率%d%%  貝貨 %d%s" % [session.inventory.total_weight(), session.inventory.max_weight, int(sv.efficiency() * 100), int(session.money), ("  筏%d%%" % int(rc)) if rc < 99.0 else ""]
 	_update_jobs()
 	_update_sleep_overlay()
 	_update_nav()
@@ -474,6 +485,7 @@ func _close_modals() -> void:
 	map_panel.visible = false
 	fleet_panel.visible = false
 	faction_panel.visible = false
+	quest_panel.visible = false
 
 
 func _update_nav() -> void:
@@ -636,8 +648,8 @@ func _refresh_craft() -> void:
 	_clear(_craft_list)
 	for id in session.data.actions:
 		var a: Dictionary = session.data.actions[id]
-		if not (a.get("category") in ["craft", "repair"]):
-			continue
+		if not (a.get("category") in ["craft", "repair"]) or id in ["repair_building", "repair_ship"]:
+			continue  # 対象を選ぶ修理は設備・船団の画面から行う
 		var panel := PanelContainer.new()
 		panel.add_theme_stylebox_override("panel", UiTheme.box(Color(0.08, 0.2, 0.26, 0.9), Color(0, 0, 0, 0), 10, 10))
 		var row := HBoxContainer.new()
@@ -809,7 +821,23 @@ func _refresh_building_panel() -> void:
 	close.pressed.connect(hide_building_panel)
 	head.add_child(close)
 	_building_info.add_child(head)
-	_building_info.add_child(UiTheme.label("耐久 %d/%d" % [int(b["durability"]), int(def.get("max_durability", 0))], 16))
+	var maxd := int(def.get("max_durability", 0))
+	_building_info.add_child(UiTheme.label("耐久 %d/%d%s" % [int(b["durability"]), maxd, "（壊れていて使えない）" if float(b["durability"]) <= 0.0 else ""], 16, UiTheme.C_WARN if float(b["durability"]) < maxd * 0.3 else UiTheme.C_TEXT))
+	if float(b["durability"]) < maxd:
+		var rp := session.actions.check("repair_building", {"building_uid": _building_uid})
+		var rrow := HBoxContainer.new()
+		var rl := _requirements_label("repair_building")
+		rl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		rrow.add_child(rl)
+		var rb := UiTheme.button("修理", Vector2(110, 52))
+		rb.disabled = not rp.is_empty()
+		rb.pressed.connect(func():
+			var r := session.actions.start("repair_building", {"building_uid": _building_uid})
+			if not r["ok"]:
+				show_toast(str(r["problems"][0]["message"]), UiTheme.C_WARN)
+			_refresh_building_panel())
+		rrow.add_child(rb)
+		_building_info.add_child(rrow)
 	var prod: Dictionary = def.get("production", {})
 	if not prod.is_empty():
 		var remain := maxf(0.0, float(prod["minutes"]) - float(b["progress"]))
@@ -895,7 +923,7 @@ func _update_quality_buttons() -> void:
 
 func is_modal_open() -> bool:
 	return _inventory_panel.visible or _menu_panel.visible or crew_panel.visible or dialogue_panel.visible or map_panel.visible \
-		or combat_panel.visible or fleet_panel.visible or faction_panel.visible
+		or combat_panel.visible or fleet_panel.visible or faction_panel.visible or quest_panel.visible
 
 
 ## 画面上の点がUI部品の上にあるか（カメラ操作やタップ選択と競合させないため）
@@ -904,7 +932,7 @@ func is_point_on_ui(pos: Vector2) -> bool:
 		return true
 	if _sleep_overlay.visible:
 		return true
-	for c in [joystick, collect_button, build_button, bag_button, crew_button, menu_button, map_button, fleet_button, faction_button, inspect_button, _build_panel, _building_panel, _site_panel, _jobs_box]:
+	for c in [joystick, collect_button, build_button, bag_button, crew_button, menu_button, map_button, fleet_button, faction_button, quest_button, inspect_button, _build_panel, _building_panel, _site_panel, _jobs_box]:
 		if c.is_visible_in_tree() and c.get_global_rect().has_point(pos):
 			return true
 	return false

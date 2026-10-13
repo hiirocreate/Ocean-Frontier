@@ -1,0 +1,494 @@
+{
+ "_comment": "ランダムイベント。chance=1時間ごとの発生確率。severity=major は balance.events.major_spacing_hours 以内に連続しない。guard_reduces=警備で確率低下。dialogue があれば会話として提示。",
+ "random_events": [
+  {
+   "id": "storm",
+   "name": "嵐",
+   "category": "disaster",
+   "severity": "major",
+   "chance": 0.03,
+   "cooldown_hours": 48,
+   "condition": {
+    "day_min": 2
+   },
+   "effects": [
+    {
+     "type": "weather",
+     "weather": "storm",
+     "hours": 6
+    },
+    {
+     "type": "damage_raft",
+     "amount": 15
+    },
+    {
+     "type": "message",
+     "text": "嵐が来た！ 高波が筏を揺らし、床や設備が傷んでいく。"
+    }
+   ]
+  },
+  {
+   "id": "rain",
+   "name": "にわか雨",
+   "category": "weather",
+   "severity": "minor",
+   "chance": 0.06,
+   "cooldown_hours": 12,
+   "condition": {},
+   "effects": [
+    {
+     "type": "weather",
+     "weather": "rain",
+     "hours": 3
+    },
+    {
+     "type": "refill_water",
+     "amount": 1
+    },
+    {
+     "type": "message",
+     "text": "雨が降ってきた。布を広げて雨水を集めた。"
+    }
+   ]
+  },
+  {
+   "id": "fog_bank",
+   "name": "濃霧",
+   "category": "weather",
+   "severity": "minor",
+   "chance": 0.04,
+   "cooldown_hours": 20,
+   "condition": {
+    "day_min": 2
+   },
+   "effects": [
+    {
+     "type": "weather",
+     "weather": "fog",
+     "hours": 4
+    },
+    {
+     "type": "message",
+     "text": "濃い霧が海を覆った。視界が悪い。"
+    }
+   ]
+  },
+  {
+   "id": "equipment_failure",
+   "name": "設備の故障",
+   "category": "failure",
+   "severity": "minor",
+   "chance": 0.025,
+   "cooldown_hours": 30,
+   "condition": {
+    "buildings_min": 2
+   },
+   "effects": [
+    {
+     "type": "damage_buildings",
+     "amount": 30,
+     "count": 1
+    },
+    {
+     "type": "message",
+     "text": "設備のひとつが壊れかけている。修理が必要だ。"
+    }
+   ]
+  },
+  {
+   "id": "theft",
+   "name": "物資の盗難",
+   "category": "theft",
+   "severity": "minor",
+   "chance": 0.02,
+   "cooldown_hours": 48,
+   "condition": {
+    "all": [
+     {
+      "day_min": 3
+     },
+     {
+      "hour_between": [
+       0,
+       5
+      ]
+     }
+    ]
+   },
+   "guard_reduces": true,
+   "effects": [
+    {
+     "type": "lose_items",
+     "ratio": 0.15
+    },
+    {
+     "type": "message",
+     "text": "夜のうちに何者かが筏に忍び込み、物資を盗んでいった。"
+    }
+   ]
+  },
+  {
+   "id": "pirate_attack",
+   "name": "海賊の襲撃",
+   "category": "attack",
+   "severity": "major",
+   "chance": 0.012,
+   "cooldown_hours": 72,
+   "condition": {
+    "day_min": 5
+   },
+   "guard_reduces": true,
+   "effects": [
+    {
+     "type": "counter",
+     "key": "pirate_encounters",
+     "delta": 1
+    },
+    {
+     "type": "start_combat",
+     "enemy": "pirate_raiders",
+     "terrain": "raft"
+    }
+   ]
+  },
+  {
+   "id": "drone_ship_sighting",
+   "name": "無人船の発見",
+   "category": "discovery",
+   "severity": "minor",
+   "chance": 0.08,
+   "cooldown_hours": 9999,
+   "condition": {
+    "all": [
+     {
+      "day_min": 3
+     },
+     {
+      "flags_none": [
+       "found_drone_ship"
+      ]
+     }
+    ]
+   },
+   "effects": [
+    {
+     "type": "discover_site",
+     "site": "drone_ship"
+    },
+    {
+     "type": "message",
+     "text": "遠くに灯りを点滅させた灰色の船が漂っている。誰も乗っていないようだ。"
+    }
+   ]
+  },
+  {
+   "id": "mysterious_signal",
+   "name": "不明な通信",
+   "category": "story",
+   "severity": "minor",
+   "chance": 0.25,
+   "cooldown_hours": 9999,
+   "condition": {
+    "all": [
+     {
+      "day_min": 3
+     },
+     {
+      "hour_between": [
+       20,
+       24
+      ]
+     },
+     {
+      "flags_none": [
+       "signal_event_seen"
+      ]
+     }
+    ]
+   },
+   "dialogue": {
+    "start": {
+     "speaker": "narrator",
+     "text": "夜の静けさの中、壊れたラジオから途切れ途切れの声が聞こえた。「……こちらアトラス……潮流制御……応答……」",
+     "choices": [
+      {
+       "text": "耳を澄ます",
+       "next": "more",
+       "effects": [
+        {
+         "type": "flag",
+         "key": "signal_event_seen",
+         "value": true
+        },
+        {
+         "type": "flag",
+         "key": "heard_signal",
+         "value": true
+        }
+       ]
+      },
+      {
+       "text": "気味が悪い、電源を切る",
+       "next": "end",
+       "effects": [
+        {
+         "type": "flag",
+         "key": "signal_event_seen",
+         "value": true
+        }
+       ]
+      }
+     ]
+    },
+    "more": {
+     "speaker": "narrator",
+     "text": "声は北を指していた。そして最後に、聞き覚えのある名前を呼んだ気がした——自分の名前を。",
+     "next": "end",
+     "effects": [
+      {
+       "type": "flag",
+       "key": "identity_hint",
+       "value": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "crew_conflict",
+   "name": "仲間同士の対立",
+   "category": "crew",
+   "severity": "minor",
+   "chance": 0.03,
+   "cooldown_hours": 72,
+   "condition": {
+    "crew_min": 2
+   },
+   "dialogue": {
+    "start": {
+     "speaker": "narrator",
+     "text": "仲間たちが食料の分け方をめぐって言い争っている。どうする？",
+     "choices": [
+      {
+       "text": "公平に分けるよう諭す",
+       "next": "end",
+       "effects": [
+        {
+         "type": "crew_all",
+         "stat": "satisfaction",
+         "delta": 3
+        },
+        {
+         "type": "crew_all",
+         "stat": "stress",
+         "delta": -5
+        }
+       ]
+      },
+      {
+       "text": "働いた者に多く分ける",
+       "next": "end",
+       "effects": [
+        {
+         "type": "crew_all",
+         "stat": "stress",
+         "delta": 8
+        },
+        {
+         "type": "reputation",
+         "kind": "fear",
+         "delta": 2
+        }
+       ]
+      },
+      {
+       "text": "自分の分を譲る",
+       "next": "end",
+       "effects": [
+        {
+         "type": "crew_all",
+         "stat": "loyalty",
+         "delta": 5
+        },
+        {
+         "type": "survival",
+         "stat": "hunger",
+         "delta": -15
+        }
+       ]
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "prisoner_escape",
+   "name": "捕虜の逃走",
+   "category": "prisoner",
+   "severity": "minor",
+   "chance": 0.04,
+   "cooldown_hours": 48,
+   "condition": {
+    "prisoners_min": 1
+   },
+   "guard_reduces": true,
+   "effects": [
+    {
+     "type": "prisoners_escape",
+     "count": 1
+    },
+    {
+     "type": "message",
+     "text": "見張りの隙をついて捕虜が逃げ出した。"
+    }
+   ]
+  },
+  {
+   "id": "faction_alliance_news",
+   "name": "他勢力の同盟",
+   "category": "faction",
+   "severity": "minor",
+   "chance": 0.03,
+   "cooldown_hours": 96,
+   "condition": {
+    "day_min": 6
+   },
+   "effects": [
+    {
+     "type": "standing",
+     "faction": "iron_reef",
+     "delta": 3
+    },
+    {
+     "type": "message",
+     "text": "［海の噂］鉄礁防衛隊と潮流連合が海賊対策の協定を結んだらしい。"
+    }
+   ]
+  },
+  {
+   "id": "ex_member_sighting",
+   "name": "元仲間との再会",
+   "category": "reunion",
+   "severity": "minor",
+   "chance": 0.05,
+   "cooldown_hours": 48,
+   "condition": {
+    "departed_min": 1
+   },
+   "effects": [
+    {
+     "type": "spawn_reunion"
+    },
+    {
+     "type": "message",
+     "text": "見覚えのある舟影を見たという噂を聞いた。"
+    }
+   ]
+  },
+  {
+   "id": "lighthouse",
+   "name": "沈まぬ灯台",
+   "category": "story",
+   "severity": "minor",
+   "chance": 0.1,
+   "cooldown_hours": 9999,
+   "condition": {
+    "all": [
+     {
+      "day_min": 8
+     },
+     {
+      "flags_none": [
+       "lighthouse_seen"
+      ]
+     }
+    ]
+   },
+   "dialogue": {
+    "start": {
+     "speaker": "narrator",
+     "text": "霧の向こうに、海から突き出た灯台が見えた。灯守らしき人影が、こちらをじっと見ている。",
+     "choices": [
+      {
+       "text": "呼びかける",
+       "next": "talk",
+       "effects": [
+        {
+         "type": "flag",
+         "key": "lighthouse_seen",
+         "value": true
+        }
+       ]
+      },
+      {
+       "text": "関わらない",
+       "next": "end",
+       "effects": [
+        {
+         "type": "flag",
+         "key": "lighthouse_seen",
+         "value": true
+        }
+       ]
+      }
+     ]
+    },
+    "talk": {
+     "speaker": "narrator",
+     "text": "「知らないほうが幸せなこともある」——灯守はそれだけ告げると、灯を消した。灯台会。世界の秘密を守る者たち。",
+     "next": "end",
+     "effects": [
+      {
+       "type": "flag",
+       "key": "beacon_truth",
+       "value": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "shark_attack",
+   "name": "サメの襲来",
+   "category": "attack",
+   "severity": "minor",
+   "chance": 0.015,
+   "cooldown_hours": 48,
+   "condition": {
+    "day_min": 2
+   },
+   "effects": [
+    {
+     "type": "start_combat",
+     "enemy": "sharks",
+     "terrain": "raft"
+    }
+   ]
+  },
+  {
+   "id": "generous_current",
+   "name": "豊かな潮目",
+   "category": "discovery",
+   "severity": "minor",
+   "chance": 0.04,
+   "cooldown_hours": 24,
+   "condition": {},
+   "effects": [
+    {
+     "type": "give_item",
+     "item": "wood",
+     "n": 3
+    },
+    {
+     "type": "give_item",
+     "item": "coconut",
+     "n": 2
+    },
+    {
+     "type": "message",
+     "text": "潮目に乗って、たくさんの漂流物が流れてきた。"
+    }
+   ]
+  }
+ ]
+}

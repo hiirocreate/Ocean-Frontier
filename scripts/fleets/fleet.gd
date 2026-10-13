@@ -228,6 +228,9 @@ func resolve_mission(uid: String, s: GameSession) -> Array[String]:
 	if dmg > 0.0:
 		sh["hp"] = maxf(0.0, float(sh["hp"]) - dmg)
 		out.append("%sが損傷した（耐久 -%d）" % [name, int(dmg)])
+	s.counters["missions_done"] = float(s.counters.get("missions_done", 0)) + 1.0
+	if mid == "escort":
+		s.counters["escorts_done"] = float(s.counters.get("escorts_done", 0)) + 1.0
 	for line in out:
 		sh["history"].append({"day": day, "text": line})
 	if float(sh["hp"]) <= 0.0:

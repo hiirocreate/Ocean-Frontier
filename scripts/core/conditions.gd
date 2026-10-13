@@ -5,7 +5,8 @@ extends RefCounted
 
 const KEYS := ["all", "any", "not", "day_min", "day_max", "tiles_min", "buildings_min", "crew_min", "crew_max",
 	"flags_all", "flags_none", "has_items", "member_aboard", "member_departed", "member_met", "trust_min",
-	"counter_min", "hour_between", "chance"]
+	"counter_min", "hour_between", "chance", "buildings_has", "site_discovered", "standing_min", "ship_type_owned", "prisoners_min",
+	"departed_min", "reputation_min", "allied_count_min", "ships_min", "crew_loyalty_avg_min", "clue_count_min", "chapter_min"]
 
 
 static func check(cond: Variant, s: GameSession) -> bool:
@@ -66,6 +67,46 @@ static func _check_one(k: String, v: Variant, s: GameSession) -> bool:
 			return (h >= a and h < b) if a <= b else (h >= a or h < b)
 		"chance":
 			return s.rng.randf() < float(v)
+		"buildings_has":
+			return s.raft.has_building(str(v))
+		"site_discovered":
+			return s.is_site_discovered(str(v))
+		"standing_min":
+			for f in v:
+				if s.factions.standing(str(f)) < float(v[f]):
+					return false
+			return true
+		"ship_type_owned":
+			return s.fleet.ships.values().any(func(sh): return sh["type"] == str(v))
+		"ships_min":
+			return s.fleet.ships.size() >= int(v)
+		"prisoners_min":
+			return s.prisoners.size() >= int(v)
+		"departed_min":
+			return s.crew.departed_ids().size() >= int(v)
+		"reputation_min":
+			for rk in v:
+				if float(s.reputation.get(rk, 0)) < float(v[rk]):
+					return false
+			return true
+		"allied_count_min":
+			var n := 0
+			for f in s.factions.factions:
+				if s.factions.factions[f].get("allied_player", false):
+					n += 1
+			return n >= int(v)
+		"crew_loyalty_avg_min":
+			var ids := s.crew.aboard_ids()
+			if ids.is_empty():
+				return false
+			var total := 0.0
+			for id in ids:
+				total += s.crew.get_value(id, "loyalty")
+			return total / ids.size() >= float(v)
+		"clue_count_min":
+			return s.clue_count() >= int(v)
+		"chapter_min":
+			return s.story.chapter >= int(v)
 	GameLog.warn("未知の条件キー: %s" % k)
 	return false
 

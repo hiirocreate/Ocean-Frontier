@@ -19,6 +19,11 @@ const DATA_FILES := {
 	"ships": ["res://data/ships/ships.json", "ships"],
 	"missions": ["res://data/ships/fleet_missions.json", "missions"],
 	"raid_targets": ["res://data/piracy/raid_targets.json", "raid_targets"],
+	"chapters": ["res://data/story/story_chapters.json", "chapters"],
+	"story_flags": ["res://data/story/story_flags.json", "story_flags"],
+	"quests": ["res://data/quests/quests.json", "quests"],
+	"random_events": ["res://data/events/random_events.json", "random_events"],
+	"endings": ["res://data/endings/endings.json", "endings"],
 }
 const BALANCE_FILE := "res://data/balance_config.json"
 
@@ -36,6 +41,11 @@ var factions: Dictionary = {}
 var ships: Dictionary = {}
 var missions: Dictionary = {}
 var raid_targets: Dictionary = {}
+var chapters: Dictionary = {}
+var story_flags: Dictionary = {}
+var quests: Dictionary = {}
+var random_events: Dictionary = {}
+var endings: Dictionary = {}
 var balance: Dictionary = {}
 var load_errors: Array[String] = []
 
@@ -62,6 +72,11 @@ func load_all() -> bool:
 	ships = _load_list("ships")
 	missions = _load_list("missions")
 	raid_targets = _load_list("raid_targets")
+	chapters = _load_list("chapters")
+	story_flags = _load_list("story_flags")
+	quests = _load_list("quests")
+	random_events = _load_list("random_events")
+	endings = _load_list("endings")
 	var b: Variant = _read_json(BALANCE_FILE)
 	balance = b if b is Dictionary else {}
 	for e in load_errors:

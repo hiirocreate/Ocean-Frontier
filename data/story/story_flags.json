@@ -1,0 +1,145 @@
+{
+ "_comment": "物語の自動トリガー。条件を満たすと一度だけ効果を適用する。",
+ "story_flags": [
+  {
+   "id": "decode_by_report",
+   "condition": {
+    "has_items": {
+     "decoded_report": 1
+    }
+   },
+   "effects": [
+    {
+     "type": "flag",
+     "key": "decoded_atlas_location",
+     "value": true
+    },
+    {
+     "type": "flag",
+     "key": "beacon_truth",
+     "value": true
+    },
+    {
+     "type": "message",
+     "text": "報告書の座標と灯台会の印……中枢の位置が分かった。"
+    }
+   ]
+  },
+  {
+   "id": "decode_by_radio",
+   "condition": {
+    "all": [
+     {
+      "flags_all": [
+       "radio_coordinates"
+      ]
+     },
+     {
+      "any": [
+       {
+        "has_items": {
+         "research_log": 1
+        }
+       },
+       {
+        "has_items": {
+         "encrypted_data": 1
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "effects": [
+    {
+     "type": "flag",
+     "key": "decoded_atlas_location",
+     "value": true
+    },
+    {
+     "type": "message",
+     "text": "傍受した座標と研究記録を照合した。海溝の底に何かがある。"
+    }
+   ]
+  },
+  {
+   "id": "identity_from_log",
+   "condition": {
+    "all": [
+     {
+      "has_items": {
+       "research_log": 1
+      }
+     },
+     {
+      "day_min": 6
+     }
+    ]
+   },
+   "effects": [
+    {
+     "type": "flag",
+     "key": "identity_clue",
+     "value": true
+    },
+    {
+     "type": "message",
+     "text": "研究記録の職員名簿に、自分と同じスカーフを巻いた人物の写真があった……。"
+    }
+   ]
+  },
+  {
+   "id": "scanner_unlock",
+   "condition": {
+    "has_items": {
+     "comm_device": 1
+    }
+   },
+   "effects": [
+    {
+     "type": "message",
+     "text": "通信装置は規則的な信号を受け続けている。研究机で解析すれば、発信源を辿れるかもしれない。"
+    }
+   ]
+  },
+  {
+   "id": "pirate_contact",
+   "condition": {
+    "counter_min": {
+     "pirate_encounters": 1
+    }
+   },
+   "effects": [
+    {
+     "type": "flag",
+     "key": "known_faction_black_current",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": "know_beacon",
+   "condition": {
+    "any": [
+     {
+      "has_items": {
+       "decoded_report": 1
+      }
+     },
+     {
+      "flags_all": [
+       "lighthouse_seen"
+      ]
+     }
+    ]
+   },
+   "effects": [
+    {
+     "type": "flag",
+     "key": "known_faction_beacon_order",
+     "value": true
+    }
+   ]
+  }
+ ]
+}

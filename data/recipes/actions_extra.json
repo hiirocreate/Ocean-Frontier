@@ -1232,7 +1232,7 @@
    },
    "outputs": {},
    "effect": "fleet_mission",
-  "variable_inputs": true,
+   "variable_inputs": true,
    "fatigue": 0,
    "variable_duration": true
   },
@@ -1262,6 +1262,66 @@
    "outputs": {},
    "effect": "found_pirate_crew",
    "fatigue": 2
+  },
+  {
+   "id": "repair_building",
+   "name": "設備を修理する",
+   "category": "repair",
+   "duration_minutes": 15,
+   "inputs": {
+    "wood": 3,
+    "scrap_metal": 1
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 1,
+     "wear": 1
+    }
+   ],
+   "facilities": [],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "effect": "repair_building",
+   "effect_params": {
+    "amount": 60
+   },
+   "fatigue": 2
+  },
+  {
+   "id": "repair_raft",
+   "name": "筏の床を補修する",
+   "category": "repair",
+   "duration_minutes": 20,
+   "inputs": {
+    "wood": 4,
+    "rope": 1
+   },
+   "tools": [],
+   "facilities": [],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "effect": "repair_raft",
+   "effect_params": {
+    "amount": 40
+   },
+   "fatigue": 3
   }
  ]
 }

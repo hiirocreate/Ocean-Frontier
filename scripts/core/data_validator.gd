@@ -2,7 +2,7 @@ class_name DataValidator
 extends RefCounted
 ## 開発用データ検証（仕様44）。問題点の文字列配列を返す（空なら正常）。
 
-const KNOWN_EFFECTS := ["raft_add_tile", "repair_item", "place_building", "rest", "explore_site", "story_beat", "add_ship", "repair_ship", "fleet_mission", "found_pirate_crew"]
+const KNOWN_EFFECTS := ["raft_add_tile", "repair_item", "place_building", "rest", "explore_site", "story_beat", "add_ship", "repair_ship", "fleet_mission", "found_pirate_crew", "repair_building", "repair_raft"]
 const KNOWN_USE_EFFECTS := ["health", "hunger", "thirst", "fatigue", "injury"]
 const CATEGORIES := ["material", "consumable", "weapon", "armor", "tool", "ship_part", "story"]
 
@@ -19,7 +19,72 @@ static func validate(d: GameData) -> Array[String]:
 	_dialogues(d, e)
 	_sites(d, e)
 	_factions(d, e)
+	_story(d, e)
 	return e
+
+
+static func _cond(e: Array[String], owner: String, c: Variant) -> void:
+	for k in Conditions.unknown_keys(c):
+		e.append("%s: 未知の条件キー '%s'" % [owner, k])
+
+
+static func _nodes(d: GameData, e: Array[String], owner: String, nodes: Dictionary) -> void:
+	if not nodes.has("start"):
+		e.append("%s: start ノードがありません" % owner)
+	for nid in nodes:
+		var n: Dictionary = nodes[nid]
+		_check_effects(d, e, "%s.%s" % [owner, nid], n.get("effects", []))
+		var nexts: Array = [str(n["next"])] if n.has("next") else []
+		for c in n.get("choices", []):
+			nexts.append(str(c.get("next", "end")))
+			_check_effects(d, e, "%s.%s" % [owner, nid], c.get("effects", []))
+			_cond(e, "%s.%s" % [owner, nid], c.get("condition", {}))
+		for nx in nexts:
+			if nx != "end" and not nodes.has(nx):
+				e.append("%s.%s: 存在しないノード '%s'" % [owner, nid, nx])
+
+
+static func _story(d: GameData, e: Array[String]) -> void:
+	var nums := {}
+	for cid in d.chapters:
+		var c: Dictionary = d.chapters[cid]
+		nums[int(c.get("number", 0))] = true
+		for o in c.get("objectives", []):
+			_cond(e, "chapter %s.%s" % [cid, o.get("id", "?")], o.get("condition", {}))
+			if not o.has("hint"):
+				e.append("chapter %s.%s: hint がありません" % [cid, o.get("id", "?")])
+	for i in range(1, nums.size() + 1):
+		if not nums.has(i):
+			e.append("chapters: 第%d章がありません" % i)
+	for tid in d.story_flags:
+		_cond(e, "story_flag " + str(tid), d.story_flags[tid].get("condition", {}))
+		_check_effects(d, e, "story_flag " + str(tid), d.story_flags[tid].get("effects", []))
+	for qid in d.quests:
+		var q: Dictionary = d.quests[qid]
+		var giver := str(q.get("giver", ""))
+		if giver != "" and not d.survivors.has(giver):
+			e.append("quest %s: 依頼主 '%s' が存在しません" % [qid, giver])
+		_cond(e, "quest %s.start" % qid, q.get("start", {}))
+		for o in q.get("objectives", []):
+			_cond(e, "quest %s.objective" % qid, o.get("condition", {}))
+		_check_effects(d, e, "quest %s.rewards" % qid, q.get("rewards", []))
+	for eid in d.random_events:
+		var ev: Dictionary = d.random_events[eid]
+		_cond(e, "event " + str(eid), ev.get("condition", {}))
+		_check_effects(d, e, "event " + str(eid), ev.get("effects", []))
+		if ev.get("dialogue") is Dictionary and not ev["dialogue"].is_empty():
+			_nodes(d, e, "event %s.dialogue" % eid, ev["dialogue"])
+		if not _num_ok(ev.get("chance"), 0.0) or float(ev.get("chance", 0)) > 1.0:
+			e.append("event %s: chance は0〜1" % eid)
+		if not (str(ev.get("severity", "")) in ["minor", "major"]):
+			e.append("event %s: severity は minor/major" % eid)
+	var always := 0
+	for nid in d.endings:
+		_cond(e, "ending " + str(nid), d.endings[nid].get("condition", {}))
+		if d.endings[nid].get("condition", {}).is_empty():
+			always += 1
+	if not d.endings.is_empty() and always == 0:
+		e.append("endings: 条件なしで選べるエンディングが最低1つ必要です（進行不能防止）")
 
 
 static func _factions(d: GameData, e: Array[String]) -> void:
@@ -111,7 +176,8 @@ static func _sites(d: GameData, e: Array[String]) -> void:
 
 
 const EFFECT_TYPES := ["recruit", "trust", "loyalty", "satisfaction", "stress", "relation", "flag", "counter", "give_item", "take_item", "message",
-	"coins", "reputation", "standing", "piracy", "start_combat", "discover_site"]
+	"coins", "reputation", "standing", "piracy", "start_combat", "discover_site", "weather", "damage_raft", "damage_buildings", "lose_items",
+	"refill_water", "prisoners_escape", "crew_all", "survival", "spawn_reunion"]
 const SPECIAL_SPEAKERS := ["player", "narrator"]
 
 

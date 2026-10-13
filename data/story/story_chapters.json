@@ -1,0 +1,297 @@
+{
+ "_comment": "物語の章。objectives の条件は代替手段を含め、特定の仲間・ランダムイベントだけに依存しないようにする（仕様33）。",
+ "chapters": [
+  {
+   "id": "ch1",
+   "number": 1,
+   "title": "漂流者",
+   "intro": "名前も過去も思い出せない。手元にあるのは、赤錆色のスカーフだけ。まずは生き延びなければ。",
+   "objectives": [
+    {
+     "id": "ch1_raft",
+     "text": "筏を6枚以上に広げる",
+     "hint": "「建築」で床を追加する（木材とロープ）",
+     "condition": {
+      "tiles_min": 6
+     }
+    },
+    {
+     "id": "ch1_water",
+     "text": "安定した水源を確保する",
+     "hint": "浄水器を建てるか、飲料水を5本ためる",
+     "condition": {
+      "any": [
+       {
+        "buildings_has": "water_purifier"
+       },
+       {
+        "has_items": {
+         "water_bottle": 5
+        }
+       }
+      ]
+     }
+    },
+    {
+     "id": "ch1_companion",
+     "text": "最初の仲間を得る",
+     "hint": "漂流者を見つけたら近づいて救助する",
+     "condition": {
+      "any": [
+       {
+        "crew_min": 1
+       },
+       {
+        "flags_all": [
+         "first_companion"
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "id": "ch1_signal",
+     "text": "謎の通信信号の正体に気づく",
+     "hint": "仲間の話を聞くか、夜の海に耳を澄ます",
+     "condition": {
+      "any": [
+       {
+        "flags_all": [
+         "heard_signal"
+        ]
+       },
+       {
+        "flags_all": [
+         "radio_coordinates"
+        ]
+       },
+       {
+        "flags_all": [
+         "signal_event_seen"
+        ]
+       }
+      ]
+     }
+    }
+   ],
+   "outro": "夜ごとに聞こえる規則的な信号。誰かが、どこかで呼んでいる。"
+  },
+  {
+   "id": "ch2",
+   "number": 2,
+   "title": "海上社会",
+   "intro": "海の上にも社会がある。商人、軍人、そして海賊。生きるためには彼らと関わらなければならない。",
+   "objectives": [
+    {
+     "id": "ch2_market",
+     "text": "潮流連合の浮遊市場を見つける",
+     "hint": "南の穏やかな海を探す（海図を確認）",
+     "condition": {
+      "any": [
+       {
+        "site_discovered": "tide_union_market"
+       },
+       {
+        "flags_all": [
+         "known_faction_tide_union"
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "id": "ch2_trade",
+     "text": "他の勢力と取引か協力をする",
+     "hint": "市場や海上の商人と取引する、または艦隊で交易・護衛",
+     "condition": {
+      "any": [
+       {
+        "counter_min": {
+         "trades": 1
+        }
+       },
+       {
+        "counter_min": {
+         "missions_done": 1
+        }
+       }
+      ]
+     }
+    },
+    {
+     "id": "ch2_pirates",
+     "text": "海賊の存在を知る",
+     "hint": "仲間の話、海の噂、あるいは赤潮の海で",
+     "condition": {
+      "any": [
+       {
+        "flags_all": [
+         "knows_pirates"
+        ]
+       },
+       {
+        "flags_all": [
+         "known_faction_black_current"
+        ]
+       },
+       {
+        "flags_all": [
+         "visited_red_tide"
+        ]
+       },
+       {
+        "counter_min": {
+         "pirate_encounters": 1
+        }
+       }
+      ]
+     }
+    }
+   ],
+   "outro": "市場で耳にした噂——北の海溝に、旧時代の研究施設が沈んでいるという。"
+  },
+  {
+   "id": "ch3",
+   "number": 3,
+   "title": "沈んだ記録",
+   "intro": "沈んだ研究施設。そこに残された記録が、この世界と、あなた自身の過去を語り始める。",
+   "objectives": [
+    {
+     "id": "ch3_records",
+     "text": "研究施設の記録を手に入れる",
+     "hint": "アトラス観測所（北の海溝）や無人船を調べる",
+     "condition": {
+      "any": [
+       {
+        "has_items": {
+         "research_log": 1
+        }
+       },
+       {
+        "has_items": {
+         "decoded_report": 1
+        }
+       },
+       {
+        "flags_all": [
+         "found_atlas_outpost"
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "id": "ch3_decode",
+     "text": "記録が示す場所を突き止める",
+     "hint": "暗号化データを研究机で解析する、または無線で座標を傍受し記録と照合する",
+     "condition": {
+      "flags_all": [
+       "decoded_atlas_location"
+      ]
+     }
+    },
+    {
+     "id": "ch3_identity",
+     "text": "自分の正体の手がかりを得る",
+     "hint": "海底都市ネレイスを探る、または記録を読み解く",
+     "condition": {
+      "any": [
+       {
+        "has_items": {
+         "old_key": 1
+        }
+       },
+       {
+        "flags_all": [
+         "identity_clue"
+        ]
+       }
+      ]
+     }
+    }
+   ],
+   "outro": "名簿に残された名前と顔写真。それは、間違いなくあなただった。"
+  },
+  {
+   "id": "ch4",
+   "number": 4,
+   "title": "偽りの水平線",
+   "intro": "世界を沈めたのは気候ではなかった。誰が、何のために。答えは海溝の底にある。",
+   "objectives": [
+    {
+     "id": "ch4_order",
+     "text": "世界を管理する者たちの存在を知る",
+     "hint": "灯台会の正体に近づく（記録・噂・イベント）",
+     "condition": {
+      "any": [
+       {
+        "flags_all": [
+         "known_faction_beacon_order"
+        ]
+       },
+       {
+        "flags_all": [
+         "beacon_truth"
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "id": "ch4_scanner",
+     "text": "共鳴探知機を作る",
+     "hint": "観測所の通信装置と電子部品を研究机で組み上げる",
+     "condition": {
+      "any": [
+       {
+        "has_items": {
+         "resonance_scanner": 1
+        }
+       }
+      ]
+     }
+    },
+    {
+     "id": "ch4_key",
+     "text": "中枢の鍵を手に入れる",
+     "hint": "海底都市ネレイスで見つかるという",
+     "condition": {
+      "has_items": {
+       "old_key": 1
+      }
+     }
+    }
+   ],
+   "outro": "探知機の針が、海溝の一点を指して震えている。"
+  },
+  {
+   "id": "ch5",
+   "number": 5,
+   "title": "最後の潮流",
+   "intro": "アトラス中枢。世界の潮流を操る装置が、今も海の底で動き続けている。",
+   "objectives": [
+    {
+     "id": "ch5_core",
+     "text": "アトラス中枢に到達する",
+     "hint": "潜水装備・酸素ボンベ3本・共鳴探知機・古い鍵を持って中枢へ潜る",
+     "condition": {
+      "flags_all": [
+       "reached_atlas_core"
+      ]
+     }
+    },
+    {
+     "id": "ch5_choice",
+     "text": "世界の未来を選ぶ",
+     "hint": "中枢での選択",
+     "condition": {
+      "flags_all": [
+       "ending_chosen"
+      ]
+     }
+    }
+   ],
+   "outro": ""
+  }
+ ]
+}

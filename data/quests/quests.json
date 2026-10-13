@@ -1,0 +1,306 @@
+{
+ "_comment": "サイドクエスト。start 条件で自動開始、objectives をすべて満たすと完了し rewards を適用。",
+ "quests": [
+  {
+   "id": "q_tobi_sister",
+   "name": "姉の行方",
+   "giver": "tobi",
+   "description": "トビの姉は海賊団に加わったという。黒潮の根城で消息を探そう。",
+   "start": {
+    "flags_all": [
+     "promise_tobi_sister"
+    ]
+   },
+   "objectives": [
+    {
+     "text": "黒潮の隠れ家を見つける",
+     "condition": {
+      "site_discovered": "black_current_hideout"
+     }
+    },
+    {
+     "text": "黒潮との関係を築く（友好度20以上）か、ルークから話を聞く",
+     "condition": {
+      "any": [
+       {
+        "standing_min": {
+         "black_current": 20
+        }
+       },
+       {
+        "flags_all": [
+         "rook_revenge_promise"
+        ]
+       }
+      ]
+     }
+    }
+   ],
+   "rewards": [
+    {
+     "type": "loyalty",
+     "target": "tobi",
+     "delta": 25
+    },
+    {
+     "type": "flag",
+     "key": "tobi_sister_found",
+     "value": true
+    },
+    {
+     "type": "message",
+     "text": "トビの姉は黒潮で航海士として生きていた。いつか会わせてやれる。"
+    }
+   ]
+  },
+  {
+   "id": "q_garrett_honor",
+   "name": "汚名",
+   "giver": "garrett",
+   "description": "ギャレットの部隊が封鎖した施設の正体を確かめる。",
+   "start": {
+    "flags_all": [
+     "clue_lockdown"
+    ]
+   },
+   "objectives": [
+    {
+     "text": "アトラス観測所を調べる",
+     "condition": {
+      "flags_all": [
+       "found_atlas_outpost"
+      ]
+     }
+    }
+   ],
+   "rewards": [
+    {
+     "type": "loyalty",
+     "target": "garrett",
+     "delta": 20
+    },
+    {
+     "type": "trust",
+     "target": "garrett",
+     "delta": 15
+    },
+    {
+     "type": "flag",
+     "key": "garrett_redeemed",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": "q_mira_atlas",
+   "name": "アトラスの記録",
+   "giver": "mira",
+   "description": "ミラが探す研究所『アトラス』の記録を取り戻す。",
+   "start": {
+    "flags_all": [
+     "clue_artificial_current"
+    ]
+   },
+   "objectives": [
+    {
+     "text": "研究記録を手に入れる",
+     "condition": {
+      "has_items": {
+       "research_log": 1
+      }
+     }
+    }
+   ],
+   "rewards": [
+    {
+     "type": "loyalty",
+     "target": "mira",
+     "delta": 20
+    },
+    {
+     "type": "counter",
+     "key": "research_points",
+     "delta": 10
+    }
+   ]
+  },
+  {
+   "id": "q_selene_fleet",
+   "name": "商人の夢",
+   "giver": "selene",
+   "description": "セレーネは自分の交易船団を夢見ている。スクーナーを建造しよう。",
+   "start": {
+    "all": [
+     {
+      "member_aboard": "selene"
+     },
+     {
+      "day_min": 8
+     }
+    ]
+   },
+   "objectives": [
+    {
+     "text": "スクーナーを手に入れる",
+     "condition": {
+      "ship_type_owned": "schooner"
+     }
+    }
+   ],
+   "rewards": [
+    {
+     "type": "loyalty",
+     "target": "selene",
+     "delta": 20
+    },
+    {
+     "type": "coins",
+     "delta": 150
+    }
+   ]
+  },
+  {
+   "id": "q_rook_revenge",
+   "name": "裏切りの代償",
+   "giver": "rook",
+   "description": "ルークは黒潮の船長に復讐したい。黒潮の補給船を襲撃しよう。",
+   "start": {
+    "flags_all": [
+     "rook_revenge_promise"
+    ]
+   },
+   "objectives": [
+    {
+     "text": "黒潮の補給船を偵察する",
+     "condition": {
+      "flags_all": [
+       "scouted_pirate_barge"
+      ]
+     }
+    },
+    {
+     "text": "黒潮の勢いを削ぐ（戦闘で2回勝つ）",
+     "condition": {
+      "counter_min": {
+       "pirate_wins": 2
+      }
+     }
+    }
+   ],
+   "rewards": [
+    {
+     "type": "loyalty",
+     "target": "rook",
+     "delta": 25
+    },
+    {
+     "type": "reputation",
+     "kind": "fame",
+     "delta": 8
+    }
+   ]
+  },
+  {
+   "id": "q_union_escort",
+   "name": "市場の護り手",
+   "giver": "",
+   "description": "潮流連合は輸送船の護衛を求めている。",
+   "start": {
+    "site_discovered": "tide_union_market"
+   },
+   "objectives": [
+    {
+     "text": "護衛任務を2回成功させる",
+     "condition": {
+      "counter_min": {
+       "escorts_done": 2
+      }
+     }
+    }
+   ],
+   "rewards": [
+    {
+     "type": "standing",
+     "faction": "tide_union",
+     "delta": 20
+    },
+    {
+     "type": "coins",
+     "delta": 120
+    },
+    {
+     "type": "reputation",
+     "kind": "trust",
+     "delta": 10
+    }
+   ]
+  },
+  {
+   "id": "q_iron_hunt",
+   "name": "海賊狩り",
+   "giver": "",
+   "description": "鉄礁防衛隊は海賊討伐の協力者を求めている。",
+   "start": {
+    "site_discovered": "iron_reef_fort"
+   },
+   "objectives": [
+    {
+     "text": "海賊との戦いに3回勝つ",
+     "condition": {
+      "counter_min": {
+       "pirate_wins": 3
+      }
+     }
+    }
+   ],
+   "rewards": [
+    {
+     "type": "standing",
+     "faction": "iron_reef",
+     "delta": 25
+    },
+    {
+     "type": "give_item",
+     "item": "ammo",
+     "n": 20
+    },
+    {
+     "type": "reputation",
+     "kind": "fame",
+     "delta": 10
+    }
+   ]
+  },
+  {
+   "id": "q_black_tribute",
+   "name": "黒潮への手土産",
+   "giver": "",
+   "description": "黒潮に認められるには、それなりの『手土産』が要る。",
+   "start": {
+    "site_discovered": "black_current_hideout"
+   },
+   "objectives": [
+    {
+     "text": "商船を襲う（海賊行為2回）",
+     "condition": {
+      "counter_min": {
+       "piracy_total": 2
+      }
+     }
+    }
+   ],
+   "rewards": [
+    {
+     "type": "standing",
+     "faction": "black_current",
+     "delta": 30
+    },
+    {
+     "type": "reputation",
+     "kind": "infamy",
+     "delta": 5
+    }
+   ]
+  }
+ ]
+}

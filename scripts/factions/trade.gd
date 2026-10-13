@@ -47,6 +47,7 @@ static func buy(s: GameSession, faction: String, item: String, n: int = 1) -> St
 		return "所持重量の空き容量が不足しています"
 	s.money -= cost
 	s.inventory.add(item, n)
+	s.counters["trades"] = float(s.counters.get("trades", 0)) + 1.0
 	s.factions.change_standing(faction, 0.5)
 	return ""
 
@@ -63,6 +64,7 @@ static func sell(s: GameSession, faction: String, item: String, n: int = 1) -> S
 		return "物語の手がかりは売れない"
 	s.inventory.remove(item, n)
 	s.money += sell_price(s, faction, item) * n
+	s.counters["trades"] = float(s.counters.get("trades", 0)) + 1.0
 	s.factions.change_standing(faction, 0.3)
 	return ""
 
