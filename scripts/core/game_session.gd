@@ -12,6 +12,8 @@ var inventory: Inventory
 var survival: SurvivalState
 var raft: Raft
 var actions: ActionSystem
+var crew: Crew
+var counters: Dictionary = {}  # research_points, guard_hours, piracy_today など
 var rng: RandomNumberGenerator
 var zone_id: String = "starting_waters"
 var raft_position: Vector3 = Vector3.ZERO
@@ -39,6 +41,10 @@ func _init(game_data: GameData) -> void:
 	actions.job_completed.connect(_on_job_completed)
 	actions.job_blocked.connect(func(_j, problems): message.emit("作業が中断待ち: " + str(problems[0]["message"])))
 	survival.warning.connect(func(_s, text): message.emit(text))
+	crew = Crew.new(data)
+	crew.member_joined.connect(func(id): message.emit("%sが仲間になった" % crew.display_name(id)))
+	crew.member_warning.connect(func(_id, text): message.emit(text))
+	crew.member_left.connect(func(id, reason): message.emit("%sが筏を去った……（%s）" % [crew.display_name(id), Crew.REASONS.get(reason, reason)]))
 	survival.collapsed.connect(_on_collapsed)
 
 
@@ -57,11 +63,15 @@ func new_game(game_seed: int = 0) -> void:
 func advance(minutes: float) -> void:
 	if minutes <= 0.0:
 		return
+	var day_before := clock.day()
 	clock.advance(minutes)
 	survival.resting = is_sleeping()
 	survival.tick(minutes)
-	actions.advance(minutes, survival.efficiency())
+	actions.advance(minutes, survival.efficiency(), crew.action_bonus(self))
 	_tick_production(minutes)
+	crew.tick(minutes, self)
+	if clock.day() != day_before:
+		counters["piracy_today"] = 0.0
 
 
 # ---- 外部条件（ActionSystem.context） ----
@@ -69,12 +79,68 @@ func has_facility(building_id: String) -> bool:
 	return raft.has_building(building_id)
 
 
-func skill_level(_skill: String) -> int:
-	return 0  # 仲間システム（フェーズ4）で実装
+func skill_level(skill: String) -> int:
+	return crew.best_skill(skill)
 
 
 func available_crew() -> int:
-	return 0  # 仲間システム（フェーズ4）で実装
+	return crew.available_crew(self)
+
+
+# ---- 仲間・会話の効果 ----
+## 会話やイベントの効果を適用する（DialogueRunner・EventManager から共通で使用）
+func apply_effect(e: Dictionary) -> void:
+	var t := str(e.get("type", ""))
+	var target := str(e.get("target", ""))
+	match t:
+		"recruit":
+			crew.recruit(target, clock.day())
+		"trust", "loyalty", "satisfaction", "stress":
+			crew.change(target, t, float(e.get("delta", 0)))
+		"relation":
+			crew.add_relation(str(e.get("from", "")), str(e.get("to", "")), str(e.get("kind", "")), float(e.get("delta", 0)))
+		"flag":
+			flags[str(e.get("key", ""))] = e.get("value", true)
+		"counter":
+			counters[str(e.get("key", ""))] = float(counters.get(str(e.get("key", "")), 0.0)) + float(e.get("delta", 1))
+		"give_item":
+			var id := str(e.get("item", ""))
+			if not inventory.add(id, int(e.get("n", 1))):
+				message.emit("%sを受け取れなかった（持ち物がいっぱい）" % data.item_name(id))
+		"take_item":
+			inventory.remove(str(e.get("item", "")), int(e.get("n", 1)))
+		"message":
+			message.emit(str(e.get("text", "")))
+		_:
+			GameLog.warn("未知の効果: %s" % t)
+
+
+## 仲間と話すときの会話ID（未読で条件を満たすもの）。なければ空文字。
+func talk_dialogue_for(member_id: String) -> String:
+	for did in crew.def(member_id).get("talk", []):
+		if flags.get("seen_" + did, false):
+			continue
+		if Conditions.check(data.dialogues.get(did, {}).get("condition", {}), self):
+			return did
+	return ""
+
+
+## 状態に応じたひとこと（会話データがないとき）
+func small_talk(member_id: String) -> String:
+	var m: Dictionary = crew.members.get(member_id, {})
+	if m.is_empty():
+		return ""
+	if float(m["thirst"]) < 25.0:
+		return "……水が欲しい。喉がからからだ。"
+	if float(m["hunger"]) < 25.0:
+		return "腹が減って力が出ない……。"
+	if float(m["fatigue"]) > 75.0:
+		return "少し休ませてくれ。もう限界だ。"
+	if float(m["stress"]) > 70.0:
+		return "最近、気が休まらないんだ。"
+	if float(m["satisfaction"]) > 70.0:
+		return "ここでの暮らしも悪くない。ありがとう。"
+	return "今日も海は静かだな。"
 
 
 # ---- 漂流物 ----
@@ -212,7 +278,7 @@ func _tick_production(minutes: float) -> void:
 		if int(b["stored"]) >= maxs:
 			b["progress"] = 0.0
 			continue
-		b["progress"] = float(b["progress"]) + minutes
+		b["progress"] = float(b["progress"]) + minutes * crew.production_multiplier(str(b["id"]), self)
 		var per := maxf(1.0, float(prod.get("minutes", 60)))
 		while float(b["progress"]) >= per and int(b["stored"]) < maxs:
 			b["progress"] = float(b["progress"]) - per
@@ -295,6 +361,8 @@ func to_dict() -> Dictionary:
 		"actions": actions.to_dict(),
 		"flags": flags.duplicate(true),
 		"stats": stats.duplicate(),
+		"crew": crew.to_dict(),
+		"counters": counters.duplicate(),
 	}
 
 
@@ -333,6 +401,13 @@ func from_dict(d: Dictionary) -> Dictionary:
 	raft_rotation = float(d.get("raft_rotation", 0.0))
 	var fl: Variant = d.get("flags", {})
 	flags = fl.duplicate(true) if fl is Dictionary else {}
+	var cr: Variant = d.get("crew", {})
+	warnings.append_array(crew.from_dict(cr if cr is Dictionary else {}))
+	var cn: Variant = d.get("counters", {})
+	counters.clear()
+	if cn is Dictionary:
+		for k in cn:
+			counters[str(k)] = float(cn[k])
 	var sts: Variant = d.get("stats", {})
 	if sts is Dictionary:
 		for k in sts:

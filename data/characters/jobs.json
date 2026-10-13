@@ -1,0 +1,18 @@
+{
+  "_comment": "仲間の作業。output.type: loot=漂流物抽選, item=一定確率で生産, convert=素材を変換, production_boost=設備の生産加速, action_speed=行動の進行加速, repair=工具修理, counter=カウンタ加算, speed_bonus=筏の速度, none=効果なし。available=false はまだ割り当て不可（後続フェーズで解放）。",
+  "jobs": [
+    {"id": "idle", "name": "休憩", "skill": "", "fatigue_per_hour": -6, "available": true, "output": {"type": "none"}},
+    {"id": "gathering", "name": "資源回収", "skill": "gathering", "fatigue_per_hour": 3, "available": true, "output": {"type": "loot", "table": "plank", "per_hour": 0.5}},
+    {"id": "fishing", "name": "漁業", "skill": "fishing", "fatigue_per_hour": 2, "available": true, "output": {"type": "item", "item": "raw_fish", "per_hour": 0.35}},
+    {"id": "cooking", "name": "調理", "skill": "cooking", "facility": "grill", "fatigue_per_hour": 1.5, "available": true, "output": {"type": "convert", "from": {"raw_fish": 1, "wood": 1}, "to": {"cooked_fish": 1}, "per_hour": 0.6}},
+    {"id": "farming", "name": "農業", "skill": "farming", "facility": "garden", "fatigue_per_hour": 2, "available": true, "output": {"type": "production_boost", "building": "garden", "multiplier": 0.6}},
+    {"id": "construction", "name": "建築", "skill": "construction", "fatigue_per_hour": 3, "available": true, "output": {"type": "action_speed", "categories": ["build", "raft"], "bonus": 0.5}},
+    {"id": "repair", "name": "修理", "skill": "repair", "fatigue_per_hour": 2, "available": true, "output": {"type": "repair", "per_hour": 4}},
+    {"id": "research", "name": "研究", "skill": "research", "fatigue_per_hour": 1.5, "available": true, "output": {"type": "counter", "counter": "research_points", "per_hour": 0.5}},
+    {"id": "guard", "name": "警備", "skill": "guard", "fatigue_per_hour": 1.5, "available": true, "output": {"type": "counter", "counter": "guard_hours", "per_hour": 1}},
+    {"id": "navigation", "name": "航海", "skill": "navigation", "fatigue_per_hour": 1.5, "available": true, "output": {"type": "speed_bonus", "bonus": 0.12}},
+    {"id": "exploration", "name": "探索", "skill": "exploration", "fatigue_per_hour": 3, "available": false, "output": {"type": "none"}},
+    {"id": "trade", "name": "交易", "skill": "trade", "fatigue_per_hour": 1, "available": false, "output": {"type": "none"}},
+    {"id": "command", "name": "指揮", "skill": "command", "fatigue_per_hour": 1, "available": false, "output": {"type": "none"}}
+  ]
+}

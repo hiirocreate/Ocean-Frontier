@@ -20,6 +20,9 @@ var _jobs_box: VBoxContainer
 var collect_button: Button
 var build_button: Button
 var bag_button: Button
+var crew_button: Button
+var crew_panel: CrewPanel
+var dialogue_panel: DialoguePanel
 var menu_button: Button
 var _inventory_panel: PanelContainer
 var _inv_list: VBoxContainer
@@ -45,7 +48,7 @@ func setup(s: GameSession) -> void:
 	session = s
 	layer = 10
 	root = Control.new()
-	root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.theme = UiTheme.get_theme()
 	add_child(root)
@@ -58,6 +61,17 @@ func setup(s: GameSession) -> void:
 	_build_building_panel()
 	_build_menu()
 	_build_sleep_overlay()
+	crew_panel = CrewPanel.new()
+	root.add_child(crew_panel)
+	crew_panel.setup(session)
+	crew_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	crew_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	crew_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	crew_panel.talk_requested.connect(_on_talk)
+	session.crew.changed.connect(func(): if crew_panel.visible: crew_panel.refresh())
+	dialogue_panel = DialoguePanel.new()
+	root.add_child(dialogue_panel)
+	dialogue_panel.setup(session)
 	session.inventory.changed.connect(_queue_refresh)
 	session.actions.job_completed.connect(func(_j, _r): _queue_refresh())
 	session.raft.changed.connect(_queue_refresh)
@@ -115,15 +129,17 @@ func _build_controls() -> void:
 	joystick.offset_bottom = -36
 
 	var grid := GridContainer.new()
-	grid.columns = 2
+	grid.columns = 3
 	grid.add_theme_constant_override("h_separation", 16)
 	grid.add_theme_constant_override("v_separation", 16)
-	bag_button = UiTheme.button("持ち物", Vector2(130, 84))
-	build_button = UiTheme.button("建築", Vector2(130, 84))
-	collect_button = UiTheme.button("回収", Vector2(276, 96))
+	bag_button = UiTheme.button("持ち物", Vector2(116, 84))
+	build_button = UiTheme.button("建築", Vector2(116, 84))
+	crew_button = UiTheme.button("仲間", Vector2(116, 84))
+	collect_button = UiTheme.button("回収", Vector2(380, 96))
 	collect_button.add_theme_font_size_override("font_size", 28)
 	grid.add_child(bag_button)
 	grid.add_child(build_button)
+	grid.add_child(crew_button)
 	var wrap := VBoxContainer.new()
 	wrap.add_theme_constant_override("separation", 16)
 	wrap.add_child(grid)
@@ -133,6 +149,7 @@ func _build_controls() -> void:
 	collect_button.pressed.connect(func(): collect_pressed.emit())
 	build_button.pressed.connect(func(): set_build_mode(not build_mode))
 	bag_button.pressed.connect(toggle_inventory)
+	crew_button.pressed.connect(toggle_crew)
 
 	menu_button = UiTheme.button("メニュー", Vector2(140, 64))
 	root.add_child(menu_button)
@@ -356,9 +373,31 @@ func set_collect_available(available: bool, label: String = "回収") -> void:
 
 
 # ---------- インベントリ / クラフト ----------
+func toggle_crew() -> void:
+	var show := not crew_panel.visible
+	_inventory_panel.visible = false
+	_menu_panel.visible = false
+	if show:
+		crew_panel.open()
+	else:
+		crew_panel.visible = false
+
+
+func _on_talk(member_id: String) -> void:
+	crew_panel.visible = false
+	var did := session.talk_dialogue_for(member_id)
+	if did != "":
+		dialogue_panel.open(did)
+	else:
+		var m: Dictionary = session.crew.members[member_id]
+		var expr := "smile" if float(m["satisfaction"]) > 65.0 else ("sad" if float(m["satisfaction"]) < 35.0 else "normal")
+		dialogue_panel.open_inline("smalltalk", {"start": {"speaker": member_id, "expression": expr, "text": session.small_talk(member_id), "next": "end"}})
+
+
 func toggle_inventory() -> void:
 	_inventory_panel.visible = not _inventory_panel.visible
 	_menu_panel.visible = false
+	crew_panel.visible = false
 	if _inventory_panel.visible:
 		_refresh_inventory()
 
@@ -622,7 +661,7 @@ func _update_sleep_overlay() -> void:
 func _build_sleep_overlay() -> void:
 	_sleep_overlay = ColorRect.new()
 	_sleep_overlay.color = Color(0.0, 0.02, 0.06, 0.55)
-	_sleep_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_sleep_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_sleep_overlay.visible = false
 	root.add_child(_sleep_overlay)
 	var v := VBoxContainer.new()
@@ -661,7 +700,7 @@ func _update_quality_buttons() -> void:
 
 
 func is_modal_open() -> bool:
-	return _inventory_panel.visible or _menu_panel.visible
+	return _inventory_panel.visible or _menu_panel.visible or crew_panel.visible or dialogue_panel.visible
 
 
 ## 画面上の点がUI部品の上にあるか（カメラ操作やタップ選択と競合させないため）
@@ -670,7 +709,7 @@ func is_point_on_ui(pos: Vector2) -> bool:
 		return true
 	if _sleep_overlay.visible:
 		return true
-	for c in [joystick, collect_button, build_button, bag_button, menu_button, _build_panel, _building_panel, _jobs_box]:
+	for c in [joystick, collect_button, build_button, bag_button, crew_button, menu_button, _build_panel, _building_panel, _jobs_box]:
 		if c.is_visible_in_tree() and c.get_global_rect().has_point(pos):
 			return true
 	return false

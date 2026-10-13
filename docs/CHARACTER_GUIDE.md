@@ -9,9 +9,9 @@
 - 外見: 20代前半。ボサボサの黒髪短髪、日焼けした肌、潮で色あせたシャツ、青緑のベスト、赤錆色のスカーフ（唯一の手がかりの刺繍入り）、小さな革の鞄。
 - 配色: 肌 `#e8b996` / 髪 `#2e2a2b` / シャツ `#d8cfb8` / ベスト `#3f6b73` / ズボン `#4a4f5e` / スカーフ `#c2553d`
 - 3D: `scripts/characters/character_model.gd`（仮・プリミティブ構成）
-- 2D: 未作成（ASSET_STATUS 参照）
+- 2D: `scripts/ui/portrait_view.gd`（仮・図形描画。髪型 messy、装飾 scarf）
 
-## 予定している主要キャラクター（フェーズ4で実装）
+## 主要キャラクター（実装済み：data/characters/survivors.json）
 | ID | 役割 | 外見の要点 | 配色の軸 |
 |---|---|---|---|
 | `mira` | 元海洋研究者 | 丸眼鏡、白衣を改造した防水コート、記録端末を首から下げる | 白・灰青 |
@@ -25,3 +25,10 @@
 
 ## 表情差分の命名
 `assets/characters/portraits/<id>_<expression>.png`（例: `mira_smile.png`）
+
+## 2D/3D 共通の外見パラメータ
+survivors.json の `colors`（skin, hair, shirt, outer, pants, accent）・`hair_style`（long / long_wavy / spiky / crop / tied / messy）・`accessory`（glasses / goggles / scar / earrings / eyepatch / scarf）を、
+立ち絵（PortraitView）と3Dモデル（CharacterModel.apply_look）の両方が参照する。正式イラスト・Blenderモデルもこの値に合わせて制作する。
+
+## 表情
+normal / smile / sad / angry / surprised / tired（会話データの `expression`）

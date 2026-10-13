@@ -145,10 +145,12 @@ func start(action_id: String, params: Dictionary = {}) -> Dictionary:
 	return {"ok": true, "problems": [], "job": job, "result": result}
 
 
-func advance(minutes: float, efficiency: float = 1.0) -> void:
+## category_bonus: {カテゴリ: 追加倍率}（仲間の作業による加速）
+func advance(minutes: float, efficiency: float = 1.0, category_bonus: Dictionary = {}) -> void:
 	for job in jobs.duplicate():
 		if job["state"] == "running":
-			job["elapsed"] = float(job["elapsed"]) + minutes * efficiency
+			var cat := str(data.action(job["action"]).get("category", ""))
+			job["elapsed"] = float(job["elapsed"]) + minutes * (efficiency + float(category_bonus.get(cat, 0.0)))
 			if job["elapsed"] >= job["duration"]:
 				_try_complete(job)
 		elif job["state"] == "blocked":

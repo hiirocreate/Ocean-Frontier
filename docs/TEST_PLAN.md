@@ -7,7 +7,7 @@
 | E2E（描画あり） | `xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --script res://tools/smoke_test.gd` | 実シーンでのプレイサイクルとスクリーンショット |
 | データ検証のみ | `godot --headless --path . --script res://tools/validate_data.gd` | |
 
-## 自動テスト一覧と状況（2026-10-13 時点：46件 全成功、E2E 16項目 全成功）
+## 自動テスト一覧と状況（2026-10-13 時点：60件 全成功、E2E 22項目 全成功）
 
 ### アイテム（仕様45）
 | 要件 | テスト | 状況 |
@@ -28,7 +28,7 @@
 | アイテムが二重に増減しない | test_save::test_job_completes_after_load_without_double_consumption | ✅ |
 | 抽選結果がセーブと整合 | test_save::test_rng_continuity | ✅ |
 | 壊れたデータを検出できる | test_save::test_corrupted_file_detected_and_backup_used / test_garbage_file_fails_safely / test_missing_required_section / test_future_format_rejected | ✅ |
-| キャラクターの履歴が維持される | — | 未実装（フェーズ4） |
+| キャラクターの履歴が維持される | test_crew::test_crew_saved_and_loaded | ✅ |
 | ストーリー進行が維持される | flags の保存のみ確認 | 一部 |
 
 ### 建築物
@@ -64,8 +64,22 @@ ID重複・存在しないアイテム参照・不正なレシピ・存在しな
 | セーブする | ✅ | ✅ |
 | ロードして状態を確認する | ✅ | ✅ 完全一致 |
 
-### 仲間・勢力・海賊（仕様45）
-未実装（フェーズ4・6）。
+### 仲間（仕様45）
+| 要件 | テスト | 状況 |
+|---|---|---|
+| 仲間の加入が動作する | test_crew::test_recruit_and_history / test_rescue_dialogue_recruits, E2E | ✅ |
+| 加入条件 | test_available_rescues_follow_conditions | ✅ |
+| 仕事の割り当てが動作する | test_job_assignment_rules / test_fishing_job_produces_fish / test_construction_speeds_building | ✅ |
+| 技能が効率に反映 | test_skill_affects_efficiency | ✅ |
+| 関係性が更新される | test_relationship_changes | ✅ |
+| 離脱条件が正しく判定される（予兆あり／突然） | test_departure_has_warning_then_leaves_and_stays_in_world / test_sudden_departure_without_warning | ✅ |
+| 離脱後も履歴が維持される | 同上 + test_crew_saved_and_loaded | ✅ |
+| 再加入 | test_rejoin_conditions | ✅ |
+| 会話の条件・既読管理 | test_talk_dialogue_selection | ✅ |
+| 主要ストーリーが進行不能にならない | — | フェーズ7で検証 |
+
+### 勢力・海賊（仕様45）
+未実装（フェーズ6）。
 
 ## Android テスト（仕様46）
 | 項目 | 状況 |

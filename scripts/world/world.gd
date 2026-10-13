@@ -27,6 +27,9 @@ var _velocity := Vector3.ZERO
 var _nearest: Debris
 var _autosave_timer := 0.0
 var _zone: Dictionary
+var encounter: Encounter
+var crew_root: Node3D
+var _encounter_timer := 0.0
 
 
 func _ready() -> void:
@@ -53,6 +56,9 @@ func _ready() -> void:
 	hud.collect_pressed.connect(collect_nearest)
 	hud.build_mode_changed.connect(func(on, t): raft_view.set_build_mode(on, t))
 	hud.build_confirmed.connect(_on_build_confirmed)
+	hud.dialogue_panel.closed.connect(_on_dialogue_closed)
+	session.crew.changed.connect(_rebuild_crew)
+	_rebuild_crew()
 	raft_view.ghost_selected.connect(func(t): hud.select_build_tile(t))
 	Game.settings_changed.connect(_apply_quality)
 	_apply_quality()
@@ -143,7 +149,9 @@ func _build_raft() -> void:
 	player = CharacterModel.new()
 	raft_root.add_child(player)
 	player.position = raft_view.stand_position() + Vector3(0, 0.08, 0)
-	session.raft.changed.connect(func(): player.position = raft_view.stand_position() + Vector3(0, 0.08, 0))
+	session.raft.changed.connect(func():
+		player.position = raft_view.stand_position() + Vector3(0, 0.08, 0)
+		_rebuild_crew())
 	# 帆柱（筏の目印）
 	var mast := Node3D.new()
 	mast.add_child(LowPoly.cylinder(0.07, 3.2, Color("6b4426"), Vector3(0, 1.6, 0), 6))
@@ -174,6 +182,7 @@ func _process(delta: float) -> void:
 	_update_movement(delta)
 	_update_lighting()
 	_update_debris(delta)
+	_update_encounter(delta)
 	_autosave_timer += delta
 	if _autosave_timer > 120.0:
 		_autosave_timer = 0.0
@@ -181,7 +190,7 @@ func _process(delta: float) -> void:
 
 
 func _input_vector() -> Vector2:
-	if hud.is_modal_open() or session.is_sleeping():
+	if hud.is_modal_open() or session.is_sleeping() or hud.dialogue_panel.visible:
 		return Vector2.ZERO
 	var v := hud.joystick.value
 	if v == Vector2.ZERO:
@@ -279,7 +288,10 @@ func _update_debris(delta: float) -> void:
 			_nearest = deb
 	if debris_root.get_child_count() < int(session.data.bal("world.debris_target_count", 14)) * 0.7:
 		_fill_debris(false)
-	hud.set_collect_available(_nearest != null, "回収（%s）" % _kind_name(_nearest.kind) if _nearest else "回収")
+	if _encounter_in_reach():
+		hud.set_collect_available(true, "救助する" if encounter.kind == "rescue" else "話しかける")
+	else:
+		hud.set_collect_available(_nearest != null, "回収（%s）" % _kind_name(_nearest.kind) if _nearest else "回収")
 
 
 func _kind_name(kind: String) -> String:
@@ -287,12 +299,111 @@ func _kind_name(kind: String) -> String:
 
 
 func collect_nearest() -> void:
+	if _encounter_in_reach():
+		interact_encounter()
+		return
 	if _nearest == null or _nearest.collected:
 		hud.show_toast("近くに回収できる漂流物がありません", UiTheme.C_WARN)
 		return
 	session.collect_debris(_nearest.kind)
 	_nearest.fly_to(player)
 	_nearest = null
+
+
+# ---------- 遭遇（救助・再会） ----------
+func _encounter_in_reach() -> bool:
+	if encounter == null:
+		return false
+	var c := raft_root.to_global(raft_view.center_local())
+	return Vector2(encounter.position.x - c.x, encounter.position.z - c.z).length() < raft_view.radius() + 5.0
+
+
+func _update_encounter(delta: float) -> void:
+	if encounter:
+		encounter.update_float(_time, wave_amp)
+		if encounter.position.distance_to(raft_root.position) > 140.0:
+			_remove_encounter()
+		return
+	_encounter_timer += delta
+	if _encounter_timer < 3.0:
+		return
+	_encounter_timer = 0.0
+	if hud.dialogue_panel.visible or session.clock.total_minutes < float(session.flags.get("encounter_cooldown_until", 0.0)):
+		return
+	var rescues := session.crew.available_rescues(session)
+	if not rescues.is_empty():
+		spawn_encounter("rescue", rescues[0])
+		return
+	for id in session.crew.departed_ids():
+		if session.crew.rejoin_problem(id, session.clock.day()) == "" and _visual_rng().randf() < 0.3:
+			spawn_encounter("reunion", id)
+			return
+
+
+func spawn_encounter(kind: String, id: String) -> void:
+	_remove_encounter()
+	encounter = Encounter.new()
+	encounter.setup(kind, id, session.crew.def(id))
+	add_child(encounter)
+	var ang := camera_rig.yaw + PI + _visual_rng().randf_range(-0.6, 0.6)
+	encounter.position = raft_root.position + Vector3(sin(ang), 0, cos(ang)) * 26.0
+	var text := str(session.crew.def(id).get("recruit", {}).get("rescue_text", "漂流者"))
+	hud.show_toast(("遠くに%sが見える！" % text) if kind == "rescue" else "見覚えのある小舟が近づいてくる……", UiTheme.C_GOLD)
+
+
+func _remove_encounter() -> void:
+	if encounter:
+		encounter.queue_free()
+		encounter = null
+
+
+func interact_encounter() -> void:
+	if encounter == null or hud.dialogue_panel.visible:
+		return
+	var id := encounter.member_id
+	if encounter.kind == "rescue":
+		hud.dialogue_panel.open(str(session.crew.def(id).get("recruit", {}).get("dialogue", "")))
+	else:
+		hud.dialogue_panel.open_inline("reunion_" + id, _reunion_nodes(id))
+
+
+func _reunion_nodes(id: String) -> Dictionary:
+	return {
+		"start": {"speaker": id, "expression": "normal", "text": "……久しぶりだな。あれから色々あったよ。", "choices": [
+			{"text": "戻ってきてくれないか", "next": "yes", "effects": [{"type": "recruit", "target": id}, {"type": "trust", "target": id, "delta": 5}]},
+			{"text": "元気でな", "next": "no"},
+		]},
+		"yes": {"speaker": id, "expression": "smile", "text": "……そう言ってくれるなら。今度は、うまくやろう。", "next": "end"},
+		"no": {"speaker": id, "expression": "sad", "text": "そうか。……じゃあな。", "next": "end"},
+	}
+
+
+func _on_dialogue_closed(_id: String) -> void:
+	if encounter and (session.crew.is_aboard(encounter.member_id) or encounter.kind == "reunion"):
+		_remove_encounter()
+		session.flags["encounter_cooldown_until"] = session.clock.total_minutes + 180.0
+
+
+# ---------- 仲間の表示 ----------
+func _rebuild_crew() -> void:
+	if crew_root == null:
+		crew_root = Node3D.new()
+		raft_root.add_child(crew_root)
+	for c in crew_root.get_children():
+		c.queue_free()
+	var stand := raft_view.stand_position()
+	var free_tiles: Array = session.raft.tile_positions().filter(func(p): return session.raft.building_at(p) == "")
+	free_tiles.sort_custom(func(a, b): return (raft_view.tile_to_local(a) - stand).length() < (raft_view.tile_to_local(b) - stand).length())
+	var i := 1
+	for id in session.crew.aboard_ids():
+		var m := CharacterModel.new()
+		m.apply_look(session.crew.def(id))
+		var tile: Vector2i = free_tiles[i % maxi(1, free_tiles.size())] if not free_tiles.is_empty() else Vector2i.ZERO
+		var offset := Vector3(0.5, 0, 0.4) if i >= free_tiles.size() else Vector3.ZERO
+		m.position = raft_view.tile_to_local(tile) + Vector3(0, 0.08, 0) + offset
+		m.rotation.y = float(hash(id) % 628) / 100.0
+		crew_root.add_child(m)
+		i += 1
 
 
 # ---------- 建築 ----------
@@ -328,5 +439,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		hud.set_build_mode(not hud.build_mode)
 	elif event.is_action_pressed("inventory"):
 		hud.toggle_inventory()
+	elif event.is_action_pressed("crew"):
+		hud.toggle_crew()
 	elif event.is_action_pressed("menu"):
 		hud.toggle_menu()

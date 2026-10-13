@@ -10,6 +10,8 @@ extends Node3D
 @export var vest := Color("3f6b73")
 @export var pants := Color("4a4f5e")
 @export var scarf := Color("c2553d")
+var accessory := "scarf"
+var hair_style := "messy"
 
 var _t := 0.0
 var _arm_l: Node3D
@@ -18,6 +20,19 @@ var _leg_l: Node3D
 var _leg_r: Node3D
 var _body: Node3D
 var moving := false
+
+
+## survivors.json の定義から外見を設定（add_child の前に呼ぶ）
+func apply_look(defn: Dictionary) -> void:
+	var c: Dictionary = defn.get("colors", {})
+	skin = Color(str(c.get("skin", skin.to_html())))
+	hair = Color(str(c.get("hair", hair.to_html())))
+	shirt = Color(str(c.get("shirt", shirt.to_html())))
+	vest = Color(str(c.get("outer", vest.to_html())))
+	pants = Color(str(c.get("pants", pants.to_html())))
+	scarf = Color(str(c.get("accent", scarf.to_html())))
+	accessory = str(defn.get("accessory", ""))
+	hair_style = str(defn.get("hair_style", "short"))
 
 
 func _ready() -> void:
@@ -29,15 +44,39 @@ func _ready() -> void:
 	_body.add_child(LowPoly.cylinder(0.24, 0.62, shirt, Vector3(0, 1.13, 0), 7, Vector3.ZERO, 0.2))
 	_body.add_child(LowPoly.cylinder(0.255, 0.42, vest, Vector3(0, 1.08, 0.0), 7, Vector3.ZERO, 0.23))
 	_body.add_child(LowPoly.box(Vector3(0.5, 0.08, 0.3), Color("5a3b26"), Vector3(0, 0.86, 0)))  # ベルト
-	# スカーフ
-	_body.add_child(LowPoly.cylinder(0.17, 0.1, scarf, Vector3(0, 1.45, 0), 7))
-	_body.add_child(LowPoly.box(Vector3(0.1, 0.32, 0.05), scarf, Vector3(0.08, 1.3, 0.2), Vector3(10, 0, -12)))
+	# スカーフ（主人公の手がかり）
+	if accessory == "scarf":
+		_body.add_child(LowPoly.cylinder(0.17, 0.1, scarf, Vector3(0, 1.45, 0), 7))
+		_body.add_child(LowPoly.box(Vector3(0.1, 0.32, 0.05), scarf, Vector3(0.08, 1.3, 0.2), Vector3(10, 0, -12)))
 	# 頭
 	_body.add_child(LowPoly.sphere(0.2, skin, Vector3(0, 1.66, 0), 8, Vector3(1, 1.08, 1)))
-	# 髪（ボサボサの短髪をいくつかの塊で）
+	# 髪（2D立ち絵の hair_style と対応）
 	_body.add_child(LowPoly.sphere(0.215, hair, Vector3(0, 1.74, -0.03), 7, Vector3(1.02, 0.75, 1.0)))
-	_body.add_child(LowPoly.box(Vector3(0.14, 0.1, 0.1), hair, Vector3(-0.08, 1.8, 0.14), Vector3(20, 0, 15)))
-	_body.add_child(LowPoly.box(Vector3(0.12, 0.09, 0.1), hair, Vector3(0.09, 1.79, 0.15), Vector3(25, 0, -18)))
+	match hair_style:
+		"long", "long_wavy":
+			_body.add_child(LowPoly.box(Vector3(0.4, 0.5, 0.14), hair, Vector3(0, 1.5, -0.14)))
+		"spiky":
+			for i in 4:
+				_body.add_child(LowPoly.box(Vector3(0.07, 0.16, 0.07), hair, Vector3(-0.12 + i * 0.08, 1.9, 0.02), Vector3(0, 0, -20 + i * 13)))
+		"tied":
+			_body.add_child(LowPoly.sphere(0.08, hair, Vector3(0, 1.78, -0.22), 6))
+		"crop":
+			pass
+		_:
+			_body.add_child(LowPoly.box(Vector3(0.14, 0.1, 0.1), hair, Vector3(-0.08, 1.8, 0.14), Vector3(20, 0, 15)))
+			_body.add_child(LowPoly.box(Vector3(0.12, 0.09, 0.1), hair, Vector3(0.09, 1.79, 0.15), Vector3(25, 0, -18)))
+	match accessory:
+		"glasses":
+			_body.add_child(LowPoly.box(Vector3(0.3, 0.06, 0.02), Color("3a3a40"), Vector3(0, 1.67, 0.2)))
+		"goggles":
+			_body.add_child(LowPoly.box(Vector3(0.34, 0.08, 0.06), Color("6b5a3a"), Vector3(0, 1.8, 0.16)))
+		"eyepatch":
+			_body.add_child(LowPoly.box(Vector3(0.08, 0.08, 0.03), Color("151515"), Vector3(0.07, 1.67, 0.2)))
+		"earrings":
+			_body.add_child(LowPoly.sphere(0.03, scarf, Vector3(-0.2, 1.6, 0), 5))
+			_body.add_child(LowPoly.sphere(0.03, scarf, Vector3(0.2, 1.6, 0), 5))
+		"scar":
+			_body.add_child(LowPoly.box(Vector3(0.22, 0.06, 0.05), hair, Vector3(0, 1.58, 0.18)))
 	# 目
 	_body.add_child(LowPoly.box(Vector3(0.04, 0.05, 0.02), Color("1d2228"), Vector3(-0.07, 1.67, 0.19)))
 	_body.add_child(LowPoly.box(Vector3(0.04, 0.05, 0.02), Color("1d2228"), Vector3(0.07, 1.67, 0.19)))

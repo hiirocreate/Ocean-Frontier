@@ -8,6 +8,10 @@ const DATA_FILES := {
 	"actions": ["res://data/recipes/actions.json", "actions"],
 	"buildings": ["res://data/buildings/buildings.json", "buildings"],
 	"zones": ["res://data/world/world_zones.json", "zones"],
+	"survivors": ["res://data/characters/survivors.json", "survivors"],
+	"dialogues": ["res://data/characters/dialogue.json", "dialogues"],
+	"jobs": ["res://data/characters/jobs.json", "jobs"],
+	"traits": ["res://data/characters/traits.json", "traits"],
 }
 const BALANCE_FILE := "res://data/balance_config.json"
 
@@ -15,6 +19,10 @@ var items: Dictionary = {}
 var actions: Dictionary = {}
 var buildings: Dictionary = {}
 var zones: Dictionary = {}
+var survivors: Dictionary = {}
+var dialogues: Dictionary = {}
+var jobs: Dictionary = {}
+var traits: Dictionary = {}
 var balance: Dictionary = {}
 var load_errors: Array[String] = []
 
@@ -31,6 +39,10 @@ func load_all() -> bool:
 	actions = _load_list("actions")
 	buildings = _load_list("buildings")
 	zones = _load_list("zones")
+	survivors = _load_list("survivors")
+	dialogues = _load_list("dialogues")
+	jobs = _load_list("jobs")
+	traits = _load_list("traits")
 	var b: Variant = _read_json(BALANCE_FILE)
 	balance = b if b is Dictionary else {}
 	for e in load_errors:

@@ -33,7 +33,7 @@ func _setup_input() -> void:
 	var keys := {
 		"move_forward": [KEY_W, KEY_UP], "move_back": [KEY_S, KEY_DOWN],
 		"move_left": [KEY_A, KEY_LEFT], "move_right": [KEY_D, KEY_RIGHT],
-		"collect": [KEY_E, KEY_SPACE], "build_mode": [KEY_B], "inventory": [KEY_I, KEY_TAB],
+		"collect": [KEY_E, KEY_SPACE], "build_mode": [KEY_B], "inventory": [KEY_I, KEY_TAB], "crew": [KEY_C],
 		"menu": [KEY_ESCAPE],
 	}
 	for action in keys:

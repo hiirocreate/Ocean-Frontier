@@ -13,7 +13,9 @@
 | raft_mast | 帆柱とランタン | 3D | scripts/world/world.gd | プリミティブ組合せ | 独自 | 筏 | — | 仮素材 | はい |
 | debris_plank / barrel / crate | 漂流物3種 | 3D | scripts/world/debris.gd | プリミティブ組合せ | 独自 | 漂流物 | world_zones | 仮素材 | はい |
 | char_protagonist_model | 主人公3Dモデル | 3D | scripts/characters/character_model.gd | プリミティブ組合せ＋手続きアニメ | 独自 | 探索 | 主人公 | 仮素材 | はい |
-| char_protagonist_portrait | 主人公立ち絵 | 2D | assets/characters/portraits/protagonist_*.png | — | — | 会話 | 主人公 | 未作成 | — |
+| char_portraits | 立ち絵（主人公＋仲間5名×表情6種） | 2D（図形描画） | scripts/ui/portrait_view.gd | コードで描画（配色・髪型・装飾をデータから） | 独自 | 会話・仲間画面 | 全キャラクター | 仮素材 | はい |
+| char_crew_models | 仲間5名の3Dモデル | 3D | scripts/characters/character_model.gd（apply_look） | プリミティブ組合せ | 独自 | 探索・筏 | 全仲間 | 仮素材 | はい |
+| encounter_boat | 漂流者の小舟 | 3D | scripts/world/encounter.gd | プリミティブ組合せ | 独自 | 救助・再会 | — | 仮素材 | はい |
 | item_icons | アイテムアイコン | 2D | assets/items/*.png | — | — | UI | 全アイテム | 未作成（文字表示で代替） | — |
 | title_bg | タイトル背景 | シェーダー | scripts/ui/main_menu.gd | コード | 独自 | タイトル | — | 仮素材 | はい |
 | audio_* | 効果音・BGM | 音声 | assets/audio/ | — | — | — | — | 未作成 | — |

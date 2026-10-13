@@ -1,0 +1,17 @@
+{
+  "_comment": "性格。work_mult=作業効率倍率, stress_mult=ストレスの溜まりやすさ, clash_with=相性の悪い性格（同じ筏にいると敵意が増える）, likes_jobs=満足度が上がる作業。",
+  "traits": [
+    {"id": "diligent", "name": "勤勉", "work_mult": 1.15, "stress_mult": 1.0, "clash_with": ["lazy"], "likes_jobs": []},
+    {"id": "lazy", "name": "怠惰", "work_mult": 0.85, "stress_mult": 0.8, "clash_with": ["diligent", "disciplined"], "likes_jobs": ["idle"]},
+    {"id": "curious", "name": "好奇心旺盛", "work_mult": 1.0, "stress_mult": 0.9, "clash_with": [], "likes_jobs": ["research", "exploration"]},
+    {"id": "disciplined", "name": "規律的", "work_mult": 1.1, "stress_mult": 0.8, "clash_with": ["reckless", "lazy"], "likes_jobs": ["guard", "navigation"]},
+    {"id": "reckless", "name": "向こう見ず", "work_mult": 1.05, "stress_mult": 0.7, "clash_with": ["disciplined", "cautious"], "likes_jobs": ["exploration"]},
+    {"id": "cautious", "name": "慎重", "work_mult": 0.95, "stress_mult": 1.2, "clash_with": ["reckless"], "likes_jobs": ["repair"]},
+    {"id": "greedy", "name": "強欲", "work_mult": 1.0, "stress_mult": 1.0, "clash_with": ["idealist"], "likes_jobs": ["trade", "gathering"]},
+    {"id": "idealist", "name": "理想家", "work_mult": 1.0, "stress_mult": 1.1, "clash_with": ["greedy", "ruthless"], "likes_jobs": ["research"]},
+    {"id": "ruthless", "name": "冷酷", "work_mult": 1.05, "stress_mult": 0.7, "clash_with": ["idealist", "kind"], "likes_jobs": ["guard"]},
+    {"id": "kind", "name": "優しい", "work_mult": 1.0, "stress_mult": 1.0, "clash_with": ["ruthless"], "likes_jobs": ["cooking", "farming"]},
+    {"id": "cheerful", "name": "陽気", "work_mult": 1.0, "stress_mult": 0.75, "clash_with": [], "likes_jobs": ["fishing", "cooking"]},
+    {"id": "inventive", "name": "工夫好き", "work_mult": 1.1, "stress_mult": 1.0, "clash_with": [], "likes_jobs": ["construction", "repair"]}
+  ]
+}

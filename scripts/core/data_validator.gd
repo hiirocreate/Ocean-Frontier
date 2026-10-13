@@ -15,7 +15,117 @@ static func validate(d: GameData) -> Array[String]:
 	_buildings(d, e)
 	_zones(d, e)
 	_balance(d, e)
+	_characters(d, e)
+	_dialogues(d, e)
 	return e
+
+
+const EFFECT_TYPES := ["recruit", "trust", "loyalty", "satisfaction", "stress", "relation", "flag", "counter", "give_item", "take_item", "message"]
+const SPECIAL_SPEAKERS := ["player", "narrator"]
+
+
+static func _characters(d: GameData, e: Array[String]) -> void:
+	var skill_ids := {}
+	for jid in d.jobs:
+		var j: Dictionary = d.jobs[jid]
+		if str(j.get("skill", "")) != "":
+			skill_ids[str(j["skill"])] = true
+		var fac := str(j.get("facility", ""))
+		if fac != "" and not d.buildings.has(fac):
+			e.append("job %s: 存在しない設備 '%s'" % [jid, fac])
+		var o: Dictionary = j.get("output", {})
+		match str(o.get("type", "none")):
+			"item":
+				if not d.items.has(str(o.get("item", ""))):
+					e.append("job %s: 存在しないアイテム" % jid)
+			"convert":
+				_check_item_map(d, e, "job %s.from" % jid, o.get("from", {}))
+				_check_item_map(d, e, "job %s.to" % jid, o.get("to", {}))
+			"production_boost":
+				if not d.buildings.has(str(o.get("building", ""))):
+					e.append("job %s: 存在しない設備" % jid)
+	if not d.jobs.has("idle"):
+		e.append("jobs: 'idle' が必要です")
+	for tid in d.traits:
+		for c in d.traits[tid].get("clash_with", []):
+			if not d.traits.has(str(c)):
+				e.append("trait %s: 存在しない性格 '%s'" % [tid, c])
+		for j in d.traits[tid].get("likes_jobs", []):
+			if not d.jobs.has(str(j)):
+				e.append("trait %s: 存在しない作業 '%s'" % [tid, j])
+	for sid in d.survivors:
+		var sv: Dictionary = d.survivors[sid]
+		var o := "survivor " + str(sid)
+		for t in sv.get("personality", []):
+			if not d.traits.has(str(t)):
+				e.append("%s: 存在しない性格 '%s'" % [o, t])
+		for sk in sv.get("skills", {}):
+			if not skill_ids.has(sk):
+				e.append("%s: 未知の技能 '%s'" % [o, sk])
+			elif int(sv["skills"][sk]) < 0 or int(sv["skills"][sk]) > 5:
+				e.append("%s: 技能 %s は0〜5" % [o, sk])
+		var rec: Dictionary = sv.get("recruit", {})
+		if not d.dialogues.has(str(rec.get("dialogue", ""))):
+			e.append("%s: 加入会話 '%s' が存在しません" % [o, str(rec.get("dialogue"))])
+		for k in Conditions.unknown_keys(rec.get("condition", {})):
+			e.append("%s: 加入条件の未知キー '%s'" % [o, k])
+		for t in sv.get("talk", []):
+			if not d.dialogues.has(str(t)):
+				e.append("%s: 会話 '%s' が存在しません" % [o, t])
+		for other in sv.get("relations", {}):
+			if not d.survivors.has(str(other)):
+				e.append("%s: 関係の相手 '%s' が存在しません" % [o, other])
+			for kind in sv["relations"][other]:
+				if not (kind in Crew.RELATION_KINDS):
+					e.append("%s: 未知の関係 '%s'" % [o, kind])
+		var portrait := str(sv.get("portrait", ""))
+		if portrait != "" and not ResourceLoader.exists(portrait):
+			e.append("%s: 立ち絵が存在しません %s" % [o, portrait])
+		for ck in ["skin", "hair", "shirt", "outer", "pants", "accent"]:
+			if not Color.html_is_valid(str(sv.get("colors", {}).get(ck, ""))):
+				e.append("%s: colors.%s が不正" % [o, ck])
+
+
+static func _dialogues(d: GameData, e: Array[String]) -> void:
+	for did in d.dialogues:
+		var nodes: Dictionary = d.dialogues[did].get("nodes", {})
+		var o := "dialogue " + str(did)
+		if not nodes.has("start"):
+			e.append("%s: start ノードがありません" % o)
+		for k in Conditions.unknown_keys(d.dialogues[did].get("condition", {})):
+			e.append("%s: 未知の条件キー '%s'" % [o, k])
+		for nid in nodes:
+			var n: Dictionary = nodes[nid]
+			var sp := str(n.get("speaker", ""))
+			if not (sp in SPECIAL_SPEAKERS) and not d.survivors.has(sp):
+				e.append("%s.%s: 存在しない話者 '%s'" % [o, nid, sp])
+			var nexts: Array = []
+			if n.has("next"):
+				nexts.append(str(n["next"]))
+			_check_effects(d, e, "%s.%s" % [o, nid], n.get("effects", []))
+			for c in n.get("choices", []):
+				nexts.append(str(c.get("next", "end")))
+				_check_effects(d, e, "%s.%s" % [o, nid], c.get("effects", []))
+				for k in Conditions.unknown_keys(c.get("condition", {})):
+					e.append("%s.%s: 未知の条件キー '%s'" % [o, nid, k])
+			if n.get("choices", []).is_empty() and not n.has("next"):
+				e.append("%s.%s: next も choices もありません" % [o, nid])
+			for nx in nexts:
+				if nx != "end" and not nodes.has(nx):
+					e.append("%s.%s: 存在しないノード '%s'" % [o, nid, nx])
+
+
+static func _check_effects(d: GameData, e: Array[String], owner: String, effects: Array) -> void:
+	for ef in effects:
+		var t := str(ef.get("type", ""))
+		if not (t in EFFECT_TYPES):
+			e.append("%s: 未知の効果 '%s'" % [owner, t])
+		if t in ["recruit", "trust", "loyalty", "satisfaction", "stress"] and not d.survivors.has(str(ef.get("target", ""))):
+			e.append("%s: 存在しない人物 '%s'" % [owner, str(ef.get("target"))])
+		if t == "relation" and (not d.survivors.has(str(ef.get("from", ""))) or not d.survivors.has(str(ef.get("to", "")))):
+			e.append("%s: 関係の人物が存在しません" % owner)
+		if t in ["give_item", "take_item"] and not d.items.has(str(ef.get("item", ""))):
+			e.append("%s: 存在しないアイテム '%s'" % [owner, str(ef.get("item"))])
 
 
 static func _num_ok(v: Variant, min_v: float = 0.0) -> bool:
