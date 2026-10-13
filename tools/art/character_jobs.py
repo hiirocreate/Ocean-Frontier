@@ -43,7 +43,10 @@ EXPR = {
 }
 PLAYER_EXPR = ["smile", "sad", "surprised"]  # 主人公はこの3種（怒りは通常で代用）
 # 全身画像の乱数シードの個別指定（頭が切れた・背景に大きな物が入った画像を選び直した結果）
-FULL_SEED = {"garrett": 1371, "tobi": 1277}
+FULL_SEED = {"garrett": 1371, "tobi": 1288, "player_female_young": 2311}
+# 全身画像だけ説明を差し替える（「mechanic」だと背景に大きな機械が描かれ、3D化で人物と一体になるため）
+FULL_DESC = {"tobi": "1boy, solo, original, teenage boy, spiky orange hair, goggles on head, ochre jacket, tool belt, energetic, "
+                     "no background objects"}
 
 
 def characters():
@@ -59,7 +62,7 @@ def main() -> None:
     for cid, desc, seed, exprs in characters():
         if mode == "base":
             jobs.append({"id": f"{cid}_normal", "prompt": f"{desc}, {PORTRAIT}, {STYLE}", "seed": seed, "w": 768, "h": 1024})
-            jobs.append({"id": f"{cid}_full", "prompt": f"{desc}, {FULL}, {STYLE}", "seed": FULL_SEED.get(cid, seed + 50),
+            jobs.append({"id": f"{cid}_full", "prompt": f"{FULL_DESC.get(cid, desc)}, {FULL}, {STYLE}", "seed": FULL_SEED.get(cid, seed + 50),
                          "w": 832, "h": 1216})
         else:
             for e in exprs:

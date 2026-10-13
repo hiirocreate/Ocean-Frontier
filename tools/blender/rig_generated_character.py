@@ -4,7 +4,7 @@
       → 自動ウェイト → 待機・歩行・作業・休憩のアニメーションを作成 → glb 書き出し（頂点カラー COLOR_0）
 
 使い方（Blender 本体または pip の bpy）:
-  blender --background --python tools/blender/rig_generated_character.py -- <入力.glb> <出力.glb> [--tris 5000] [--height 1.85] [--face 180]
+  blender --background --python tools/blender/rig_generated_character.py -- <入力.glb> <出力.glb> [--tris 5000] [--height 1.85] [--face -90]
 独自制作（CC0扱い）。
 """
 import math
@@ -24,7 +24,7 @@ def arg(name: str, default: float) -> float:
 SRC, DST = ARGS[0], ARGS[1]
 TARGET_TRIS = int(arg("--tris", 5000))
 HEIGHT = arg("--height", 1.85)  # 既存の CharacterModel とほぼ同じ高さ（m）
-FACE_ROT = arg("--face", 180.0)  # 正面を Godot の +Z（既存モデルと同じ向き）に合わせる補正（度、Z軸回り）
+FACE_ROT = arg("--face", -90.0)  # 正面を Godot の +Z（既存モデルと同じ向き）に合わせる回転（度、Z軸回り）
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=SRC)
@@ -43,34 +43,13 @@ for o in list(bpy.context.scene.objects):
         bpy.data.objects.remove(o, do_unlink=True)
 bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
-# ---- 向きの正規化: いちばん長い軸を上（+Z）にする ----
+# ---- 向きの正規化 ----
+# TripoSR の出力は「+Z が上・入力画像のカメラ（人物の正面）が +X」の座標で、glTF としては Y-up と解釈される。
+# Blender に読み込むと上が -Y、正面が +X になるので、X 軸回りに -90° で起こし、Z 軸回りに -90° で正面を -Y
+# （glTF/Godot の +Z、既存の CharacterModel と同じ向き）へ向ける。
 me = obj.data
-co = [v.co.copy() for v in me.vertices]
-mins = Vector((min(c[i] for c in co) for i in range(3)))
-maxs = Vector((max(c[i] for c in co) for i in range(3)))
-size = maxs - mins
-up = max(range(3), key=lambda i: size[i])
-# 回転はメッシュの頂点に直接適用する（選択状態に左右されないように）
-if up == 1:  # TripoSR を glTF 経由で読むと人物が Y 方向に寝ている
-    me.transform(Matrix.Rotation(-math.pi / 2, 4, "X"))
-elif up == 0:
-    me.transform(Matrix.Rotation(math.pi / 2, 4, "Y"))
-# 足が下・頭が上か: 下端と上端の断面の幅で判定（足元は2本の脚で横に広く、頭頂は狭い）
-co = [v.co.copy() for v in me.vertices]
-zmin, zmax = min(c.z for c in co), max(c.z for c in co)
-h = zmax - zmin
-
-
-def width_at(t: float) -> float:
-    z0 = zmin + h * t
-    xs = [c.x for c in co if abs(c.z - z0) < h * 0.03]
-    return (max(xs) - min(xs)) if xs else 0.0
-
-
-if width_at(0.97) > width_at(0.03) * 1.6:  # 上端の方が広い → 逆さ
-    me.transform(Matrix.Rotation(math.pi, 4, "X"))
-if FACE_ROT:
-    me.transform(Matrix.Rotation(math.radians(FACE_ROT), 4, "Z"))
+me.transform(Matrix.Rotation(-math.pi / 2, 4, "X"))
+me.transform(Matrix.Rotation(math.radians(FACE_ROT), 4, "Z"))
 # 足元を原点に、身長を HEIGHT に
 co = [v.co.copy() for v in me.vertices]
 mins = Vector((min(c[i] for c in co) for i in range(3)))
