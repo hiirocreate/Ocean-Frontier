@@ -1,0 +1,80 @@
+{
+  "_comment": "全行動の共通定義。inputs=開始時に預かり成功時に消費、tools=所持と耐久度が必要で成功時にwear分摩耗、on_fail/on_cancel.lose_ratio=預かり素材の損失率。",
+  "actions": [
+    {
+      "id": "expand_raft", "name": "筏の拡張", "category": "raft",
+      "duration_minutes": 15,
+      "inputs": {"wood": 4, "rope": 2},
+      "tools": [],
+      "facilities": [], "skills": {}, "min_crew": 0,
+      "success_chance": 1.0,
+      "on_fail": {"lose_ratio": 0.5}, "on_cancel": {"lose_ratio": 0.0},
+      "outputs": {},
+      "effect": "raft_add_tile",
+      "fatigue": 4
+    },
+    {
+      "id": "craft_rope", "name": "ロープを作る", "category": "craft",
+      "duration_minutes": 5,
+      "inputs": {"cloth": 3},
+      "tools": [], "facilities": [], "skills": {}, "min_crew": 0,
+      "success_chance": 1.0,
+      "on_fail": {"lose_ratio": 0.5}, "on_cancel": {"lose_ratio": 0.0},
+      "outputs": {"rope": 1},
+      "fatigue": 1
+    },
+    {
+      "id": "craft_hammer", "name": "金槌を作る", "category": "craft",
+      "duration_minutes": 10,
+      "inputs": {"wood": 2, "scrap_metal": 3},
+      "tools": [], "facilities": [], "skills": {}, "min_crew": 0,
+      "success_chance": 1.0,
+      "on_fail": {"lose_ratio": 0.5}, "on_cancel": {"lose_ratio": 0.0},
+      "outputs": {"hammer": 1},
+      "fatigue": 2
+    },
+    {
+      "id": "craft_spear", "name": "槍を作る", "category": "craft",
+      "duration_minutes": 10,
+      "inputs": {"wood": 3, "scrap_metal": 2, "rope": 1},
+      "tools": [{"item": "hammer", "min_durability": 1, "wear": 2}],
+      "facilities": [], "skills": {}, "min_crew": 0,
+      "success_chance": 1.0,
+      "on_fail": {"lose_ratio": 0.5}, "on_cancel": {"lose_ratio": 0.0},
+      "outputs": {"spear": 1},
+      "fatigue": 2
+    },
+    {
+      "id": "craft_repair_kit", "name": "修理工具を作る", "category": "craft",
+      "duration_minutes": 20,
+      "inputs": {"scrap_metal": 4, "cloth": 2, "rope": 1},
+      "tools": [{"item": "hammer", "min_durability": 2, "wear": 3}],
+      "facilities": [], "skills": {}, "min_crew": 0,
+      "success_chance": 1.0,
+      "on_fail": {"lose_ratio": 0.5}, "on_cancel": {"lose_ratio": 0.0},
+      "outputs": {"repair_kit": 1},
+      "fatigue": 3
+    },
+    {
+      "id": "boil_water", "name": "海水を蒸留する", "category": "craft",
+      "duration_minutes": 30,
+      "inputs": {"plastic": 2, "wood": 1},
+      "tools": [], "facilities": [], "skills": {}, "min_crew": 0,
+      "success_chance": 0.8,
+      "on_fail": {"lose_ratio": 1.0}, "on_cancel": {"lose_ratio": 0.0},
+      "outputs": {"water_bottle": 1},
+      "fatigue": 1
+    },
+    {
+      "id": "repair_hammer", "name": "金槌を修理する", "category": "repair",
+      "duration_minutes": 5,
+      "inputs": {"wood": 1, "scrap_metal": 1},
+      "tools": [], "facilities": [], "skills": {}, "min_crew": 0,
+      "success_chance": 1.0,
+      "on_fail": {"lose_ratio": 0.5}, "on_cancel": {"lose_ratio": 0.0},
+      "outputs": {},
+      "effect": "repair_item", "effect_params": {"item": "hammer", "amount": 20},
+      "fatigue": 1
+    }
+  ]
+}

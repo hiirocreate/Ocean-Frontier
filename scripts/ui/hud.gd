@@ -1,0 +1,507 @@
+class_name Hud
+extends CanvasLayer
+## 探索画面のUI。生存値・時刻・メッセージ・操作ボタン・インベントリ/クラフト・建築・メニュー。
+## 行動の可否は ActionSystem に問い合わせ、不足理由を具体的に表示する（仕様38）。
+
+signal collect_pressed
+signal build_mode_changed(on: bool)
+signal build_confirmed(tile: Vector2i)
+
+var session: GameSession
+var joystick: VirtualJoystick
+var root: Control
+var _bars := {}
+var _time_label: Label
+var _weight_label: Label
+var _toasts: VBoxContainer
+var _jobs_box: VBoxContainer
+var collect_button: Button
+var build_button: Button
+var bag_button: Button
+var menu_button: Button
+var _inventory_panel: PanelContainer
+var _inv_list: VBoxContainer
+var _craft_list: VBoxContainer
+var _inv_tabs: TabContainer
+var _build_panel: PanelContainer
+var _build_info: VBoxContainer
+var _build_tile := Vector2i(999999, 999999)
+var _menu_panel: PanelContainer
+var _quality_buttons := {}
+var build_mode := false
+var _refresh_pending := false
+
+
+func setup(s: GameSession) -> void:
+	session = s
+	layer = 10
+	root = Control.new()
+	root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.theme = UiTheme.get_theme()
+	add_child(root)
+	_build_status()
+	_build_toasts()
+	_build_controls()
+	_build_jobs()
+	_build_inventory()
+	_build_build_panel()
+	_build_menu()
+	session.inventory.changed.connect(_queue_refresh)
+	session.actions.job_completed.connect(func(_j, _r): _queue_refresh())
+	Game.message.connect(_on_message)
+
+
+# ---------- レイアウト ----------
+func _build_status() -> void:
+	var panel := PanelContainer.new()
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.custom_minimum_size = Vector2(300, 0)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 4)
+	panel.add_child(v)
+	_time_label = UiTheme.label("", 22, UiTheme.C_GOLD)
+	v.add_child(_time_label)
+	for spec in [["health", "体力", Color("e0605a")], ["hunger", "空腹", Color("e8a64f")],
+			["thirst", "水分", Color("4fb8e8")], ["fatigue", "元気", Color("8fd47a")]]:
+		var row := HBoxContainer.new()
+		var l := UiTheme.label(spec[1], 16)
+		l.custom_minimum_size = Vector2(48, 0)
+		row.add_child(l)
+		var bar := ProgressBar.new()
+		bar.max_value = 100
+		bar.show_percentage = false
+		bar.custom_minimum_size = Vector2(210, 16)
+		bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		bar.add_theme_stylebox_override("fill", UiTheme.box(spec[2], Color(0, 0, 0, 0), 6, 2))
+		row.add_child(bar)
+		v.add_child(row)
+		_bars[spec[0]] = bar
+	_weight_label = UiTheme.label("", 16)
+	v.add_child(_weight_label)
+	root.add_child(panel)
+	panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT, Control.PRESET_MODE_MINSIZE, 20)
+
+
+func _build_toasts() -> void:
+	_toasts = VBoxContainer.new()
+	_toasts.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_toasts.custom_minimum_size = Vector2(560, 0)
+	root.add_child(_toasts)
+	_toasts.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 20)
+	_toasts.grow_horizontal = Control.GROW_DIRECTION_BOTH
+
+
+func _build_controls() -> void:
+	joystick = VirtualJoystick.new()
+	root.add_child(joystick)
+	var js := joystick.custom_minimum_size
+	joystick.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	joystick.offset_left = 36
+	joystick.offset_right = 36 + js.x
+	joystick.offset_top = -36 - js.y
+	joystick.offset_bottom = -36
+
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 16)
+	grid.add_theme_constant_override("v_separation", 16)
+	bag_button = UiTheme.button("持ち物", Vector2(130, 84))
+	build_button = UiTheme.button("建築", Vector2(130, 84))
+	collect_button = UiTheme.button("回収", Vector2(276, 96))
+	collect_button.add_theme_font_size_override("font_size", 28)
+	grid.add_child(bag_button)
+	grid.add_child(build_button)
+	var wrap := VBoxContainer.new()
+	wrap.add_theme_constant_override("separation", 16)
+	wrap.add_child(grid)
+	wrap.add_child(collect_button)
+	root.add_child(wrap)
+	wrap.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 36)
+	collect_button.pressed.connect(func(): collect_pressed.emit())
+	build_button.pressed.connect(func(): set_build_mode(not build_mode))
+	bag_button.pressed.connect(toggle_inventory)
+
+	menu_button = UiTheme.button("メニュー", Vector2(140, 64))
+	root.add_child(menu_button)
+	menu_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 20)
+	menu_button.pressed.connect(toggle_menu)
+
+
+func _build_jobs() -> void:
+	_jobs_box = VBoxContainer.new()
+	_jobs_box.custom_minimum_size = Vector2(340, 0)
+	root.add_child(_jobs_box)
+	_jobs_box.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 20)
+	_jobs_box.offset_top = 100
+
+
+func _modal(size: Vector2) -> PanelContainer:
+	var p := PanelContainer.new()
+	p.custom_minimum_size = size
+	p.add_theme_stylebox_override("panel", UiTheme.box(Color(0.04, 0.11, 0.16, 0.96), UiTheme.C_PANEL_BORDER, 14))
+	p.visible = false
+	root.add_child(p)
+	p.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	p.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	p.grow_vertical = Control.GROW_DIRECTION_BOTH
+	return p
+
+
+func _build_inventory() -> void:
+	_inventory_panel = _modal(Vector2(760, 560))
+	var v := VBoxContainer.new()
+	_inventory_panel.add_child(v)
+	var head := HBoxContainer.new()
+	head.add_child(UiTheme.label("持ち物とクラフト", 26, UiTheme.C_GOLD))
+	var sp := Control.new()
+	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(sp)
+	var close := UiTheme.button("閉じる", Vector2(120, 56))
+	close.pressed.connect(toggle_inventory)
+	head.add_child(close)
+	v.add_child(head)
+	_inv_tabs = TabContainer.new()
+	_inv_tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	v.add_child(_inv_tabs)
+	_inv_list = _scroll_tab("所持品")
+	_craft_list = _scroll_tab("クラフト")
+
+
+func _scroll_tab(title: String) -> VBoxContainer:
+	var sc := ScrollContainer.new()
+	sc.name = title
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var list := VBoxContainer.new()
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list.add_theme_constant_override("separation", 8)
+	sc.add_child(list)
+	_inv_tabs.add_child(sc)
+	return list
+
+
+func _build_build_panel() -> void:
+	_build_panel = PanelContainer.new()
+	_build_panel.custom_minimum_size = Vector2(520, 0)
+	_build_panel.visible = false
+	_build_info = VBoxContainer.new()
+	_build_panel.add_child(_build_info)
+	root.add_child(_build_panel)
+	_build_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 24)
+	_build_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_build_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+
+
+func _build_menu() -> void:
+	_menu_panel = _modal(Vector2(460, 520))
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 12)
+	_menu_panel.add_child(v)
+	v.add_child(UiTheme.label("メニュー", 28, UiTheme.C_GOLD))
+	var save_b := UiTheme.button("セーブ")
+	save_b.pressed.connect(func(): Game.save_game())
+	v.add_child(save_b)
+	var load_b := UiTheme.button("ロード")
+	load_b.pressed.connect(func(): Game.load_game())
+	v.add_child(load_b)
+	v.add_child(UiTheme.label("画質", 18))
+	var q := HBoxContainer.new()
+	for spec in [["low", "低"], ["medium", "中"], ["high", "高"]]:
+		var b := UiTheme.button(spec[1], Vector2(130, 56))
+		b.toggle_mode = true
+		b.pressed.connect(_set_quality.bind(spec[0]))
+		q.add_child(b)
+		_quality_buttons[spec[0]] = b
+	v.add_child(q)
+	var title_b := UiTheme.button("タイトルへ戻る（自動セーブ）")
+	title_b.pressed.connect(func(): Game.save_game(); Game.return_to_menu())
+	v.add_child(title_b)
+	var close := UiTheme.button("閉じる")
+	close.pressed.connect(toggle_menu)
+	v.add_child(close)
+	_update_quality_buttons()
+
+
+# ---------- 表示更新 ----------
+func _process(_delta: float) -> void:
+	if session == null:
+		return
+	var sv := session.survival
+	_bars["health"].value = sv.health
+	_bars["hunger"].value = sv.hunger
+	_bars["thirst"].value = sv.thirst
+	_bars["fatigue"].value = 100.0 - sv.fatigue
+	_time_label.text = session.clock.label()
+	_weight_label.text = "重量 %.1f / %.0f   効率 %d%%" % [session.inventory.total_weight(), session.inventory.max_weight, int(sv.efficiency() * 100)]
+	_update_jobs()
+	if _refresh_pending:
+		_refresh_pending = false
+		if _inventory_panel.visible:
+			_refresh_inventory()
+		if _build_panel.visible:
+			_refresh_build_panel()
+
+
+func _queue_refresh() -> void:
+	_refresh_pending = true
+
+
+func _update_jobs() -> void:
+	var jobs := session.actions.jobs
+	while _jobs_box.get_child_count() < jobs.size():
+		var row := PanelContainer.new()
+		var v := VBoxContainer.new()
+		row.add_child(v)
+		var h := HBoxContainer.new()
+		var l := UiTheme.label("", 18)
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		h.add_child(l)
+		var cb := UiTheme.button("中止", Vector2(80, 44))
+		cb.add_theme_font_size_override("font_size", 16)
+		h.add_child(cb)
+		v.add_child(h)
+		var bar := ProgressBar.new()
+		bar.show_percentage = false
+		bar.custom_minimum_size = Vector2(0, 12)
+		v.add_child(bar)
+		_jobs_box.add_child(row)
+	while _jobs_box.get_child_count() > jobs.size():
+		var c := _jobs_box.get_child(_jobs_box.get_child_count() - 1)
+		_jobs_box.remove_child(c)
+		c.queue_free()
+	for i in jobs.size():
+		var job: Dictionary = jobs[i]
+		var row := _jobs_box.get_child(i)
+		var v := row.get_child(0)
+		var l: Label = v.get_child(0).get_child(0)
+		var cb: Button = v.get_child(0).get_child(1)
+		var bar: ProgressBar = v.get_child(1)
+		var a := session.data.action(job["action"])
+		var remain := maxf(0.0, float(job["duration"]) - float(job["elapsed"]))
+		if job["state"] == "blocked":
+			l.text = "%s：%s" % [a.get("name", ""), job["problems"][0]["message"] if not job["problems"].is_empty() else "待機中"]
+			l.add_theme_color_override("font_color", UiTheme.C_WARN)
+		else:
+			l.text = "%s（残り%d分）" % [a.get("name", ""), int(ceil(remain))]
+			l.add_theme_color_override("font_color", UiTheme.C_TEXT)
+		bar.value = 100.0 * float(job["elapsed"]) / maxf(0.01, float(job["duration"]))
+		var jid := int(job["id"])
+		if cb.has_meta("jid") and int(cb.get_meta("jid")) == jid:
+			continue
+		for conn in cb.pressed.get_connections():
+			cb.pressed.disconnect(conn["callable"])
+		cb.set_meta("jid", jid)
+		cb.pressed.connect(func(): session.actions.cancel(jid); _queue_refresh())
+
+
+func _on_message(text: String) -> void:
+	if text == "__toggle_menu__":
+		toggle_menu()
+		return
+	show_toast(text)
+
+
+func show_toast(text: String, color: Color = UiTheme.C_TEXT) -> void:
+	var p := PanelContainer.new()
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.add_theme_stylebox_override("panel", UiTheme.box(Color(0.02, 0.08, 0.12, 0.78), Color(0, 0, 0, 0), 10, 10))
+	var l := UiTheme.label(text, 20, color)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	p.add_child(l)
+	_toasts.add_child(p)
+	while _toasts.get_child_count() > 4:
+		_toasts.get_child(0).queue_free()
+		_toasts.remove_child(_toasts.get_child(0))
+	var tw := p.create_tween()
+	tw.tween_interval(3.5)
+	tw.tween_property(p, "modulate:a", 0.0, 0.8)
+	tw.tween_callback(p.queue_free)
+
+
+func set_collect_available(available: bool, label: String = "回収") -> void:
+	collect_button.disabled = not available
+	collect_button.text = label
+
+
+# ---------- インベントリ / クラフト ----------
+func toggle_inventory() -> void:
+	_inventory_panel.visible = not _inventory_panel.visible
+	_menu_panel.visible = false
+	if _inventory_panel.visible:
+		_refresh_inventory()
+
+
+func _clear(c: Node) -> void:
+	for ch in c.get_children():
+		c.remove_child(ch)
+		ch.queue_free()
+
+
+func _refresh_inventory() -> void:
+	_clear(_inv_list)
+	var inv := session.inventory
+	var ids: Array = inv.stacks.keys()
+	for inst in inv.instances:
+		if not (inst["id"] in ids):
+			ids.append(inst["id"])
+	ids.sort_custom(func(a, b): return str(session.data.item(a).get("category")) + a < str(session.data.item(b).get("category")) + b)
+	if ids.is_empty():
+		_inv_list.add_child(UiTheme.label("何も持っていない", 20))
+	for id in ids:
+		var def := session.data.item(id)
+		var row := HBoxContainer.new()
+		var info := VBoxContainer.new()
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var title := "%s ×%d" % [def.get("name", id), inv.count(id)]
+		if not inv.is_stackable(id):
+			var durs: Array = inv.instances.filter(func(i): return i["id"] == id).map(func(i): return "%d/%d" % [int(i["durability"]), int(inv.max_durability(id))])
+			title += "  耐久 " + ", ".join(durs)
+		info.add_child(UiTheme.label(title, 20))
+		var desc := UiTheme.label(str(def.get("description", "")), 15, Color(0.75, 0.82, 0.84))
+		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		info.add_child(desc)
+		row.add_child(info)
+		if not def.get("use_effects", {}).is_empty():
+			var b := UiTheme.button("使う", Vector2(100, 56))
+			b.pressed.connect(func(): session.use_item(id); _refresh_inventory())
+			row.add_child(b)
+		_inv_list.add_child(row)
+	_refresh_craft()
+
+
+func _refresh_craft() -> void:
+	_clear(_craft_list)
+	for id in session.data.actions:
+		var a: Dictionary = session.data.actions[id]
+		if not (a.get("category") in ["craft", "repair"]):
+			continue
+		var panel := PanelContainer.new()
+		panel.add_theme_stylebox_override("panel", UiTheme.box(Color(0.08, 0.2, 0.26, 0.9), Color(0, 0, 0, 0), 10, 10))
+		var row := HBoxContainer.new()
+		panel.add_child(row)
+		var info := VBoxContainer.new()
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var outs: Dictionary = a.get("outputs", {})
+		var head := str(a.get("name", id))
+		if not outs.is_empty():
+			head += " → " + session.describe_items(outs)
+		head += "（%d分）" % int(a.get("duration_minutes", 0))
+		info.add_child(UiTheme.label(head, 20))
+		info.add_child(_requirements_label(id))
+		var problems := session.actions.check(id)
+		for p in problems:
+			if p["code"] != "missing_item":
+				info.add_child(UiTheme.label("・" + str(p["message"]), 16, UiTheme.C_WARN))
+		row.add_child(info)
+		var b := UiTheme.button("作る" if a.get("category") == "craft" else "修理", Vector2(100, 56))
+		b.disabled = not problems.is_empty()
+		b.pressed.connect(func():
+			var r := session.actions.start(id)
+			if not r["ok"]:
+				show_toast(str(r["problems"][0]["message"]), UiTheme.C_WARN)
+			_refresh_inventory())
+		row.add_child(b)
+		_craft_list.add_child(panel)
+
+
+## 必要素材を「木材 4/6」の形式で色分け表示する
+func _requirements_label(action_id: String) -> RichTextLabel:
+	var rt := RichTextLabel.new()
+	rt.bbcode_enabled = true
+	rt.fit_content = true
+	rt.scroll_active = false
+	rt.add_theme_font_size_override("normal_font_size", 17)
+	var parts: Array[String] = []
+	for r in session.actions.requirement_rows(action_id):
+		var col := "#8eeba5" if r["ok"] else "#ff8c6b"
+		var text: String
+		match r["kind"]:
+			"item":
+				text = "%s %d/%d" % [r["name"], r["have"], r["need"]]
+				if not r["ok"]:
+					text += "（%d不足）" % (int(r["need"]) - int(r["have"]))
+			"tool":
+				text = "工具:%s" % r["name"]
+			_:
+				text = "設備:%s" % r["name"]
+		parts.append("[color=%s]%s[/color]" % [col, text])
+	rt.text = "必要: " + ("  ".join(parts) if not parts.is_empty() else "なし")
+	return rt
+
+
+# ---------- 建築 ----------
+func set_build_mode(on: bool) -> void:
+	build_mode = on
+	build_button.text = "建築終了" if on else "建築"
+	_build_tile = Vector2i(999999, 999999)
+	_build_panel.visible = on
+	_inventory_panel.visible = false
+	_refresh_build_panel()
+	build_mode_changed.emit(on)
+
+
+func select_build_tile(tile: Vector2i) -> void:
+	_build_tile = tile
+	_refresh_build_panel()
+
+
+func _refresh_build_panel() -> void:
+	_clear(_build_info)
+	if not build_mode:
+		return
+	_build_info.add_child(UiTheme.label("筏の拡張", 24, UiTheme.C_GOLD))
+	_build_info.add_child(_requirements_label("expand_raft"))
+	if _build_tile.x == 999999:
+		_build_info.add_child(UiTheme.label("緑の枠をタップして場所を選んでください", 18))
+		var problems := session.actions.check("expand_raft", {"x": 999999, "z": 999999}).filter(func(p): return p["code"] != "effect")
+		for p in problems:
+			_build_info.add_child(UiTheme.label("・" + str(p["message"]), 17, UiTheme.C_WARN))
+		return
+	var params := {"x": _build_tile.x, "z": _build_tile.y}
+	var problems := session.actions.check("expand_raft", params)
+	for p in problems:
+		_build_info.add_child(UiTheme.label("・" + str(p["message"]), 17, UiTheme.C_WARN))
+	var h := HBoxContainer.new()
+	var ok := UiTheme.button("ここに建設", Vector2(220, 64))
+	ok.disabled = not problems.is_empty()
+	ok.pressed.connect(func(): build_confirmed.emit(_build_tile))
+	h.add_child(ok)
+	var cancel := UiTheme.button("選択解除", Vector2(160, 64))
+	cancel.pressed.connect(func(): select_build_tile(Vector2i(999999, 999999)))
+	h.add_child(cancel)
+	_build_info.add_child(h)
+
+
+# ---------- メニュー ----------
+func toggle_menu() -> void:
+	_menu_panel.visible = not _menu_panel.visible
+	_inventory_panel.visible = false
+	_update_quality_buttons()
+
+
+func _set_quality(q: String) -> void:
+	Game.settings["quality"] = q
+	Game.save_settings()
+	_update_quality_buttons()
+	Game.message.emit("画質を「%s」に変更しました" % {"low": "低", "medium": "中", "high": "高"}[q])
+	Game.quality_changed()
+
+
+func _update_quality_buttons() -> void:
+	for q in _quality_buttons:
+		_quality_buttons[q].button_pressed = Game.settings["quality"] == q
+
+
+func is_modal_open() -> bool:
+	return _inventory_panel.visible or _menu_panel.visible
+
+
+## 画面上の点がUI部品の上にあるか（カメラ操作やタップ選択と競合させないため）
+func is_point_on_ui(pos: Vector2) -> bool:
+	if is_modal_open():
+		return true
+	for c in [joystick, collect_button, build_button, bag_button, menu_button, _build_panel, _jobs_box]:
+		if c.is_visible_in_tree() and c.get_global_rect().has_point(pos):
+			return true
+	return false

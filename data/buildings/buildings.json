@@ -1,0 +1,6 @@
+{
+  "_comment": "筏床タイルと建築物の定義。建築物の配置システムはフェーズ3で実装予定（TASKS.md B-301）。",
+  "buildings": [
+    {"id": "raft_foundation", "name": "筏の床", "kind": "tile", "max_durability": 100, "build_action": "expand_raft"}
+  ]
+}

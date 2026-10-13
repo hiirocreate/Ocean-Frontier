@@ -1,0 +1,17 @@
+{
+  "items": [
+    {"id": "wood", "name": "木材", "description": "漂流してきた板切れ。筏や設備の基本素材。", "category": "material", "rarity": "common", "weight": 1.0, "stackable": true, "sell_price": 2, "obtain": ["drift"]},
+    {"id": "scrap_metal", "name": "金属くず", "description": "錆びた金属片。工具や設備に使う。", "category": "material", "rarity": "common", "weight": 1.5, "stackable": true, "sell_price": 3, "obtain": ["drift"]},
+    {"id": "rope", "name": "ロープ", "description": "丈夫な縄。筏の連結に必要。", "category": "material", "rarity": "common", "weight": 0.5, "stackable": true, "sell_price": 3, "obtain": ["drift", "craft"]},
+    {"id": "cloth", "name": "布", "description": "海水を吸った布切れ。ロープや浄水器の材料。", "category": "material", "rarity": "common", "weight": 0.3, "stackable": true, "sell_price": 1, "obtain": ["drift"]},
+    {"id": "plastic", "name": "プラスチック片", "description": "旧時代の容器の破片。", "category": "material", "rarity": "common", "weight": 0.3, "stackable": true, "sell_price": 1, "obtain": ["drift"]},
+    {"id": "canned_food", "name": "保存食", "description": "旧時代の缶詰。空腹を大きく回復する。", "category": "consumable", "rarity": "uncommon", "weight": 0.5, "stackable": true, "sell_price": 8, "use_effects": {"hunger": 35, "thirst": -3}, "obtain": ["drift"]},
+    {"id": "coconut", "name": "ココナッツ", "description": "漂流してきた実。少し空腹と水分を満たす。", "category": "consumable", "rarity": "common", "weight": 0.8, "stackable": true, "sell_price": 3, "use_effects": {"hunger": 12, "thirst": 10}, "obtain": ["drift"]},
+    {"id": "water_bottle", "name": "飲料水", "description": "密封されたボトルの水。", "category": "consumable", "rarity": "uncommon", "weight": 1.0, "stackable": true, "sell_price": 6, "use_effects": {"thirst": 40}, "obtain": ["drift", "craft"]},
+    {"id": "medkit", "name": "医療用品", "description": "包帯と消毒液。体力と負傷を回復する。", "category": "consumable", "rarity": "rare", "weight": 0.5, "stackable": true, "sell_price": 15, "use_effects": {"health": 30, "injury": -40}, "obtain": ["drift"]},
+    {"id": "hammer", "name": "金槌", "description": "建築用の工具。使うたびに摩耗する。", "category": "tool", "rarity": "common", "weight": 1.5, "stackable": false, "max_durability": 40, "sell_price": 10, "repair_action": "repair_hammer", "obtain": ["craft"]},
+    {"id": "repair_kit", "name": "修理工具", "description": "設備や船の修理に必要な工具一式。", "category": "tool", "rarity": "uncommon", "weight": 2.0, "stackable": false, "max_durability": 30, "sell_price": 20, "obtain": ["craft"]},
+    {"id": "spear", "name": "槍", "description": "木と金属くずで作った簡素な槍。", "category": "weapon", "rarity": "common", "weight": 2.0, "stackable": false, "max_durability": 25, "sell_price": 12, "obtain": ["craft"]},
+    {"id": "old_letter", "name": "古い手紙", "description": "防水袋に入った手紙。宛名は滲んで読めない。", "category": "story", "rarity": "rare", "weight": 0.1, "stackable": true, "sell_price": 0, "obtain": ["drift"]}
+  ]
+}

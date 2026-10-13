@@ -1,0 +1,36 @@
+; Engine configuration file.
+; Godot 4.3 で作成。直接編集する場合は docs/DECISIONS.md を参照。
+
+config_version=5
+
+[application]
+
+config/name="Ocean Frontier: LAST TIDE"
+config/description="海に覆われた世界のサバイバルアドベンチャー"
+config/version="0.1.0"
+run/main_scene="res://scenes/main/main_menu.tscn"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+config/icon="res://assets/ui/icon.svg"
+
+[autoload]
+
+Game="*res://scripts/core/game.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=4
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
+anti_aliasing/quality/msaa_3d=1

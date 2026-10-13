@@ -1,0 +1,46 @@
+{
+  "time": {
+    "game_minutes_per_real_second": 1.0,
+    "start_hour": 7
+  },
+  "survival": {
+    "hunger_per_hour": 4.0,
+    "thirst_per_hour": 6.0,
+    "fatigue_per_hour": 2.5,
+    "fatigue_recovery_per_hour_resting": 12.0,
+    "starvation_damage_per_hour": 6.0,
+    "dehydration_damage_per_hour": 9.0,
+    "injury_damage_per_hour": 0.05,
+    "natural_regen_per_hour": 1.0,
+    "regen_min_food": 50,
+    "low_threshold": 25,
+    "collapse_recovery": {"health": 25, "hunger": 30, "thirst": 30, "fatigue": 20, "skip_hours": 6}
+  },
+  "inventory": {
+    "max_weight": 60.0
+  },
+  "raft": {
+    "start_tiles": [[0, 0], [1, 0], [0, 1], [1, 1]],
+    "tile_size": 2.0,
+    "max_radius": 8,
+    "tile_durability": 100,
+    "base_speed": 4.0,
+    "speed_penalty_per_tile": 0.02,
+    "min_speed_ratio": 0.4
+  },
+  "world": {
+    "start_zone": "starting_waters",
+    "debris_target_count": 14,
+    "debris_spawn_radius_min": 18.0,
+    "debris_spawn_radius_max": 55.0,
+    "debris_despawn_radius": 75.0,
+    "current_speed": 0.6,
+    "collect_range": 4.0
+  },
+  "start_inventory": {
+    "wood": 6,
+    "rope": 1,
+    "coconut": 2,
+    "water_bottle": 1
+  }
+}

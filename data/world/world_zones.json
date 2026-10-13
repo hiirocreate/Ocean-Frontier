@@ -1,0 +1,37 @@
+{
+  "zones": [
+    {
+      "id": "starting_waters",
+      "name": "漂流者の浅瀬",
+      "ocean_shallow_color": "#1b9a98",
+      "ocean_deep_color": "#0a3f66",
+      "fog_color": "#a9d8e6",
+      "debris_kinds": [
+        {"kind": "plank", "weight": 6},
+        {"kind": "barrel", "weight": 3},
+        {"kind": "crate", "weight": 2}
+      ],
+      "drift_tables": {
+        "plank": {"rolls": [1, 2], "entries": [
+          {"item": "wood", "min": 1, "max": 3, "weight": 8},
+          {"item": "rope", "min": 1, "max": 1, "weight": 3},
+          {"item": "cloth", "min": 1, "max": 2, "weight": 3}
+        ]},
+        "barrel": {"rolls": [1, 2], "entries": [
+          {"item": "water_bottle", "min": 1, "max": 1, "weight": 4},
+          {"item": "coconut", "min": 1, "max": 2, "weight": 4},
+          {"item": "plastic", "min": 1, "max": 3, "weight": 4},
+          {"item": "scrap_metal", "min": 1, "max": 2, "weight": 3}
+        ]},
+        "crate": {"rolls": [2, 3], "entries": [
+          {"item": "scrap_metal", "min": 1, "max": 3, "weight": 5},
+          {"item": "rope", "min": 1, "max": 2, "weight": 4},
+          {"item": "canned_food", "min": 1, "max": 1, "weight": 3},
+          {"item": "cloth", "min": 1, "max": 3, "weight": 3},
+          {"item": "medkit", "min": 1, "max": 1, "weight": 1},
+          {"item": "old_letter", "min": 1, "max": 1, "weight": 0.3}
+        ]}
+      }
+    }
+  ]
+}
