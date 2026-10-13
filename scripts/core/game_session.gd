@@ -18,6 +18,9 @@ var reputation: Dictionary = {"fame": 0.0, "fear": 0.0, "trust": 0.0, "infamy": 
 var prisoners: Array = []  # [{from, faction, day}]
 var sites_state: Dictionary = {}  # site_id -> {"discovered": bool, "explored": int}
 var pending_combat: Dictionary = {}  # {"enemy": id, "terrain": String, "source": String}
+var factions: FactionSim
+var fleet: Fleet
+var money: float = 0.0  # 貝貨
 var rng: RandomNumberGenerator
 var zone_id: String = "starting_waters"
 var raft_position: Vector3 = Vector3.ZERO
@@ -47,6 +50,16 @@ func _init(game_data: GameData) -> void:
 	actions.job_completed.connect(_on_job_completed)
 	actions.job_blocked.connect(func(_j, problems): message.emit("作業が中断待ち: " + str(problems[0]["message"])))
 	survival.warning.connect(func(_s, text): message.emit(text))
+	factions = FactionSim.new(data)
+	factions.reset()
+	factions.news.connect(func(text, important): if important: message.emit("［海の噂］" + text))
+	fleet = Fleet.new(data)
+	actions.register_effect("add_ship", func(p, _e): return "" if data.ships.has(str(p.get("ship", ""))) else "不明な船種です", func(p): fleet.add_ship(str(p["ship"]), clock.day()); message.emit("%sが完成した！" % data.ships[p["ship"]]["name"]))
+	actions.register_effect("repair_ship", _validate_repair_ship, _apply_repair_ship)
+	actions.register_effect("fleet_mission", _validate_fleet_mission, _apply_fleet_mission)
+	actions.register_effect("found_pirate_crew", _validate_found_crew, _apply_found_crew)
+	actions.job_started.connect(_on_job_started)
+	actions.job_cancelled.connect(_on_job_cancelled)
 	crew = Crew.new(data)
 	crew.member_joined.connect(func(id): message.emit("%sが仲間になった" % crew.display_name(id)))
 	crew.member_warning.connect(func(_id, text): message.emit(text))
@@ -63,6 +76,8 @@ func new_game(game_seed: int = 0) -> void:
 		raft.tiles[Raft.key(Vector2i(int(p[0]), int(p[1])))] = {"type": "raft_foundation", "durability": raft.tile_durability}
 	inventory.add_many(data.bal("start_inventory", {}), true)
 	update_capacity()
+	factions._last_day = clock.day()
+	crew._last_day = clock.day()
 
 
 ## ゲーム内時間を進める。
@@ -76,8 +91,19 @@ func advance(minutes: float) -> void:
 	actions.advance(minutes, survival.efficiency(), crew.action_bonus(self))
 	_tick_production(minutes)
 	crew.tick(minutes, self)
+	factions.tick(self)
 	if clock.day() != day_before:
-		counters["piracy_today"] = 0.0
+		_on_new_day()
+
+
+func _on_new_day() -> void:
+	counters["piracy_today"] = 0.0
+	for line in Piracy.daily_prisoners(self):
+		message.emit(line)
+	if pending_combat.is_empty():
+		var raider := factions.roll_raid_on_player(self)
+		if raider != "":
+			start_combat(raider, "raft", "raid")
 
 
 # ---- 外部条件（ActionSystem.context） ----
@@ -117,6 +143,19 @@ func apply_effect(e: Dictionary) -> void:
 			inventory.remove(str(e.get("item", "")), int(e.get("n", 1)))
 		"message":
 			message.emit(str(e.get("text", "")))
+		"coins":
+			money = maxf(0.0, money + float(e.get("delta", 0)))
+		"reputation":
+			change_reputation(str(e.get("kind", "")), float(e.get("delta", 0)))
+		"standing":
+			factions.change_standing(str(e.get("faction", "")), float(e.get("delta", 0)))
+		"piracy":
+			counters["piracy_today"] = float(counters.get("piracy_today", 0)) + 1.0
+			counters["piracy_total"] = float(counters.get("piracy_total", 0)) + 1.0
+		"start_combat":
+			start_combat(str(e.get("enemy", "")), str(e.get("terrain", "sea")), "event")
+		"discover_site":
+			discover_site(str(e.get("site", "")))
 		_:
 			GameLog.warn("未知の効果: %s" % t)
 
@@ -474,6 +513,89 @@ func prison_capacity() -> int:
 	return cap
 
 
+# ---- 艦隊 ----
+## 任務を開始する（補給物資の預かり・条件の検証は ActionSystem で一元管理）
+func start_fleet_mission(ship_uid: String, mission_id: String, target: String = "") -> Dictionary:
+	var m: Dictionary = data.missions.get(mission_id, {})
+	if mission_id in ["return", "retreat"]:
+		for j in actions.jobs.duplicate():
+			if j["action"] == "fleet_mission" and str(j["params"].get("ship", "")) == ship_uid:
+				actions.cancel(int(j["id"]))
+				if mission_id == "retreat":
+					fleet.recall(ship_uid, true)
+				return {"ok": true, "problems": []}
+		return {"ok": false, "problems": [ActionSystem.problem("not_on_mission", "その船は任務に出ていません")]}
+	var params := {"ship": ship_uid, "mission": mission_id, "target": target,
+		"inputs": fleet.mission_supplies(ship_uid, mission_id), "duration_minutes": float(m.get("hours", 1)) * 60.0}
+	return actions.start("fleet_mission", params)
+
+
+func _validate_fleet_mission(p: Dictionary, exclude_job_id: int) -> String:
+	var uid := str(p.get("ship", ""))
+	var mid := str(p.get("mission", ""))
+	if exclude_job_id >= 0:
+		return "" if fleet.ships.has(uid) else "船が失われた"
+	var prob := fleet.mission_problem(uid, mid, str(p.get("target", "")), self)
+	if prob != "":
+		return prob
+	if p.get("inputs", {}) != fleet.mission_supplies(uid, mid):
+		return "補給物資の指定が不正です"
+	if absf(float(p.get("duration_minutes", 0)) - float(data.missions[mid].get("hours", 0)) * 60.0) > 0.01:
+		return "任務時間の指定が不正です"
+	return ""
+
+
+func _apply_fleet_mission(p: Dictionary) -> void:
+	for line in fleet.resolve_mission(str(p["ship"]), self):
+		message.emit("［艦隊］" + line)
+
+
+func _on_job_started(job: Dictionary) -> void:
+	if job["action"] == "fleet_mission":
+		fleet.start_mission(str(job["params"]["ship"]), str(job["params"]["mission"]), str(job["params"].get("target", "")))
+
+
+func _on_job_cancelled(job: Dictionary, _lost: Dictionary) -> void:
+	if job["action"] == "fleet_mission":
+		fleet.recall(str(job["params"]["ship"]), false)
+
+
+func _validate_repair_ship(p: Dictionary, _e: int) -> String:
+	var uid := str(p.get("ship", ""))
+	if not fleet.ships.has(uid):
+		return "修理する船を選んでください"
+	if not fleet.at_home(uid):
+		return "船が港にいません"
+	if float(fleet.ships[uid]["hp"]) >= float(fleet.ship_def(uid).get("hp", 1)):
+		return "修理の必要がありません"
+	return ""
+
+
+func _apply_repair_ship(p: Dictionary) -> void:
+	var uid := str(p["ship"])
+	if fleet.ships.has(uid):
+		var mx := float(fleet.ship_def(uid).get("hp", 50))
+		fleet.ships[uid]["hp"] = minf(mx, float(fleet.ships[uid]["hp"]) + mx * float(p.get("amount", 50)) / 100.0)
+		fleet.changed.emit()
+
+
+func _validate_found_crew(_p: Dictionary, _e: int) -> String:
+	if bool(flags.get("pirate_crew_founded", false)):
+		return "すでに海賊団を率いている"
+	if raft.tiles.size() < 10:
+		return "拠点となる筏が小さすぎる（床10枚以上）"
+	if fleet.ships.is_empty():
+		return "船が1隻以上必要です"
+	return ""
+
+
+func _apply_found_crew(_p: Dictionary) -> void:
+	flags["pirate_crew_founded"] = true
+	Piracy._record(self, 15.0, 10.0, -5.0)
+	factions.change_standing("iron_reef", -25.0)
+	message.emit("髑髏の旗が掲げられた。あなたの海賊団の誕生だ")
+
+
 # ---- 修理 ----
 func _validate_repair(params: Dictionary, _exclude: int) -> String:
 	var id := str(params.get("item", ""))
@@ -527,6 +649,9 @@ func to_dict() -> Dictionary:
 		"prisoners": prisoners.duplicate(true),
 		"sites_state": sites_state.duplicate(true),
 		"pending_combat": pending_combat.duplicate(),
+		"factions": factions.to_dict(),
+		"fleet": fleet.to_dict(),
+		"money": money,
 	}
 
 
@@ -586,6 +711,16 @@ func from_dict(d: Dictionary) -> Dictionary:
 				sites_state[str(k)] = {"discovered": bool(ss[k].get("discovered", false)), "explored": maxi(0, int(ss[k].get("explored", 0)))}
 			else:
 				warnings.append("未知の探索地点 '%s' を除外" % str(k))
+	var fd: Variant = d.get("factions", {})
+	warnings.append_array(factions.from_dict(fd if fd is Dictionary else {}))
+	var fl2: Variant = d.get("fleet", {})
+	warnings.append_array(fleet.from_dict(fl2 if fl2 is Dictionary else {}, self))
+	money = maxf(0.0, float(d.get("money", 0.0)))
+	# 任務中の船と進行中の任務を照合（不整合なら帰港扱い）
+	for uid in fleet.ships:
+		if fleet.ships[uid]["location"] == "mission" and not actions.jobs.any(func(j): return j["action"] == "fleet_mission" and str(j["params"].get("ship", "")) == uid):
+			warnings.append("任務記録のない船 '%s' を帰港扱いに" % uid)
+			fleet.recall(uid, false)
 	var pc: Variant = d.get("pending_combat", {})
 	pending_combat = pc.duplicate() if pc is Dictionary and data.enemies.has(str(pc.get("enemy", ""))) else {}
 	var sts: Variant = d.get("stats", {})

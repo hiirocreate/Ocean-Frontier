@@ -1,0 +1,74 @@
+{
+ "_comment": "船種。armament/defense は艦隊戦闘と襲撃に使用。supply_per_day は任務中に消費する補給。",
+ "ships": [
+  {
+   "id": "dinghy",
+   "name": "小舟",
+   "description": "2人乗りの手漕ぎ舟。偵察や近場の探索向き。",
+   "crew_min": 1,
+   "crew_max": 2,
+   "hp": 40,
+   "speed": 1.0,
+   "cargo": 20,
+   "armament": 2,
+   "defense": 2,
+   "supply_per_day": {
+    "canned_food": 0.5,
+    "water_bottle": 1
+   },
+   "build_action": "build_ship_dinghy"
+  },
+  {
+   "id": "sloop",
+   "name": "スループ",
+   "description": "帆走の小型船。交易と護衛に使える。",
+   "crew_min": 2,
+   "crew_max": 4,
+   "hp": 90,
+   "speed": 1.4,
+   "cargo": 60,
+   "armament": 8,
+   "defense": 6,
+   "supply_per_day": {
+    "canned_food": 1,
+    "water_bottle": 2
+   },
+   "build_action": "build_ship_sloop"
+  },
+  {
+   "id": "schooner",
+   "name": "スクーナー",
+   "description": "大型の二本マスト船。遠洋航海と大量輸送。",
+   "crew_min": 3,
+   "crew_max": 6,
+   "hp": 150,
+   "speed": 1.6,
+   "cargo": 120,
+   "armament": 14,
+   "defense": 10,
+   "supply_per_day": {
+    "canned_food": 2,
+    "water_bottle": 3
+   },
+   "build_action": "build_ship_schooner"
+  },
+  {
+   "id": "gunboat",
+   "name": "砲艇",
+   "description": "武器設備と装甲を積んだ戦闘艇。",
+   "crew_min": 3,
+   "crew_max": 5,
+   "hp": 180,
+   "speed": 1.3,
+   "cargo": 40,
+   "armament": 30,
+   "defense": 20,
+   "supply_per_day": {
+    "canned_food": 2,
+    "water_bottle": 2,
+    "fuel": 0.5
+   },
+   "build_action": "build_ship_gunboat"
+  }
+ ]
+}

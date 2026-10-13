@@ -25,6 +25,10 @@ var crew_panel: CrewPanel
 var combat_panel: CombatPanel
 var map_panel: MapPanel
 var map_button: Button
+var fleet_panel: FleetPanel
+var faction_panel: FactionPanel
+var fleet_button: Button
+var faction_button: Button
 var inspect_button: Button
 var _site_panel: PanelContainer
 var _site_info: VBoxContainer
@@ -83,6 +87,14 @@ func setup(s: GameSession) -> void:
 	map_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
 	map_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	map_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	for pn in ["fleet_panel", "faction_panel"]:
+		var panel: PanelContainer = FleetPanel.new() if pn == "fleet_panel" else FactionPanel.new()
+		root.add_child(panel)
+		panel.setup(session)
+		panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+		panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+		set(pn, panel)
 	_site_panel = PanelContainer.new()
 	_site_panel.custom_minimum_size = Vector2(500, 0)
 	_site_panel.visible = false
@@ -187,12 +199,26 @@ func _build_controls() -> void:
 	bag_button.pressed.connect(toggle_inventory)
 	crew_button.pressed.connect(toggle_crew)
 
-	menu_button = UiTheme.button("メニュー", Vector2(140, 64))
+	menu_button = UiTheme.button("メニュー", Vector2(120, 64))
 	var top := HBoxContainer.new()
 	top.add_theme_constant_override("separation", 12)
-	map_button = UiTheme.button("海図", Vector2(110, 64))
+	map_button = UiTheme.button("海図", Vector2(100, 64))
 	map_button.pressed.connect(toggle_map)
 	top.add_child(map_button)
+	faction_button = UiTheme.button("勢力", Vector2(100, 64))
+	faction_button.pressed.connect(func():
+		var show := not faction_panel.visible
+		_close_modals()
+		if show:
+			faction_panel.open_info())
+	top.add_child(faction_button)
+	fleet_button = UiTheme.button("船団", Vector2(100, 64))
+	fleet_button.pressed.connect(func():
+		var show := not fleet_panel.visible
+		_close_modals()
+		if show:
+			fleet_panel.open())
+	top.add_child(fleet_button)
 	top.add_child(menu_button)
 	root.add_child(top)
 	top.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 20)
@@ -211,6 +237,7 @@ func _build_jobs() -> void:
 	root.add_child(_jobs_box)
 	_jobs_box.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 20)
 	_jobs_box.offset_top = 100
+	_jobs_box.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 
 
 func _modal(size: Vector2) -> PanelContainer:
@@ -329,7 +356,7 @@ func _process(_delta: float) -> void:
 	_bars["thirst"].value = sv.thirst
 	_bars["fatigue"].value = 100.0 - sv.fatigue
 	_time_label.text = session.clock.label()
-	_weight_label.text = "重量 %.1f / %.0f   効率 %d%%" % [session.inventory.total_weight(), session.inventory.max_weight, int(sv.efficiency() * 100)]
+	_weight_label.text = "重量 %.1f/%.0f  効率%d%%  貝貨 %d" % [session.inventory.total_weight(), session.inventory.max_weight, int(sv.efficiency() * 100), int(session.money)]
 	_update_jobs()
 	_update_sleep_overlay()
 	_update_nav()
@@ -445,6 +472,8 @@ func _close_modals() -> void:
 	_menu_panel.visible = false
 	crew_panel.visible = false
 	map_panel.visible = false
+	fleet_panel.visible = false
+	faction_panel.visible = false
 
 
 func _update_nav() -> void:
@@ -503,7 +532,18 @@ func _refresh_site_panel() -> void:
 	var aid := str(sd.get("explore_action", ""))
 	if aid == "":
 		var fac := str(sd.get("faction", ""))
-		_site_info.add_child(UiTheme.label("勢力の拠点。交易・外交はフェーズ6で実装予定。" if fac != "" else "ここで探索できるものはない。", 16, Color(0.8, 0.85, 0.88)))
+		if fac == "":
+			_site_info.add_child(UiTheme.label("ここで探索できるものはない。", 16, Color(0.8, 0.85, 0.88)))
+			return
+		session.flags["known_faction_" + fac] = true
+		var st := session.factions.standing(fac)
+		_site_info.add_child(UiTheme.label("%s の拠点（あなたへの態度 %d）" % [session.factions.name_of(fac), int(st)], 17))
+		var tb := UiTheme.button("交易・外交", Vector2(220, 64))
+		tb.pressed.connect(func():
+			_site_panel.visible = false
+			_close_modals()
+			faction_panel.open_trade(fac))
+		_site_info.add_child(tb)
 		return
 	var left := session.site_explorations_left(_site_id)
 	_site_info.add_child(UiTheme.label("探索できる回数: 残り%d回" % left, 16))
@@ -528,8 +568,7 @@ func _refresh_site_panel() -> void:
 
 func toggle_crew() -> void:
 	var show := not crew_panel.visible
-	_inventory_panel.visible = false
-	_menu_panel.visible = false
+	_close_modals()
 	if show:
 		crew_panel.open()
 	else:
@@ -855,7 +894,8 @@ func _update_quality_buttons() -> void:
 
 
 func is_modal_open() -> bool:
-	return _inventory_panel.visible or _menu_panel.visible or crew_panel.visible or dialogue_panel.visible or map_panel.visible or combat_panel.visible
+	return _inventory_panel.visible or _menu_panel.visible or crew_panel.visible or dialogue_panel.visible or map_panel.visible \
+		or combat_panel.visible or fleet_panel.visible or faction_panel.visible
 
 
 ## 画面上の点がUI部品の上にあるか（カメラ操作やタップ選択と競合させないため）
@@ -864,7 +904,7 @@ func is_point_on_ui(pos: Vector2) -> bool:
 		return true
 	if _sleep_overlay.visible:
 		return true
-	for c in [joystick, collect_button, build_button, bag_button, crew_button, menu_button, map_button, inspect_button, _build_panel, _building_panel, _site_panel, _jobs_box]:
+	for c in [joystick, collect_button, build_button, bag_button, crew_button, menu_button, map_button, fleet_button, faction_button, inspect_button, _build_panel, _building_panel, _site_panel, _jobs_box]:
 		if c.is_visible_in_tree() and c.get_global_rect().has_point(pos):
 			return true
 	return false

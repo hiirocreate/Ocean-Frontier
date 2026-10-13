@@ -1027,6 +1027,241 @@
    "effect_params": {
     "building": "research_desk"
    }
+  },
+  {
+   "id": "build_ship_dinghy",
+   "name": "小舟を建造する",
+   "category": "build",
+   "duration_minutes": 90,
+   "inputs": {
+    "hull_plank": 2,
+    "rope": 2,
+    "wood": 4
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 2,
+     "wear": 5
+    }
+   ],
+   "facilities": [
+    "shipyard"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "effect": "add_ship",
+   "effect_params": {
+    "ship": "dinghy"
+   },
+   "fatigue": 8
+  },
+  {
+   "id": "build_ship_sloop",
+   "name": "スループを建造する",
+   "category": "build",
+   "duration_minutes": 240,
+   "inputs": {
+    "hull_plank": 6,
+    "sail_cloth": 2,
+    "rudder": 1,
+    "rope": 6,
+    "cargo_crate": 1
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 2,
+     "wear": 5
+    }
+   ],
+   "facilities": [
+    "shipyard"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "effect": "add_ship",
+   "effect_params": {
+    "ship": "sloop"
+   },
+   "fatigue": 8
+  },
+  {
+   "id": "build_ship_schooner",
+   "name": "スクーナーを建造する",
+   "category": "build",
+   "duration_minutes": 480,
+   "inputs": {
+    "hull_plank": 12,
+    "sail_cloth": 4,
+    "rudder": 1,
+    "rope": 10,
+    "cargo_crate": 3
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 2,
+     "wear": 5
+    }
+   ],
+   "facilities": [
+    "shipyard"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "effect": "add_ship",
+   "effect_params": {
+    "ship": "schooner"
+   },
+   "fatigue": 8
+  },
+  {
+   "id": "build_ship_gunboat",
+   "name": "砲艇を建造する",
+   "category": "build",
+   "duration_minutes": 420,
+   "inputs": {
+    "hull_plank": 8,
+    "armor_plate": 4,
+    "ship_cannon": 2,
+    "rudder": 1,
+    "engine_part": 1,
+    "rope": 6
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 2,
+     "wear": 5
+    }
+   ],
+   "facilities": [
+    "shipyard"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "effect": "add_ship",
+   "effect_params": {
+    "ship": "gunboat"
+   },
+   "fatigue": 8
+  },
+  {
+   "id": "repair_ship",
+   "name": "船を修理する",
+   "category": "repair",
+   "duration_minutes": 120,
+   "inputs": {
+    "repair_supplies": 2
+   },
+   "tools": [
+    {
+     "item": "hammer",
+     "min_durability": 1,
+     "wear": 2
+    }
+   ],
+   "facilities": [
+    "shipyard"
+   ],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.5
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "effect": "repair_ship",
+   "effect_params": {
+    "amount": 50
+   },
+   "fatigue": 5
+  },
+  {
+   "id": "fleet_mission",
+   "name": "艦隊任務",
+   "category": "fleet",
+   "duration_minutes": 60,
+   "inputs": {},
+   "tools": [],
+   "facilities": [],
+   "skills": {},
+   "min_crew": 0,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.0
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "effect": "fleet_mission",
+  "variable_inputs": true,
+   "fatigue": 0,
+   "variable_duration": true
+  },
+  {
+   "id": "found_pirate_crew",
+   "name": "海賊団を旗揚げする",
+   "category": "raft",
+   "duration_minutes": 60,
+   "inputs": {
+    "canned_food": 10,
+    "water_bottle": 10,
+    "ammo": 20
+   },
+   "tools": [],
+   "facilities": [
+    "defense_wall"
+   ],
+   "skills": {},
+   "min_crew": 3,
+   "success_chance": 1.0,
+   "on_fail": {
+    "lose_ratio": 0.0
+   },
+   "on_cancel": {
+    "lose_ratio": 0.0
+   },
+   "outputs": {},
+   "effect": "found_pirate_crew",
+   "fatigue": 2
   }
  ]
 }

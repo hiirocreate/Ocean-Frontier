@@ -1,0 +1,212 @@
+{
+ "_comment": "勢力の初期状態。resources は抽象的な量。relations は -100〜100。player_standing はプレイヤーへの態度。market.sells={item:価格(貝貨)}, buys=買い取る品目。",
+ "factions": [
+  {
+   "id": "tide_union",
+   "name": "潮流連合",
+   "kind": "merchant",
+   "leader": "マーサ・ヴェイル",
+   "description": "浮遊市場を中心とした商人と漁師の連合。中立と交易を重んじる。",
+   "base_site": "tide_union_market",
+   "members": 220,
+   "resources": {
+    "food": 400,
+    "materials": 300,
+    "fuel": 120,
+    "ammo": 60
+   },
+   "ships": 14,
+   "armament": 20,
+   "defense": 45,
+   "economy": 9,
+   "relations": {
+    "iron_reef": 30,
+    "black_current": -50,
+    "beacon_order": 10
+   },
+   "goals": [
+    "trade",
+    "expand"
+   ],
+   "aggression": 0.1,
+   "greed": 0.5,
+   "player_standing": 10,
+   "market": {
+    "sells": {
+     "canned_food": 12,
+     "water_bottle": 8,
+     "medkit": 25,
+     "oxygen_tank": 18,
+     "fuel": 12,
+     "tool_parts": 10,
+     "electronics": 24,
+     "rope": 5,
+     "cloth": 3,
+     "hull_plank": 14,
+     "sail_cloth": 16
+    },
+    "buys": [
+     "raw_fish",
+     "cooked_fish",
+     "potato",
+     "scrap_metal",
+     "wood",
+     "plastic",
+     "fuel",
+     "electronics",
+     "tool_parts",
+     "harpoon",
+     "spear",
+     "leather_armor",
+     "medkit",
+     "canned_food"
+    ]
+   },
+   "hire_cost": 40,
+   "raider_enemy": "merchant_guards"
+  },
+  {
+   "id": "iron_reef",
+   "name": "鉄礁防衛隊",
+   "kind": "military",
+   "leader": "司令官ドレイク",
+   "description": "旧沿岸防衛隊の残党。秩序の回復を掲げ、海賊を取り締まる。",
+   "base_site": "iron_reef_fort",
+   "members": 140,
+   "resources": {
+    "food": 250,
+    "materials": 350,
+    "fuel": 200,
+    "ammo": 220
+   },
+   "ships": 10,
+   "armament": 60,
+   "defense": 80,
+   "economy": 5,
+   "relations": {
+    "tide_union": 30,
+    "black_current": -80,
+    "beacon_order": 40
+   },
+   "goals": [
+    "order",
+    "expand",
+    "hunt_pirates"
+   ],
+   "aggression": 0.5,
+   "greed": 0.2,
+   "player_standing": 0,
+   "market": {
+    "sells": {
+     "ammo": 5,
+     "leather_armor": 30,
+     "scrap_shield": 18,
+     "armor_plate": 28,
+     "ship_cannon": 45,
+     "medkit": 28,
+     "fuel": 10
+    },
+    "buys": [
+     "scrap_metal",
+     "fuel",
+     "electronics",
+     "canned_food",
+     "water_bottle",
+     "medkit"
+    ]
+   },
+   "hire_cost": 60,
+   "raider_enemy": "iron_marines"
+  },
+  {
+   "id": "black_current",
+   "name": "海賊団『黒潮』",
+   "kind": "pirate",
+   "leader": "船長ヴォルグ",
+   "description": "赤潮の海を根城にする最大の海賊団。商船を襲い、通行料を取り立てる。",
+   "base_site": "black_current_hideout",
+   "members": 110,
+   "resources": {
+    "food": 180,
+    "materials": 200,
+    "fuel": 150,
+    "ammo": 160
+   },
+   "ships": 12,
+   "armament": 55,
+   "defense": 40,
+   "economy": 4,
+   "relations": {
+    "tide_union": -50,
+    "iron_reef": -80,
+    "beacon_order": -20
+   },
+   "goals": [
+    "raid",
+    "expand"
+   ],
+   "aggression": 0.8,
+   "greed": 0.9,
+   "player_standing": -20,
+   "market": {
+    "sells": {
+     "pistol": 70,
+     "ammo": 6,
+     "machete": 24,
+     "fuel": 9,
+     "engine_part": 80,
+     "medicine": 26
+    },
+    "buys": [
+     "canned_food",
+     "water_bottle",
+     "medkit",
+     "ammo",
+     "fuel",
+     "electronics",
+     "pistol",
+     "engine_part",
+     "relic"
+    ]
+   },
+   "hire_cost": 30,
+   "raider_enemy": "pirate_raiders"
+  },
+  {
+   "id": "beacon_order",
+   "name": "灯台会",
+   "kind": "secret",
+   "leader": "「灯守」",
+   "description": "各地の灯台を管理する静かな集団。古い記録を集めているという噂がある。",
+   "base_site": "",
+   "members": 60,
+   "resources": {
+    "food": 150,
+    "materials": 150,
+    "fuel": 300,
+    "ammo": 80
+   },
+   "ships": 5,
+   "armament": 30,
+   "defense": 60,
+   "economy": 6,
+   "relations": {
+    "tide_union": 10,
+    "iron_reef": 40,
+    "black_current": -20
+   },
+   "goals": [
+    "secrecy"
+   ],
+   "aggression": 0.3,
+   "greed": 0.3,
+   "player_standing": 0,
+   "market": {
+    "sells": {},
+    "buys": []
+   },
+   "hire_cost": 0,
+   "raider_enemy": "drone_sentinel"
+  }
+ ]
+}

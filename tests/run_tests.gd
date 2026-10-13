@@ -41,5 +41,5 @@ func _initialize() -> void:
 func _count_tests(failed: Array[String]) -> int:
 	var names := {}
 	for f in failed:
-		names[f.split(":")[0]] = true
+		names[f.split(": ")[0]] = true
 	return names.size()

@@ -68,7 +68,7 @@ func check(action_id: String, params: Dictionary = {}, exclude_job_id: int = -1)
 	if a.is_empty():
 		return [problem("unknown_action", "不明な行動です: %s" % action_id)]
 	var problems: Array = []
-	var inputs: Dictionary = a.get("inputs", {})
+	var inputs := inputs_of(a, params)
 	var lack := inventory.missing(inputs)
 	for id in lack:
 		problems.append(problem("missing_item",
@@ -108,7 +108,7 @@ func _check_conditions(a: Dictionary, params: Dictionary, inputs_in_inventory: b
 	var outputs: Dictionary = a.get("outputs", {})
 	var delta := inventory.weight_of(outputs)
 	if inputs_in_inventory:
-		delta -= inventory.weight_of(a.get("inputs", {}))
+		delta -= inventory.weight_of(inputs_of(a, params))
 	if delta > inventory.free_weight() + 0.0001:
 		problems.append(problem("no_capacity", "所持重量の空き容量が不足しています（あと%.1f必要）" % (delta - inventory.free_weight())))
 	var eff := str(a.get("effect", ""))
@@ -120,6 +120,14 @@ func _check_conditions(a: Dictionary, params: Dictionary, inputs_in_inventory: b
 			if msg != "":
 				problems.append(problem("effect", msg))
 	return problems
+
+
+## 必要素材。variable_inputs の行動（艦隊任務の補給など）は params.inputs を使う（妥当性は effect の validate が検証）
+static func inputs_of(a: Dictionary, params: Dictionary) -> Dictionary:
+	if bool(a.get("variable_inputs", false)):
+		var v: Variant = params.get("inputs", {})
+		return v if v is Dictionary else {}
+	return a.get("inputs", {})
 
 
 func _effect_params(a: Dictionary, params: Dictionary) -> Dictionary:
@@ -134,13 +142,13 @@ func start(action_id: String, params: Dictionary = {}) -> Dictionary:
 	if not problems.is_empty():
 		return {"ok": false, "problems": problems, "job": {}, "result": {}}
 	var a := data.action(action_id)
-	var inputs: Dictionary = a.get("inputs", {})
+	var inputs := inputs_of(a, params)
 	var escrow := inventory.take(inputs) if not inputs.is_empty() else {"stacks": {}, "instances": []}
 	if escrow.is_empty():
 		return {"ok": false, "problems": [problem("missing_item", "素材を確保できませんでした")], "job": {}, "result": {}}
 	var job := {
 		"id": next_job_id, "action": action_id, "params": params.duplicate(),
-		"escrow": escrow, "elapsed": 0.0, "duration": float(a.get("duration_minutes", 0)),
+		"escrow": escrow, "elapsed": 0.0, "duration": _duration(a, params),
 		"state": "running", "problems": [],
 	}
 	next_job_id += 1
@@ -157,7 +165,9 @@ func advance(minutes: float, efficiency: float = 1.0, category_bonus: Dictionary
 	for job in jobs.duplicate():
 		if job["state"] == "running":
 			var cat := str(data.action(job["action"]).get("category", ""))
-			job["elapsed"] = float(job["elapsed"]) + minutes * (efficiency + float(category_bonus.get(cat, 0.0)))
+			# 艦隊任務と休息はプレイヤーの体調に左右されない
+			var rate := 1.0 if cat in ["fleet", "rest"] else efficiency + float(category_bonus.get(cat, 0.0))
+			job["elapsed"] = float(job["elapsed"]) + minutes * rate
 			if job["elapsed"] >= job["duration"]:
 				_try_complete(job)
 		elif job["state"] == "blocked":
@@ -194,6 +204,12 @@ func _try_complete(job: Dictionary) -> Dictionary:
 	return result
 
 
+func _duration(a: Dictionary, params: Dictionary) -> float:
+	if bool(a.get("variable_duration", false)) and params.has("duration_minutes"):
+		return maxf(0.0, float(params["duration_minutes"]))
+	return float(a.get("duration_minutes", 0))
+
+
 func cancel(job_id: int) -> Dictionary:
 	for job in jobs:
 		if int(job["id"]) == job_id:
@@ -227,7 +243,7 @@ func from_dict(d: Dictionary) -> Array[String]:
 			var job: Dictionary = j.duplicate(true)
 			job["id"] = int(job.get("id", 0))
 			job["elapsed"] = maxf(0.0, float(job.get("elapsed", 0.0)))
-			job["duration"] = float(data.action(job["action"]).get("duration_minutes", 0))
+			job["duration"] = _duration(data.action(job["action"]), job.get("params", {}) if job.get("params") is Dictionary else {})
 			if not (job.get("escrow") is Dictionary):
 				job["escrow"] = {"stacks": {}, "instances": []}
 			if not (job.get("params") is Dictionary):

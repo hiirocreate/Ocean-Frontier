@@ -15,6 +15,10 @@ const DATA_FILES := {
 	"dialogues": ["res://data/characters/dialogue.json", "dialogues"],
 	"jobs": ["res://data/characters/jobs.json", "jobs"],
 	"traits": ["res://data/characters/traits.json", "traits"],
+	"factions": ["res://data/factions/factions.json", "factions"],
+	"ships": ["res://data/ships/ships.json", "ships"],
+	"missions": ["res://data/ships/fleet_missions.json", "missions"],
+	"raid_targets": ["res://data/piracy/raid_targets.json", "raid_targets"],
 }
 const BALANCE_FILE := "res://data/balance_config.json"
 
@@ -28,6 +32,10 @@ var enemies: Dictionary = {}
 var dialogues: Dictionary = {}
 var jobs: Dictionary = {}
 var traits: Dictionary = {}
+var factions: Dictionary = {}
+var ships: Dictionary = {}
+var missions: Dictionary = {}
+var raid_targets: Dictionary = {}
 var balance: Dictionary = {}
 var load_errors: Array[String] = []
 
@@ -50,6 +58,10 @@ func load_all() -> bool:
 	dialogues = _load_list("dialogues")
 	jobs = _load_list("jobs")
 	traits = _load_list("traits")
+	factions = _load_list("factions")
+	ships = _load_list("ships")
+	missions = _load_list("missions")
+	raid_targets = _load_list("raid_targets")
 	var b: Variant = _read_json(BALANCE_FILE)
 	balance = b if b is Dictionary else {}
 	for e in load_errors:

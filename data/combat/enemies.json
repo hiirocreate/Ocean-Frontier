@@ -159,6 +159,104 @@
     ]
    },
    "reputation": {}
+  },
+  {
+   "id": "iron_marines",
+   "name": "鉄礁の海兵隊",
+   "kind": "human",
+   "attack": 16,
+   "defense": 9,
+   "hp": 80,
+   "morale": 70,
+   "can_negotiate": true,
+   "can_capture": true,
+   "bribe": {
+    "canned_food": 3,
+    "fuel": 2
+   },
+   "loot": {
+    "rolls": [
+     2,
+     3
+    ],
+    "entries": [
+     {
+      "item": "ammo",
+      "min": 3,
+      "max": 8,
+      "weight": 4
+     },
+     {
+      "item": "medkit",
+      "min": 1,
+      "max": 1,
+      "weight": 2
+     },
+     {
+      "item": "leather_armor",
+      "min": 1,
+      "max": 1,
+      "weight": 0.4
+     }
+    ]
+   },
+   "reputation": {
+    "fame": 6,
+    "infamy": 3
+   },
+   "faction": "iron_reef"
+  },
+  {
+   "id": "merchant_guards",
+   "name": "商人の用心棒",
+   "kind": "human",
+   "attack": 7,
+   "defense": 4,
+   "hp": 40,
+   "morale": 40,
+   "can_negotiate": true,
+   "can_capture": true,
+   "bribe": {
+    "canned_food": 1
+   },
+   "loot": {
+    "rolls": [
+     2,
+     3
+    ],
+    "entries": [
+     {
+      "item": "canned_food",
+      "min": 1,
+      "max": 2,
+      "weight": 3
+     },
+     {
+      "item": "cloth",
+      "min": 1,
+      "max": 3,
+      "weight": 3
+     },
+     {
+      "item": "rope",
+      "min": 1,
+      "max": 2,
+      "weight": 3
+     },
+     {
+      "item": "water_bottle",
+      "min": 1,
+      "max": 2,
+      "weight": 3
+     }
+    ]
+   },
+   "reputation": {
+    "infamy": 5,
+    "fear": 3,
+    "trust": -4
+   },
+   "faction": "tide_union"
   }
  ]
 }

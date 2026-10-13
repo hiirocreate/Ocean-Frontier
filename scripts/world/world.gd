@@ -372,21 +372,29 @@ func _update_encounter(delta: float) -> void:
 	if not rescues.is_empty():
 		spawn_encounter("rescue", rescues[0])
 		return
+	var mchance := 0.08 if session.zone_id == "tide_union_waters" else 0.025
+	if session.clock.day() >= 2 and _visual_rng().randf() < mchance:
+		spawn_encounter("merchant", "")
+		return
 	for id in session.crew.departed_ids():
 		if session.crew.rejoin_problem(id, session.clock.day()) == "" and _visual_rng().randf() < 0.3:
 			spawn_encounter("reunion", id)
 			return
 
 
+const MERCHANT_LOOK := {"colors": {"skin": "#d9a27a", "hair": "#4a3a2a", "shirt": "#e0d0a0", "outer": "#2aa69a", "pants": "#3a3a4a", "accent": "#e8c060"}, "accessory": "", "hair_style": "crop"}
+
+
 func spawn_encounter(kind: String, id: String) -> void:
 	_remove_encounter()
 	encounter = Encounter.new()
-	encounter.setup(kind, id, session.crew.def(id))
+	encounter.setup(kind, id, MERCHANT_LOOK if kind == "merchant" else session.crew.def(id))
 	add_child(encounter)
 	var ang := camera_rig.yaw + PI + _visual_rng().randf_range(-0.6, 0.6)
 	encounter.position = raft_root.position + Vector3(sin(ang), 0, cos(ang)) * 26.0
 	var text := str(session.crew.def(id).get("recruit", {}).get("rescue_text", "漂流者"))
-	hud.show_toast(("遠くに%sが見える！" % text) if kind == "rescue" else "見覚えのある小舟が近づいてくる……", UiTheme.C_GOLD)
+	var msg := {"rescue": "遠くに%sが見える！" % text, "reunion": "見覚えのある小舟が近づいてくる……", "merchant": "荷を積んだ商人の筏が近づいてくる"}
+	hud.show_toast(msg.get(kind, ""), UiTheme.C_GOLD)
 
 
 func _remove_encounter() -> void:
@@ -401,8 +409,22 @@ func interact_encounter() -> void:
 	var id := encounter.member_id
 	if encounter.kind == "rescue":
 		hud.dialogue_panel.open(str(session.crew.def(id).get("recruit", {}).get("dialogue", "")))
+	elif encounter.kind == "merchant":
+		hud.dialogue_panel.open_inline("merchant", _merchant_nodes())
 	else:
 		hud.dialogue_panel.open_inline("reunion_" + id, _reunion_nodes(id))
+
+
+## 海上の商人（交易・通行料・強奪の選択。仕様28）
+func _merchant_nodes() -> Dictionary:
+	return {
+		"start": {"speaker": "narrator", "text": "潮流連合の旗を掲げた商人の筏だ。「やあ、漂流者さん。何か入り用かい？」", "choices": [
+			{"text": "取引する", "next": "end", "effects": [{"type": "flag", "key": "merchant_choice", "value": "trade"}, {"type": "flag", "key": "known_faction_tide_union", "value": true}]},
+			{"text": "通行料を要求する", "next": "end", "effects": [{"type": "flag", "key": "merchant_choice", "value": "toll"}]},
+			{"text": "積み荷を奪う", "next": "end", "effects": [{"type": "flag", "key": "merchant_choice", "value": "rob"}]},
+			{"text": "見送る", "next": "end", "effects": [{"type": "flag", "key": "merchant_choice", "value": "leave"}]},
+		]},
+	}
 
 
 func _reunion_nodes(id: String) -> Dictionary:
@@ -417,6 +439,21 @@ func _reunion_nodes(id: String) -> Dictionary:
 
 
 func _on_dialogue_closed(_id: String) -> void:
+	if encounter and encounter.kind == "merchant":
+		var c := str(session.flags.get("merchant_choice", "leave"))
+		session.flags.erase("merchant_choice")
+		match c:
+			"trade":
+				hud.faction_panel.open_trade("tide_union")
+			"toll":
+				var r := Piracy.demand_toll(session)
+				if r["ok"]:
+					hud.show_toast("商人は渋々%d貝貨を差し出した" % r["coins"], UiTheme.C_GOLD)
+			"rob":
+				Piracy.rob_drifter(session)
+		_remove_encounter()
+		session.flags["encounter_cooldown_until"] = session.clock.total_minutes + 240.0
+		return
 	if encounter and (session.crew.is_aboard(encounter.member_id) or encounter.kind == "reunion"):
 		_remove_encounter()
 		session.flags["encounter_cooldown_until"] = session.clock.total_minutes + 180.0

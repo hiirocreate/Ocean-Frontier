@@ -224,6 +224,41 @@ func _run() -> void:
 	await shot("14_map")
 	w.hud.toggle_map()
 
+	# 勢力・交易: 浮遊市場へ → 交易画面で買い物
+	w.raft_root.position = s.site_position("tide_union_market") + Vector3(20, 0, 10)
+	await frames(3)
+	await create_timer(0.7).timeout
+	check(s.zone_id == "tide_union_waters", "潮流連合の海に入った")
+	check(w.hud.inspect_button.visible, "市場で「調べる」が出る")
+	w.hud.show_site_panel(s.nearby_site())
+	await frames(3)
+	s.money = 200
+	w.hud._site_panel.visible = false
+	w.hud.faction_panel.open_trade("tide_union")
+	await frames(5)
+	await shot("15_trade")
+	var food0 := s.inventory.count("canned_food")
+	check(Trade.buy(s, "tide_union", "canned_food", 3) == "", "市場で購入")
+	check(s.inventory.count("canned_food") == food0 + 3, "購入品が増える")
+	w.hud.faction_panel.visible = false
+	w.hud.faction_panel.open_info()
+	await frames(5)
+	await shot("16_factions")
+	w.hud.faction_panel.visible = false
+	# 艦隊: 船を得て船員を乗せ、偵察に出す
+	var ship := s.fleet.add_ship("sloop", s.clock.day())
+	s.fleet.sailors_pool = 3
+	s.fleet.add_sailors(ship, 3)
+	s.inventory.add_many({"water_bottle": 4}, true)
+	var mr := s.start_fleet_mission(ship, "scout", "merchant_convoy")
+	check(mr["ok"], "艦隊任務を開始 %s" % str(mr.get("problems", [])))
+	w.hud.fleet_panel.open()
+	await frames(5)
+	await shot("17_fleet")
+	s.advance(7 * 60)
+	check(s.flags.get("scouted_merchant_convoy", false), "偵察任務が完了")
+	w.hud.fleet_panel.visible = false
+
 	# 6) セーブ → 状態を変える → 7) ロードして確認
 	var snapshot := JSON.stringify(s.to_dict())
 	check(game.save_game()["ok"], "セーブ成功")

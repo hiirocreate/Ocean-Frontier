@@ -20,7 +20,7 @@ var data: GameData
 var members: Dictionary = {}  # id -> 状態辞書
 var relations: Dictionary = {}  # "a>b" -> {kind: value}
 var _work_acc: Dictionary = {}  # id -> 作業の端数（セーブ対象）
-var _last_day: int = -1
+var _last_day: int = -1  # GameSession.new_game で初期化
 
 
 func _init(game_data: GameData) -> void:
@@ -227,7 +227,9 @@ func speed_bonus(s: GameSession) -> float:
 
 
 func available_crew(s: GameSession) -> int:
-	return 0 if is_resting(s) else aboard_ids().size()
+	if is_resting(s):
+		return 0
+	return aboard_ids().filter(func(id): return s.fleet.member_ship(id) == "").size()
 
 
 # ---------- 時間経過 ----------
@@ -238,6 +240,8 @@ func tick(minutes: float, s: GameSession) -> void:
 	var resting := is_resting(s)
 	for id in aboard_ids():
 		var m: Dictionary = members[id]
+		if s.fleet.member_on_mission(id):
+			continue  # 航海中は船の補給で過ごす
 		m["hunger"] = clampf(float(m["hunger"]) - 4.0 * h, 0.0, 100.0)
 		m["thirst"] = clampf(float(m["thirst"]) - 6.0 * h, 0.0, 100.0)
 		var j := job_def(str(m["job"]))

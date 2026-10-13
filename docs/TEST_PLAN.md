@@ -7,7 +7,7 @@
 | E2E（描画あり） | `xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --script res://tools/smoke_test.gd` | 実シーンでのプレイサイクルとスクリーンショット |
 | データ検証のみ | `godot --headless --path . --script res://tools/validate_data.gd` | |
 
-## 自動テスト一覧と状況（2026-10-13 時点：73件 全成功、E2E 31項目 全成功）
+## 自動テスト一覧と状況（2026-10-13 時点：90件 全成功、E2E 39項目 全成功）
 
 ### アイテム（仕様45）
 | 要件 | テスト | 状況 |
@@ -95,7 +95,18 @@ ID重複・存在しないアイテム参照・不正なレシピ・存在しな
 | 戦闘状態・発見・評判のセーブ | test_pending_combat_saved | ✅ |
 
 ### 勢力・海賊（仕様45）
-未実装（フェーズ6）。
+| 要件 | テスト | 状況 |
+|---|---|---|
+| 勢力が自律的に行動する | test_factions_act_autonomously / test_faction_sim_deterministic / test_absorb_weak_faction / test_split_hungry_faction | ✅ |
+| 襲撃条件が検証される | test_mission_requirements | ✅ |
+| 戦利品が正しく付与される | test_scout_then_raid_consequences（貨物容量の制限を含む） | ✅ |
+| 船舶の損害が反映される | test_ship_sinks_without_game_over | ✅ |
+| 評判が更新される | test_scout_then_raid_consequences / test_trade_buy_sell_and_reputation_prices | ✅ |
+| 艦隊命令が動作する | test_recall_refunds_and_mission_survives_save, E2E | ✅ |
+| 平和的なルートでも進行できる | test_peaceful_route_trade_and_escort | ✅ |
+| 交易・外交 | test_trade_*, test_hostile_faction_refuses_trade, test_alliance_requires_standing, test_hire_sailor | ✅ |
+| 捕虜 | test_prisoners_release_ransom_recruit_and_escape | ✅ |
+| 敵対勢力の襲撃 | test_hostile_faction_raids_player | ✅ |
 
 ## Android テスト（仕様46）
 | 項目 | 状況 |

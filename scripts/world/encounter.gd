@@ -21,9 +21,13 @@ func setup(k: String, id: String, defn: Dictionary) -> void:
 	person.position = Vector3(0, 0.2, 0.3)
 	person.scale = Vector3.ONE * 0.95
 	add_child(person)
-	# 目印（白い布の旗）
+	# 目印の旗（商人は潮流連合の青緑、漂流者は白い布）
+	var flag_col := Color("2aa69a") if kind == "merchant" else Color("f0ece0")
 	add_child(LowPoly.cylinder(0.04, 2.2, Color("6b4426"), Vector3(0.4, 1.2, -0.9), 5))
-	add_child(LowPoly.box(Vector3(0.03, 0.5, 0.7), Color("f0ece0"), Vector3(0.4, 2.0, -0.55)))
+	add_child(LowPoly.box(Vector3(0.03, 0.5, 0.7), flag_col, Vector3(0.4, 2.0, -0.55)))
+	if kind == "merchant":
+		for i in 3:
+			add_child(LowPoly.box(Vector3(0.5, 0.4, 0.5), Color("a07a4a"), Vector3(-0.3, 0.4 + i * 0.05, -0.6 + i * 0.6)))
 
 
 func update_float(t: float, amp: float) -> void:

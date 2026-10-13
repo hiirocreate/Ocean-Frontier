@@ -2,7 +2,7 @@ class_name DataValidator
 extends RefCounted
 ## 開発用データ検証（仕様44）。問題点の文字列配列を返す（空なら正常）。
 
-const KNOWN_EFFECTS := ["raft_add_tile", "repair_item", "place_building", "rest", "explore_site", "story_beat"]
+const KNOWN_EFFECTS := ["raft_add_tile", "repair_item", "place_building", "rest", "explore_site", "story_beat", "add_ship", "repair_ship", "fleet_mission", "found_pirate_crew"]
 const KNOWN_USE_EFFECTS := ["health", "hunger", "thirst", "fatigue", "injury"]
 const CATEGORIES := ["material", "consumable", "weapon", "armor", "tool", "ship_part", "story"]
 
@@ -18,7 +18,53 @@ static func validate(d: GameData) -> Array[String]:
 	_characters(d, e)
 	_dialogues(d, e)
 	_sites(d, e)
+	_factions(d, e)
 	return e
+
+
+static func _factions(d: GameData, e: Array[String]) -> void:
+	for fid in d.factions:
+		var f: Dictionary = d.factions[fid]
+		var o := "faction " + str(fid)
+		var base := str(f.get("base_site", ""))
+		if base != "" and not d.sites.has(base):
+			e.append("%s: 拠点 '%s' が存在しません" % [o, base])
+		for other in f.get("relations", {}):
+			if not d.factions.has(str(other)):
+				e.append("%s: 関係の相手 '%s' が存在しません" % [o, other])
+		for item in f.get("market", {}).get("sells", {}):
+			if not d.items.has(str(item)):
+				e.append("%s: 販売品 '%s' が存在しません" % [o, item])
+		for item in f.get("market", {}).get("buys", []):
+			if not d.items.has(str(item)):
+				e.append("%s: 買取品 '%s' が存在しません" % [o, item])
+		if not d.enemies.has(str(f.get("raider_enemy", ""))):
+			e.append("%s: raider_enemy が存在しません" % o)
+	for sid in d.sites:
+		var fac := str(d.sites[sid].get("faction", ""))
+		if fac != "" and not d.factions.has(fac):
+			e.append("site %s: 存在しない勢力 '%s'" % [sid, fac])
+	for shid in d.ships:
+		var sh: Dictionary = d.ships[shid]
+		var ba := str(sh.get("build_action", ""))
+		if not d.actions.has(ba) or d.actions[ba].get("effect_params", {}).get("ship") != shid:
+			e.append("ship %s: 建造行動が不正" % shid)
+		for item in sh.get("supply_per_day", {}):
+			if not d.items.has(str(item)):
+				e.append("ship %s: 補給品 '%s' が存在しません" % [shid, item])
+		if int(sh.get("crew_min", 0)) > int(sh.get("crew_max", 0)):
+			e.append("ship %s: crew_min > crew_max" % shid)
+	for mid in d.missions:
+		if not (str(d.missions[mid].get("target", "none")) in ["none", "raid_target", "faction", "zone"]):
+			e.append("mission %s: 不正な target" % mid)
+	for tid in d.raid_targets:
+		var t: Dictionary = d.raid_targets[tid]
+		if not d.factions.has(str(t.get("faction", ""))):
+			e.append("raid_target %s: 存在しない勢力" % tid)
+		_loot_table(d, e, "raid_target %s.loot" % tid, t.get("loot", {}))
+		var cs := str(t.get("capture_ship", ""))
+		if cs != "" and not d.ships.has(cs):
+			e.append("raid_target %s: 存在しない船種 '%s'" % [tid, cs])
 
 
 static func _loot_table(d: GameData, e: Array[String], owner: String, t: Variant) -> void:
@@ -64,7 +110,8 @@ static func _sites(d: GameData, e: Array[String]) -> void:
 				e.append("enemy %s: %s が不正" % [eid, k])
 
 
-const EFFECT_TYPES := ["recruit", "trust", "loyalty", "satisfaction", "stress", "relation", "flag", "counter", "give_item", "take_item", "message"]
+const EFFECT_TYPES := ["recruit", "trust", "loyalty", "satisfaction", "stress", "relation", "flag", "counter", "give_item", "take_item", "message",
+	"coins", "reputation", "standing", "piracy", "start_combat", "discover_site"]
 const SPECIAL_SPEAKERS := ["player", "narrator"]
 
 
@@ -170,6 +217,14 @@ static func _check_effects(d: GameData, e: Array[String], owner: String, effects
 			e.append("%s: 関係の人物が存在しません" % owner)
 		if t in ["give_item", "take_item"] and not d.items.has(str(ef.get("item", ""))):
 			e.append("%s: 存在しないアイテム '%s'" % [owner, str(ef.get("item"))])
+		if t == "standing" and not d.factions.has(str(ef.get("faction", ""))):
+			e.append("%s: 存在しない勢力 '%s'" % [owner, str(ef.get("faction"))])
+		if t == "reputation" and not (str(ef.get("kind", "")) in ["fame", "fear", "trust", "infamy"]):
+			e.append("%s: 不正な評判の種類" % owner)
+		if t == "start_combat" and not d.enemies.has(str(ef.get("enemy", ""))):
+			e.append("%s: 存在しない敵 '%s'" % [owner, str(ef.get("enemy"))])
+		if t == "discover_site" and not d.sites.has(str(ef.get("site", ""))):
+			e.append("%s: 存在しない地点 '%s'" % [owner, str(ef.get("site"))])
 
 
 static func _num_ok(v: Variant, min_v: float = 0.0) -> bool:
@@ -243,7 +298,9 @@ static func _actions(d: GameData, e: Array[String]) -> void:
 			if not _num_ok(lr) or float(lr) > 1.0:
 				e.append("%s: %s.lose_ratio は0〜1" % [owner, k])
 		_check_item_map(d, e, owner + ".keep_items", a.get("keep_items", {}))
-		if not (a.get("category") in ["raft", "craft", "build", "repair", "rest", "explore"]):
+		if eff == "add_ship" and not d.ships.has(str(a.get("effect_params", {}).get("ship", ""))):
+			e.append("%s: 存在しない船種" % owner)
+		if not (a.get("category") in ["raft", "craft", "build", "repair", "rest", "explore", "fleet"]):
 			e.append("%s: 不正なカテゴリ %s" % [owner, str(a.get("category"))])
 		if a.get("inputs", {}).is_empty() and a.get("outputs", {}).is_empty() and eff == "":
 			e.append("%s: 入力・出力・効果がすべて空です" % owner)

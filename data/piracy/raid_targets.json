@@ -1,0 +1,207 @@
+{
+ "_comment": "襲撃目標。scout 任務で偵察すると成功率が上がる。",
+ "raid_targets": [
+  {
+   "id": "merchant_raft",
+   "name": "商人の筏",
+   "faction": "tide_union",
+   "defense": 8,
+   "hp": 40,
+   "loot": {
+    "rolls": [
+     2,
+     3
+    ],
+    "entries": [
+     {
+      "item": "canned_food",
+      "min": 1,
+      "max": 3,
+      "weight": 4
+     },
+     {
+      "item": "water_bottle",
+      "min": 1,
+      "max": 3,
+      "weight": 4
+     },
+     {
+      "item": "cloth",
+      "min": 2,
+      "max": 4,
+      "weight": 3
+     },
+     {
+      "item": "rope",
+      "min": 1,
+      "max": 3,
+      "weight": 3
+     }
+    ]
+   },
+   "coins": [
+    20,
+    50
+   ],
+   "capture_ship": "",
+   "reputation": {
+    "infamy": 4,
+    "fear": 2,
+    "trust": -3
+   },
+   "standing": -10
+  },
+  {
+   "id": "merchant_convoy",
+   "name": "潮流連合の輸送船団",
+   "faction": "tide_union",
+   "defense": 25,
+   "hp": 110,
+   "loot": {
+    "rolls": [
+     3,
+     5
+    ],
+    "entries": [
+     {
+      "item": "canned_food",
+      "min": 2,
+      "max": 4,
+      "weight": 4
+     },
+     {
+      "item": "medkit",
+      "min": 1,
+      "max": 2,
+      "weight": 2
+     },
+     {
+      "item": "fuel",
+      "min": 1,
+      "max": 3,
+      "weight": 3
+     },
+     {
+      "item": "electronics",
+      "min": 1,
+      "max": 2,
+      "weight": 2
+     },
+     {
+      "item": "tool_parts",
+      "min": 1,
+      "max": 3,
+      "weight": 3
+     }
+    ]
+   },
+   "coins": [
+    80,
+    160
+   ],
+   "capture_ship": "sloop",
+   "capture_chance": 0.3,
+   "reputation": {
+    "infamy": 10,
+    "fear": 6,
+    "trust": -8
+   },
+   "standing": -25
+  },
+  {
+   "id": "pirate_barge",
+   "name": "黒潮の補給船",
+   "faction": "black_current",
+   "defense": 22,
+   "hp": 100,
+   "loot": {
+    "rolls": [
+     3,
+     4
+    ],
+    "entries": [
+     {
+      "item": "ammo",
+      "min": 3,
+      "max": 8,
+      "weight": 4
+     },
+     {
+      "item": "fuel",
+      "min": 1,
+      "max": 3,
+      "weight": 3
+     },
+     {
+      "item": "pistol",
+      "min": 1,
+      "max": 1,
+      "weight": 0.5
+     },
+     {
+      "item": "canned_food",
+      "min": 1,
+      "max": 3,
+      "weight": 3
+     }
+    ]
+   },
+   "coins": [
+    60,
+    120
+   ],
+   "capture_ship": "sloop",
+   "capture_chance": 0.25,
+   "reputation": {
+    "fame": 8,
+    "trust": 4
+   },
+   "standing": -20
+  },
+  {
+   "id": "iron_patrol",
+   "name": "鉄礁の巡視艇",
+   "faction": "iron_reef",
+   "defense": 40,
+   "hp": 140,
+   "loot": {
+    "rolls": [
+     2,
+     4
+    ],
+    "entries": [
+     {
+      "item": "ammo",
+      "min": 4,
+      "max": 10,
+      "weight": 4
+     },
+     {
+      "item": "armor_plate",
+      "min": 1,
+      "max": 2,
+      "weight": 2
+     },
+     {
+      "item": "medkit",
+      "min": 1,
+      "max": 2,
+      "weight": 2
+     }
+    ]
+   },
+   "coins": [
+    40,
+    90
+   ],
+   "capture_ship": "gunboat",
+   "capture_chance": 0.15,
+   "reputation": {
+    "infamy": 12,
+    "fear": 10,
+    "trust": -6
+   },
+   "standing": -30
+  }
+ ]
+}

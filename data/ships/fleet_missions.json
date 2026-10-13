@@ -1,0 +1,89 @@
+{
+ "_comment": "艦隊任務。hours=所要時間。risk=損害・戦闘の起こりやすさ。",
+ "missions": [
+  {
+   "id": "scout",
+   "name": "偵察",
+   "description": "目標の情報を集める。襲撃や交易の前に必要。",
+   "hours": 6,
+   "target": "raid_target",
+   "needs_armament": 0,
+   "crew_min": 1,
+   "risk": 0.1,
+   "reveals_target": true
+  },
+  {
+   "id": "explore",
+   "name": "探索",
+   "description": "未知の海域を調べ、新しい地点を見つける。",
+   "hours": 12,
+   "target": "zone",
+   "needs_armament": 0,
+   "crew_min": 1,
+   "risk": 0.2
+  },
+  {
+   "id": "trade",
+   "name": "交易",
+   "description": "勢力の拠点へ荷を運び、貝貨を稼ぐ。",
+   "hours": 16,
+   "target": "faction",
+   "needs_armament": 0,
+   "crew_min": 2,
+   "risk": 0.1,
+   "income": 60
+  },
+  {
+   "id": "escort",
+   "name": "護衛",
+   "description": "勢力の輸送船を守る。報酬と信頼が得られる。",
+   "hours": 12,
+   "target": "faction",
+   "needs_armament": 6,
+   "crew_min": 2,
+   "risk": 0.35,
+   "income": 80
+  },
+  {
+   "id": "raid",
+   "name": "襲撃",
+   "description": "目標を襲って物資を奪う。偵察済みでないと危険。",
+   "hours": 10,
+   "target": "raid_target",
+   "needs_armament": 6,
+   "crew_min": 2,
+   "risk": 0.5,
+   "piracy": true
+  },
+  {
+   "id": "repair",
+   "name": "修理",
+   "description": "船舶修理台で船を直す（修理用消耗品を使用）。",
+   "hours": 6,
+   "target": "none",
+   "needs_armament": 0,
+   "crew_min": 0,
+   "risk": 0.0
+  },
+  {
+   "id": "return",
+   "name": "帰還",
+   "description": "任務中の船を呼び戻す。",
+   "hours": 0,
+   "target": "none",
+   "needs_armament": 0,
+   "crew_min": 0,
+   "risk": 0.0
+  },
+  {
+   "id": "retreat",
+   "name": "退却",
+   "description": "危険な任務を打ち切って逃げ帰る（損害を抑える）。",
+   "hours": 0,
+   "target": "none",
+   "needs_armament": 0,
+   "crew_min": 0,
+   "risk": 0.0
+  }
+ ]
+}
