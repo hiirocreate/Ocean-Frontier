@@ -105,14 +105,13 @@ func _run() -> void:
 	ev2.pressed = false
 	Input.parse_input_event(ev2)
 	await frames(5)
-	if w.raft_view.selected_ghost != target:
-		print("  (タップ位置 %s で選択できなかったため直接選択)" % str(screen))
-		w.raft_view.select_ghost(target)
-	else:
-		check(true, "タップで建設位置を選択")
+	if DisplayServer.get_name() == "headless":
+		print("  (ヘッドレスではタッチ入力が届かないため、タップ処理を直接呼び出し)")
+		w._on_tap(screen)
+	check(w.raft_view.selected_ghost == target, "タップで建設位置を選択")
 	await frames(3)
 	await shot("04_build_mode")
-	w.hud.build_confirmed.emit(w.raft_view.selected_ghost)
+	w.hud.build_confirmed.emit("expand_raft", {"x": w.raft_view.selected_ghost.x, "z": w.raft_view.selected_ghost.y})
 	await frames(2)
 	check(s.inventory.count("wood") == wood0 - 4, "素材が消費された (木材 %d→%d)" % [wood0, s.inventory.count("wood")])
 	s.advance(30)
@@ -121,6 +120,43 @@ func _run() -> void:
 	w.hud.set_build_mode(false)
 	await frames(10)
 	await shot("05_raft_expanded")
+
+	# 建築物: 浄水器を建てて、タップで操作パネルを開く
+	s.inventory.add_many({"wood": 6, "cloth": 4, "scrap_metal": 3, "plastic": 3, "hammer": 1}, true)
+	w.hud.set_build_mode(true)
+	w.hud.set_build_type("water_purifier")
+	await frames(5)
+	var btile: Vector2i = s.raft.building_candidates()[0]
+	w.raft_view.select_ghost(btile)
+	await frames(3)
+	await shot("05b_build_purifier")
+	w.hud.build_confirmed.emit(w.hud.build_action_id(), w.hud.build_params(btile))
+	s.advance(40)
+	await frames(5)
+	check(s.raft.building_at(btile) != "", "浄水器を設置できた")
+	w.hud.set_build_mode(false)
+	s.advance(160)
+	await frames(5)
+	await create_timer(1.0).timeout  # カメラの追従が落ち着くまで待つ
+	var bpos: Vector3 = w.raft_root.to_global(w.raft_view.tile_to_local(btile) + Vector3(0, 0.6, 0))
+	var bscreen: Vector2 = w.camera_rig.camera.unproject_position(bpos)
+	var t1 := InputEventScreenTouch.new()
+	t1.position = bscreen
+	t1.pressed = true
+	Input.parse_input_event(t1)
+	var t2 := t1.duplicate()
+	t2.pressed = false
+	Input.parse_input_event(t2)
+	await frames(5)
+	if not w.hud._building_panel.visible and DisplayServer.get_name() == "headless":
+		print("  (ヘッドレスではタッチ入力が届かないため、タップ処理を直接呼び出し)")
+		w._on_tap(bscreen)
+	check(w.hud._building_panel.visible, "建築物をタップすると操作パネルが開く")
+	await shot("05c_building_panel")
+	var water0 := s.inventory.count("water_bottle")
+	s.harvest(s.raft.building_at(btile))
+	check(s.inventory.count("water_bottle") == water0 + 1, "浄水器から水を収穫")
+	w.hud.hide_building_panel()
 
 	# 6) セーブ → 状態を変える → 7) ロードして確認
 	var snapshot := JSON.stringify(s.to_dict())

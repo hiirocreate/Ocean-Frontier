@@ -2,7 +2,7 @@ class_name DataValidator
 extends RefCounted
 ## 開発用データ検証（仕様44）。問題点の文字列配列を返す（空なら正常）。
 
-const KNOWN_EFFECTS := ["raft_add_tile", "repair_item"]
+const KNOWN_EFFECTS := ["raft_add_tile", "repair_item", "place_building", "rest"]
 const KNOWN_USE_EFFECTS := ["health", "hunger", "thirst", "fatigue", "injury"]
 const CATEGORIES := ["material", "consumable", "weapon", "armor", "tool", "ship_part", "story"]
 
@@ -76,12 +76,16 @@ static func _actions(d: GameData, e: Array[String]) -> void:
 			if not d.buildings.has(str(f)):
 				e.append("%s: 存在しない設備 '%s'" % [owner, f])
 		var eff := str(a.get("effect", ""))
+		if eff == "place_building" and not d.buildings.has(str(a.get("effect_params", {}).get("building", ""))):
+			e.append("%s: 建てる設備が存在しません" % owner)
 		if eff != "" and not (eff in KNOWN_EFFECTS):
 			e.append("%s: 未知の effect '%s'" % [owner, eff])
 		for k in ["on_fail", "on_cancel"]:
 			var lr: Variant = a.get(k, {}).get("lose_ratio", 0.0)
 			if not _num_ok(lr) or float(lr) > 1.0:
 				e.append("%s: %s.lose_ratio は0〜1" % [owner, k])
+		if not (a.get("category") in ["raft", "craft", "build", "repair", "rest"]):
+			e.append("%s: 不正なカテゴリ %s" % [owner, str(a.get("category"))])
 		if a.get("inputs", {}).is_empty() and a.get("outputs", {}).is_empty() and eff == "":
 			e.append("%s: 入力・出力・効果がすべて空です" % owner)
 
@@ -92,6 +96,16 @@ static func _buildings(d: GameData, e: Array[String]) -> void:
 		var ba := str(b.get("build_action", ""))
 		if ba != "" and not d.actions.has(ba):
 			e.append("building %s: 建築行動 %s が存在しません" % [id, ba])
+		var prod: Dictionary = b.get("production", {})
+		if not prod.is_empty():
+			if not d.items.has(str(prod.get("item", ""))):
+				e.append("building %s: 生産物 '%s' が存在しません" % [id, str(prod.get("item"))])
+			if not _num_ok(prod.get("minutes"), 1.0) or not _num_ok(prod.get("max_stored"), 1.0):
+				e.append("building %s: production の数値が不正" % id)
+		if str(b.get("kind", "")) == "building":
+			var ba2 := d.action(ba)
+			if ba2.get("effect") != "place_building" or ba2.get("effect_params", {}).get("building") != id:
+				e.append("building %s: 建築行動の effect_params.building が一致しません" % id)
 		var model := str(b.get("model", ""))
 		if model != "" and not ResourceLoader.exists(model):
 			e.append("building %s: モデルが存在しません %s" % [id, model])

@@ -1,6 +1,84 @@
 {
-  "_comment": "筏床タイルと建築物の定義。建築物の配置システムはフェーズ3で実装予定（TASKS.md B-301）。",
+  "_comment": "筏床タイルと建築物の定義。storage_capacity=所持重量上限への加算。production=時間で生産し、収穫で回収。",
   "buildings": [
-    {"id": "raft_foundation", "name": "筏の床", "kind": "tile", "max_durability": 100, "build_action": "expand_raft"}
+    {
+      "id": "raft_foundation",
+      "name": "筏の床",
+      "kind": "tile",
+      "max_durability": 100,
+      "build_action": "expand_raft"
+    },
+    {
+      "id": "storage_box",
+      "name": "収納箱",
+      "kind": "building",
+      "description": "持ち運べる量（重量上限）が増える。",
+      "max_durability": 80,
+      "build_action": "build_storage_box",
+      "storage_capacity": 40
+    },
+    {
+      "id": "workbench",
+      "name": "作業台",
+      "kind": "building",
+      "description": "高度な道具や武器の製作に必要。",
+      "max_durability": 100,
+      "build_action": "build_workbench"
+    },
+    {
+      "id": "water_purifier",
+      "name": "浄水器",
+      "kind": "building",
+      "description": "太陽熱で海水を蒸留し、飲料水を作る。",
+      "max_durability": 60,
+      "build_action": "build_water_purifier",
+      "production": {
+        "item": "water_bottle",
+        "minutes": 150,
+        "max_stored": 3
+      }
+    },
+    {
+      "id": "fishing_net",
+      "name": "釣り網",
+      "kind": "building",
+      "description": "筏の縁に張る網。時々魚がかかる。",
+      "max_durability": 50,
+      "build_action": "build_fishing_net",
+      "production": {
+        "item": "raw_fish",
+        "minutes": 120,
+        "max_stored": 3
+      }
+    },
+    {
+      "id": "grill",
+      "name": "焚き火台",
+      "kind": "building",
+      "description": "魚を焼くための金属の火皿。",
+      "max_durability": 70,
+      "build_action": "build_grill"
+    },
+    {
+      "id": "bed",
+      "name": "寝床",
+      "kind": "building",
+      "description": "休んで疲労を回復する。",
+      "max_durability": 60,
+      "build_action": "build_bed"
+    },
+    {
+      "id": "garden",
+      "name": "小さな畑",
+      "kind": "building",
+      "description": "芋を育てる木箱の畑。",
+      "max_durability": 60,
+      "build_action": "build_garden",
+      "production": {
+        "item": "potato",
+        "minutes": 480,
+        "max_stored": 4
+      }
+    }
   ]
 }

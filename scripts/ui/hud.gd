@@ -4,8 +4,10 @@ extends CanvasLayer
 ## 行動の可否は ActionSystem に問い合わせ、不足理由を具体的に表示する（仕様38）。
 
 signal collect_pressed
-signal build_mode_changed(on: bool)
-signal build_confirmed(tile: Vector2i)
+signal build_mode_changed(on: bool, type: String)
+signal build_confirmed(action_id: String, params: Dictionary)
+
+const NO_TILE := Vector2i(999999, 999999)
 
 var session: GameSession
 var joystick: VirtualJoystick
@@ -25,11 +27,18 @@ var _craft_list: VBoxContainer
 var _inv_tabs: TabContainer
 var _build_panel: PanelContainer
 var _build_info: VBoxContainer
-var _build_tile := Vector2i(999999, 999999)
+var _build_tile := NO_TILE
+var build_type := "tile"
+var _building_panel: PanelContainer
+var _building_info: VBoxContainer
+var _building_uid := ""
+var _sleep_overlay: ColorRect
+var _sleep_label: Label
 var _menu_panel: PanelContainer
 var _quality_buttons := {}
 var build_mode := false
 var _refresh_pending := false
+var _panel_timer := 0.0
 
 
 func setup(s: GameSession) -> void:
@@ -46,9 +55,12 @@ func setup(s: GameSession) -> void:
 	_build_jobs()
 	_build_inventory()
 	_build_build_panel()
+	_build_building_panel()
 	_build_menu()
+	_build_sleep_overlay()
 	session.inventory.changed.connect(_queue_refresh)
 	session.actions.job_completed.connect(func(_j, _r): _queue_refresh())
+	session.raft.changed.connect(_queue_refresh)
 	Game.message.connect(_on_message)
 
 
@@ -192,6 +204,18 @@ func _build_build_panel() -> void:
 	_build_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
 
 
+func _build_building_panel() -> void:
+	_building_panel = PanelContainer.new()
+	_building_panel.custom_minimum_size = Vector2(520, 0)
+	_building_panel.visible = false
+	_building_info = VBoxContainer.new()
+	_building_panel.add_child(_building_info)
+	root.add_child(_building_panel)
+	_building_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 24)
+	_building_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_building_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+
+
 func _build_menu() -> void:
 	_menu_panel = _modal(Vector2(460, 520))
 	var v := VBoxContainer.new()
@@ -234,12 +258,19 @@ func _process(_delta: float) -> void:
 	_time_label.text = session.clock.label()
 	_weight_label.text = "重量 %.1f / %.0f   効率 %d%%" % [session.inventory.total_weight(), session.inventory.max_weight, int(sv.efficiency() * 100)]
 	_update_jobs()
+	_update_sleep_overlay()
+	_panel_timer += _delta
+	if _panel_timer > 1.0 and _building_panel.visible:
+		_panel_timer = 0.0
+		_refresh_pending = true
 	if _refresh_pending:
 		_refresh_pending = false
 		if _inventory_panel.visible:
 			_refresh_inventory()
 		if _build_panel.visible:
 			_refresh_build_panel()
+		if _building_panel.visible:
+			_refresh_building_panel()
 
 
 func _queue_refresh() -> void:
@@ -434,11 +465,19 @@ func _requirements_label(action_id: String) -> RichTextLabel:
 func set_build_mode(on: bool) -> void:
 	build_mode = on
 	build_button.text = "建築終了" if on else "建築"
-	_build_tile = Vector2i(999999, 999999)
+	_build_tile = NO_TILE
 	_build_panel.visible = on
 	_inventory_panel.visible = false
+	hide_building_panel()
 	_refresh_build_panel()
-	build_mode_changed.emit(on)
+	build_mode_changed.emit(on, build_type)
+
+
+func set_build_type(t: String) -> void:
+	build_type = t
+	_build_tile = NO_TILE
+	_refresh_build_panel()
+	build_mode_changed.emit(build_mode, build_type)
 
 
 func select_build_tile(tile: Vector2i) -> void:
@@ -446,31 +485,159 @@ func select_build_tile(tile: Vector2i) -> void:
 	_refresh_build_panel()
 
 
+func build_action_id() -> String:
+	return "expand_raft" if build_type == "tile" else session.build_action_for(build_type)
+
+
+func build_params(tile: Vector2i) -> Dictionary:
+	var p := {"x": tile.x, "z": tile.y}
+	if build_type != "tile":
+		p["building"] = build_type
+	return p
+
+
 func _refresh_build_panel() -> void:
 	_clear(_build_info)
 	if not build_mode:
 		return
-	_build_info.add_child(UiTheme.label("筏の拡張", 24, UiTheme.C_GOLD))
-	_build_info.add_child(_requirements_label("expand_raft"))
-	if _build_tile.x == 999999:
+	# 種類の選択
+	var sc := ScrollContainer.new()
+	sc.custom_minimum_size = Vector2(0, 62)
+	sc.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var types := HBoxContainer.new()
+	sc.add_child(types)
+	var opts := [["tile", "床"]]
+	for bid in session.data.buildings:
+		if session.data.buildings[bid].get("kind") == "building":
+			opts.append([bid, session.data.building_name(bid)])
+	for o in opts:
+		var b := UiTheme.button(o[1], Vector2(0, 54))
+		b.add_theme_font_size_override("font_size", 18)
+		b.toggle_mode = true
+		b.button_pressed = o[0] == build_type
+		b.pressed.connect(set_build_type.bind(o[0]))
+		types.add_child(b)
+	_build_info.add_child(sc)
+	var aid := build_action_id()
+	var a := session.data.action(aid)
+	var title := "筏の拡張" if build_type == "tile" else session.data.building_name(build_type)
+	_build_info.add_child(UiTheme.label("%s（%d分）" % [title, int(a.get("duration_minutes", 0))], 22, UiTheme.C_GOLD))
+	if build_type != "tile":
+		var desc := UiTheme.label(str(session.data.buildings[build_type].get("description", "")), 15, Color(0.75, 0.82, 0.84))
+		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_build_info.add_child(desc)
+	_build_info.add_child(_requirements_label(aid))
+	if _build_tile == NO_TILE:
 		_build_info.add_child(UiTheme.label("緑の枠をタップして場所を選んでください", 18))
-		var problems := session.actions.check("expand_raft", {"x": 999999, "z": 999999}).filter(func(p): return p["code"] != "effect")
-		for p in problems:
-			_build_info.add_child(UiTheme.label("・" + str(p["message"]), 17, UiTheme.C_WARN))
+		for p in session.actions.check(aid, build_params(NO_TILE)):
+			if p["code"] != "effect":
+				_build_info.add_child(UiTheme.label("・" + str(p["message"]), 17, UiTheme.C_WARN))
 		return
-	var params := {"x": _build_tile.x, "z": _build_tile.y}
-	var problems := session.actions.check("expand_raft", params)
+	var problems := session.actions.check(aid, build_params(_build_tile))
 	for p in problems:
 		_build_info.add_child(UiTheme.label("・" + str(p["message"]), 17, UiTheme.C_WARN))
 	var h := HBoxContainer.new()
 	var ok := UiTheme.button("ここに建設", Vector2(220, 64))
 	ok.disabled = not problems.is_empty()
-	ok.pressed.connect(func(): build_confirmed.emit(_build_tile))
+	ok.pressed.connect(func(): build_confirmed.emit(aid, build_params(_build_tile)))
 	h.add_child(ok)
 	var cancel := UiTheme.button("選択解除", Vector2(160, 64))
-	cancel.pressed.connect(func(): select_build_tile(Vector2i(999999, 999999)))
+	cancel.pressed.connect(func(): select_build_tile(NO_TILE))
 	h.add_child(cancel)
 	_build_info.add_child(h)
+
+
+# ---------- 建築物の操作 ----------
+func show_building_panel(uid: String) -> void:
+	_building_uid = uid
+	_building_panel.visible = true
+	_refresh_building_panel()
+
+
+func hide_building_panel() -> void:
+	_building_uid = ""
+	if _building_panel:
+		_building_panel.visible = false
+
+
+func _refresh_building_panel() -> void:
+	_clear(_building_info)
+	if _building_uid == "" or not session.raft.buildings.has(_building_uid):
+		_building_panel.visible = false
+		return
+	var b: Dictionary = session.raft.buildings[_building_uid]
+	var def: Dictionary = session.data.buildings.get(b["id"], {})
+	var head := HBoxContainer.new()
+	head.add_child(UiTheme.label(str(def.get("name", b["id"])), 24, UiTheme.C_GOLD))
+	var sp := Control.new()
+	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(sp)
+	var close := UiTheme.button("×", Vector2(56, 52))
+	close.pressed.connect(hide_building_panel)
+	head.add_child(close)
+	_building_info.add_child(head)
+	_building_info.add_child(UiTheme.label("耐久 %d/%d" % [int(b["durability"]), int(def.get("max_durability", 0))], 16))
+	var prod: Dictionary = def.get("production", {})
+	if not prod.is_empty():
+		var remain := maxf(0.0, float(prod["minutes"]) - float(b["progress"]))
+		var txt := "%s %d/%d" % [session.data.item_name(prod["item"]), int(b["stored"]), int(prod["max_stored"])]
+		txt += "（満杯）" if int(b["stored"]) >= int(prod["max_stored"]) else "（次まで%d分）" % int(ceil(remain))
+		_building_info.add_child(UiTheme.label(txt, 18))
+		var hb := UiTheme.button("収穫", Vector2(160, 60))
+		hb.disabled = int(b["stored"]) <= 0
+		hb.pressed.connect(func(): session.harvest(_building_uid); _refresh_building_panel())
+		_building_info.add_child(hb)
+	for aid in session.data.actions:
+		var a: Dictionary = session.data.actions[aid]
+		if not (b["id"] in a.get("facilities", [])):
+			continue
+		var row := HBoxContainer.new()
+		var info := VBoxContainer.new()
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		info.add_child(UiTheme.label(str(a.get("name", aid)), 19))
+		if not a.get("inputs", {}).is_empty() or not a.get("tools", []).is_empty():
+			info.add_child(_requirements_label(aid))
+		row.add_child(info)
+		var problems := session.actions.check(aid)
+		var btn := UiTheme.button("実行", Vector2(110, 56))
+		btn.disabled = not problems.is_empty()
+		btn.pressed.connect(func():
+			var r := session.actions.start(aid)
+			if not r["ok"]:
+				show_toast(str(r["problems"][0]["message"]), UiTheme.C_WARN)
+			_refresh_building_panel())
+		row.add_child(btn)
+		_building_info.add_child(row)
+
+
+func _update_sleep_overlay() -> void:
+	var sleeping := session.is_sleeping()
+	_sleep_overlay.visible = sleeping
+	if sleeping:
+		for j in session.actions.jobs:
+			if session.data.action(j["action"]).get("category") == "rest":
+				_sleep_label.text = "眠っています……（残り%d分）" % int(ceil(float(j["duration"]) - float(j["elapsed"])))
+
+
+func _build_sleep_overlay() -> void:
+	_sleep_overlay = ColorRect.new()
+	_sleep_overlay.color = Color(0.0, 0.02, 0.06, 0.55)
+	_sleep_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_sleep_overlay.visible = false
+	root.add_child(_sleep_overlay)
+	var v := VBoxContainer.new()
+	_sleep_overlay.add_child(v)
+	_sleep_label = UiTheme.label("", 30, UiTheme.C_GOLD)
+	v.add_child(_sleep_label)
+	var wake := UiTheme.button("起きる", Vector2(220, 70))
+	wake.pressed.connect(func():
+		for j in session.actions.jobs.duplicate():
+			if session.data.action(j["action"]).get("category") == "rest":
+				session.actions.cancel(int(j["id"])))
+	v.add_child(wake)
+	v.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	v.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	v.grow_vertical = Control.GROW_DIRECTION_BOTH
 
 
 # ---------- メニュー ----------
@@ -501,7 +668,9 @@ func is_modal_open() -> bool:
 func is_point_on_ui(pos: Vector2) -> bool:
 	if is_modal_open():
 		return true
-	for c in [joystick, collect_button, build_button, bag_button, menu_button, _build_panel, _jobs_box]:
+	if _sleep_overlay.visible:
+		return true
+	for c in [joystick, collect_button, build_button, bag_button, menu_button, _build_panel, _building_panel, _jobs_box]:
 		if c.is_visible_in_tree() and c.get_global_rect().has_point(pos):
 			return true
 	return false

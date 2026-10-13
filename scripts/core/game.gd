@@ -48,7 +48,10 @@ func _setup_input() -> void:
 
 func _process(delta: float) -> void:
 	if running and session and not get_tree().paused:
-		session.advance(delta * float(data.bal("time.game_minutes_per_real_second", 1.0)))
+		var rate := float(data.bal("time.game_minutes_per_real_second", 1.0))
+		if session.is_sleeping():
+			rate *= float(data.bal("time.sleep_speed_multiplier", 40.0))
+		session.advance(delta * rate)
 
 
 func start_new_game() -> void:

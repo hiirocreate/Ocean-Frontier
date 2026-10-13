@@ -60,7 +60,15 @@ func test_cancel_refunds() -> void:
 	eq(s.inventory.count("rope"), 2, "ロープ返却")
 
 
+func test_facility_required() -> void:
+	s.inventory.add_many({"wood": 3, "scrap_metal": 2, "rope": 1, "hammer": 1})
+	var r := s.actions.start("craft_spear")
+	check("missing_facility" in _codes(r["problems"]), "作業台が必要")
+	check(r["problems"].any(func(p): return p["message"] == "設備「作業台」が必要です"), "設備不足メッセージ")
+
+
 func test_tool_required_and_wear() -> void:
+	s.raft.place_building("workbench", Vector2i(0, 0), 100)
 	s.inventory.add_many({"wood": 3, "scrap_metal": 2, "rope": 1})
 	var r := s.actions.start("craft_spear")
 	check("missing_tool" in _codes(r["problems"]), "金槌が必要")
@@ -74,6 +82,7 @@ func test_tool_required_and_wear() -> void:
 
 
 func test_broken_tool_blocks() -> void:
+	s.raft.place_building("workbench", Vector2i(0, 0), 100)
 	s.inventory.add_many({"wood": 3, "scrap_metal": 2, "rope": 1, "hammer": 1})
 	s.inventory.wear(int(s.inventory.instances[0]["uid"]), 100)
 	var r := s.actions.start("craft_spear")
@@ -81,6 +90,7 @@ func test_broken_tool_blocks() -> void:
 
 
 func test_tool_lost_midway_blocks_then_resumes() -> void:
+	s.raft.place_building("workbench", Vector2i(0, 0), 100)
 	s.inventory.add_many({"wood": 3, "scrap_metal": 2, "rope": 1, "hammer": 1})
 	var r := s.actions.start("craft_spear")
 	var uid := int(s.inventory.instances[0]["uid"])

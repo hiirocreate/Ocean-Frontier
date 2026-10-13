@@ -51,7 +51,7 @@ func _ready() -> void:
 	camera_rig.ui_blocker = hud.is_point_on_ui
 	camera_rig.tapped.connect(_on_tap)
 	hud.collect_pressed.connect(collect_nearest)
-	hud.build_mode_changed.connect(func(on): raft_view.set_build_mode(on))
+	hud.build_mode_changed.connect(func(on, t): raft_view.set_build_mode(on, t))
 	hud.build_confirmed.connect(_on_build_confirmed)
 	raft_view.ghost_selected.connect(func(t): hud.select_build_tile(t))
 	Game.settings_changed.connect(_apply_quality)
@@ -142,8 +142,8 @@ func _build_raft() -> void:
 	raft_view.setup(session)
 	player = CharacterModel.new()
 	raft_root.add_child(player)
-	player.position = raft_view.center_local() + Vector3(0, 0.08, 0)
-	session.raft.changed.connect(func(): player.position = raft_view.center_local() + Vector3(0, 0.08, 0))
+	player.position = raft_view.stand_position() + Vector3(0, 0.08, 0)
+	session.raft.changed.connect(func(): player.position = raft_view.stand_position() + Vector3(0, 0.08, 0))
 	# 帆柱（筏の目印）
 	var mast := Node3D.new()
 	mast.add_child(LowPoly.cylinder(0.07, 3.2, Color("6b4426"), Vector3(0, 1.6, 0), 6))
@@ -181,7 +181,7 @@ func _process(delta: float) -> void:
 
 
 func _input_vector() -> Vector2:
-	if hud.is_modal_open():
+	if hud.is_modal_open() or session.is_sleeping():
 		return Vector2.ZERO
 	var v := hud.joystick.value
 	if v == Vector2.ZERO:
@@ -297,21 +297,26 @@ func collect_nearest() -> void:
 
 # ---------- 建築 ----------
 func _on_tap(screen_pos: Vector2) -> void:
-	if not raft_view.build_mode:
-		return
 	var cam := camera_rig.camera
 	var from := cam.project_ray_origin(screen_pos)
-	var q := PhysicsRayQueryParameters3D.create(from, from + cam.project_ray_normal(screen_pos) * 200.0, 2)
+	var mask := 2 if raft_view.build_mode else 4
+	var q := PhysicsRayQueryParameters3D.create(from, from + cam.project_ray_normal(screen_pos) * 200.0, mask)
 	var hit := get_world_3d().direct_space_state.intersect_ray(q)
-	if hit and hit["collider"].has_meta("tile"):
+	if hit.is_empty():
+		if not raft_view.build_mode:
+			hud.hide_building_panel()
+		return
+	if raft_view.build_mode and hit["collider"].has_meta("tile"):
 		raft_view.select_ghost(hit["collider"].get_meta("tile"))
+	elif hit["collider"].has_meta("building_uid"):
+		hud.show_building_panel(hit["collider"].get_meta("building_uid"))
 
 
-func _on_build_confirmed(tile: Vector2i) -> void:
-	var r := session.actions.start("expand_raft", {"x": tile.x, "z": tile.y})
+func _on_build_confirmed(action_id: String, params: Dictionary) -> void:
+	var r := session.actions.start(action_id, params)
 	if r["ok"]:
-		hud.show_toast("筏の拡張を開始しました", UiTheme.C_OK)
-		raft_view.select_ghost(Vector2i(999999, 999999))
+		hud.show_toast("「%s」を開始しました" % session.data.action(action_id).get("name", ""), UiTheme.C_OK)
+		raft_view.select_ghost(RaftView.NO_TILE)
 	else:
 		hud.show_toast(str(r["problems"][0]["message"]), UiTheme.C_WARN)
 

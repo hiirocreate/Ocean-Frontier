@@ -7,7 +7,7 @@
 | E2E（描画あり） | `xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --script res://tools/smoke_test.gd` | 実シーンでのプレイサイクルとスクリーンショット |
 | データ検証のみ | `godot --headless --path . --script res://tools/validate_data.gd` | |
 
-## 自動テスト一覧と状況（2026-10-13 時点：39件 全成功、E2E 13項目 全成功）
+## 自動テスト一覧と状況（2026-10-13 時点：46件 全成功、E2E 16項目 全成功）
 
 ### アイテム（仕様45）
 | 要件 | テスト | 状況 |
@@ -30,6 +30,17 @@
 | 壊れたデータを検出できる | test_save::test_corrupted_file_detected_and_backup_used / test_garbage_file_fails_safely / test_missing_required_section / test_future_format_rejected | ✅ |
 | キャラクターの履歴が維持される | — | 未実装（フェーズ4） |
 | ストーリー進行が維持される | flags の保存のみ確認 | 一部 |
+
+### 建築物
+| 要件 | テスト | 状況 |
+|---|---|---|
+| 床の上・空きタイルにのみ設置 | test_buildings::test_building_needs_floor_and_free_tile | ✅ |
+| 収納箱で容量増加 | test_build_storage_box_increases_capacity | ✅ |
+| 生産・上限・収穫 | test_production_and_harvest, E2E | ✅ |
+| 設備が必要なレシピ | test_cook_requires_grill, test_actions::test_facility_required | ✅ |
+| 睡眠で疲労回復 | test_sleep_recovers_fatigue | ✅ |
+| 建築物のセーブ・ロード | test_buildings_saved_and_loaded | ✅ |
+| タップで操作パネル | E2E（描画あり） | ✅ |
 
 ### 生存
 | 要件 | テスト | 状況 |

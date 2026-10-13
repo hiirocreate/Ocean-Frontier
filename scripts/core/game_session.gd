@@ -33,6 +33,9 @@ func _init(game_data: GameData) -> void:
 	actions = ActionSystem.new(data, inventory, rng, self)
 	actions.register_effect("raft_add_tile", _validate_raft_tile, _apply_raft_tile)
 	actions.register_effect("repair_item", _validate_repair, _apply_repair)
+	actions.register_effect("place_building", _validate_building, _apply_building)
+	actions.register_effect("rest", func(_p, _e): return "", func(_p): message.emit("よく眠った。疲れが取れた"))
+	raft.changed.connect(update_capacity)
 	actions.job_completed.connect(_on_job_completed)
 	actions.job_blocked.connect(func(_j, problems): message.emit("作業が中断待ち: " + str(problems[0]["message"])))
 	survival.warning.connect(func(_s, text): message.emit(text))
@@ -47,6 +50,7 @@ func new_game(game_seed: int = 0) -> void:
 	for p in data.bal("raft.start_tiles", [[0, 0]]):
 		raft.tiles[Raft.key(Vector2i(int(p[0]), int(p[1])))] = {"type": "raft_foundation", "durability": raft.tile_durability}
 	inventory.add_many(data.bal("start_inventory", {}), true)
+	update_capacity()
 
 
 ## ゲーム内時間を進める。
@@ -54,8 +58,10 @@ func advance(minutes: float) -> void:
 	if minutes <= 0.0:
 		return
 	clock.advance(minutes)
+	survival.resting = is_sleeping()
 	survival.tick(minutes)
 	actions.advance(minutes, survival.efficiency())
+	_tick_production(minutes)
 
 
 # ---- 外部条件（ActionSystem.context） ----
@@ -148,6 +154,100 @@ func pending_tiles() -> Array[Vector2i]:
 	return out
 
 
+# ---- 建築物 ----
+## 所持重量上限 = 基本値 + 収納箱などの容量
+func update_capacity() -> void:
+	var cap := float(data.bal("inventory.max_weight", 60.0))
+	for uid in raft.buildings:
+		var b: Dictionary = raft.buildings[uid]
+		if float(b["durability"]) > 0.0:
+			cap += float(data.buildings.get(b["id"], {}).get("storage_capacity", 0))
+	inventory.max_weight = cap
+
+
+func _validate_building(params: Dictionary, exclude_job_id: int) -> String:
+	var bid := str(params.get("building", ""))
+	if not data.buildings.has(bid):
+		return "不明な設備です"
+	if not params.has("x") or not params.has("z"):
+		return "設置位置が指定されていません"
+	var p := Vector2i(int(params["x"]), int(params["z"]))
+	var reason := raft.building_placement_problem(p)
+	if reason != "":
+		return reason
+	for j in actions.jobs:
+		if int(j["id"]) != exclude_job_id and str(data.action(j["action"]).get("effect", "")) == "place_building" \
+				and int(j["params"].get("x", 1e9)) == p.x and int(j["params"].get("z", 1e9)) == p.y:
+			return "その位置はすでに建設中です"
+	return ""
+
+
+func _apply_building(params: Dictionary) -> void:
+	var bid := str(params["building"])
+	var dur := float(data.buildings[bid].get("max_durability", 50))
+	if raft.place_building(bid, Vector2i(int(params["x"]), int(params["z"])), dur) != "":
+		stats["buildings_built"] = int(stats.get("buildings_built", 0)) + 1
+
+
+## 建設中（予約済み）の建築物 [{tile: Vector2i, building: id}]
+func pending_buildings() -> Array:
+	var out: Array = []
+	for j in actions.jobs:
+		if str(data.action(j["action"]).get("effect", "")) == "place_building":
+			out.append({"tile": Vector2i(int(j["params"]["x"]), int(j["params"]["z"])), "building": str(data.action(j["action"])["effect_params"]["building"])})
+	return out
+
+
+func build_action_for(building_id: String) -> String:
+	return str(data.buildings.get(building_id, {}).get("build_action", ""))
+
+
+func _tick_production(minutes: float) -> void:
+	for uid in raft.buildings:
+		var b: Dictionary = raft.buildings[uid]
+		var prod: Dictionary = data.buildings.get(b["id"], {}).get("production", {})
+		if prod.is_empty() or float(b["durability"]) <= 0.0:
+			continue
+		var maxs := int(prod.get("max_stored", 1))
+		if int(b["stored"]) >= maxs:
+			b["progress"] = 0.0
+			continue
+		b["progress"] = float(b["progress"]) + minutes
+		var per := maxf(1.0, float(prod.get("minutes", 60)))
+		while float(b["progress"]) >= per and int(b["stored"]) < maxs:
+			b["progress"] = float(b["progress"]) - per
+			b["stored"] = int(b["stored"]) + 1
+
+
+## 生産物を回収する。持てた数を返す。
+func harvest(uid: String) -> int:
+	if not raft.buildings.has(uid):
+		return 0
+	var b: Dictionary = raft.buildings[uid]
+	var prod: Dictionary = data.buildings.get(b["id"], {}).get("production", {})
+	if prod.is_empty() or int(b["stored"]) <= 0:
+		message.emit("まだ何もできていません")
+		return 0
+	var id := str(prod["item"])
+	var n := int(b["stored"])
+	var w := inventory.item_weight(id)
+	var fit := n if w <= 0.0 else mini(n, int(floor((inventory.free_weight() + 0.0001) / w)))
+	if fit <= 0:
+		message.emit("持ち物がいっぱいです")
+		return 0
+	inventory.add(id, fit)
+	b["stored"] = n - fit
+	message.emit("%sを%d個手に入れた" % [data.item_name(id), fit])
+	return fit
+
+
+func is_sleeping() -> bool:
+	for j in actions.jobs:
+		if data.action(j["action"]).get("category") == "rest" and j["state"] == "running":
+			return true
+	return false
+
+
 # ---- 修理 ----
 func _validate_repair(params: Dictionary, _exclude: int) -> String:
 	var id := str(params.get("item", ""))
@@ -220,6 +320,11 @@ func from_dict(d: Dictionary) -> Dictionary:
 	warnings.append_array(inventory.from_dict(d["inventory"]))
 	warnings.append_array(survival.from_dict(d["survival"]))
 	warnings.append_array(raft.from_dict(d["raft"]))
+	for uid in raft.buildings.keys():
+		if not data.buildings.has(raft.buildings[uid]["id"]):
+			warnings.append("未知の建築物 '%s' を除外" % raft.buildings[uid]["id"])
+			raft.buildings.erase(uid)
+	update_capacity()
 	var acts: Variant = d.get("actions", {})
 	warnings.append_array(actions.from_dict(acts if acts is Dictionary else {}))
 	var rp: Variant = d.get("raft_position", [0, 0, 0])

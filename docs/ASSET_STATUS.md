@@ -9,6 +9,7 @@
 | env_ocean | 海面 | シェーダー | scripts/world/ocean.gdshader | コード | 独自 | 海 | 全海域 | 完成（初期海域） | いいえ |
 | env_sky | 空・照明 | 手続き生成 | scripts/world/world.gd | ProceduralSky + 時刻照明 | 独自 | 空 | — | 完成（天候なし） | いいえ |
 | raft_tile | 筏の床 | 3D | scripts/world/raft_view.gd | プリミティブ組合せ | 独自 | 筏 | raft_foundation | 仮素材 | はい |
+| bld_* | 建築物7種（収納箱・作業台・浄水器・釣り網・焚き火台・寝床・畑） | 3D | scripts/building/building_models.gd | プリミティブ組合せ（生産数で見た目変化） | 独自 | 筏 | buildings.json | 仮素材 | はい |
 | raft_mast | 帆柱とランタン | 3D | scripts/world/world.gd | プリミティブ組合せ | 独自 | 筏 | — | 仮素材 | はい |
 | debris_plank / barrel / crate | 漂流物3種 | 3D | scripts/world/debris.gd | プリミティブ組合せ | 独自 | 漂流物 | world_zones | 仮素材 | はい |
 | char_protagonist_model | 主人公3Dモデル | 3D | scripts/characters/character_model.gd | プリミティブ組合せ＋手続きアニメ | 独自 | 探索 | 主人公 | 仮素材 | はい |
