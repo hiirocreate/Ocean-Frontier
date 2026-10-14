@@ -20,7 +20,8 @@ echo "== 2-3) 3D化・リギング"
 for f in "$WORK"/out/*_full.png; do
   id=$(basename "$f" _full.png)
   [ -f "assets/characters/models/$id.glb" ] && continue
-  (cd "$TSR_DIR" && "$TSR_PY" run.py "$f" --device cpu --output-dir "$WORK/tsr/$id" --mc-resolution 256 --model-save-format glb >/dev/null 2>&1)
+  (cd "$TSR_DIR" && "$TSR_PY" run.py "$f" --device cpu --output-dir "$WORK/tsr/$id" --mc-resolution 256 --model-save-format glb >/dev/null 2>&1) \
+    || { echo "TripoSR 失敗: $id"; continue; }
   "$BPY" tools/blender/rig_generated_character.py -- "$WORK/tsr/$id/0/mesh.glb" "assets/characters/models/$id.glb" 2>&1 | grep "\[rig\]" || true
 done
 echo "== 4) 表情差分"; "$GEN_PY" tools/art/gen_images.py "$MODEL_DIR" none "$WORK/jobs_expr.json" "$WORK/out"
