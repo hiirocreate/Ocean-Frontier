@@ -53,7 +53,7 @@ func display_node(n: Dictionary) -> Dictionary:
 				out["expression"] = v["expression"]
 			break
 	var sp := str(out.get("speaker", ""))
-	out["text"] = session.profile.format_text(str(out.get("text", "")), session.data.survivors.get(sp, {}))
+	out["text"] = session.profile.format_text(str(out.get("text", "")), session.crew.def(sp))
 	return out
 
 

@@ -34,3 +34,12 @@ static func new_session(game_seed: int = 12345) -> GameSession:
 	var s := GameSession.new(game_data())
 	s.new_game(game_seed)
 	return s
+
+
+## 物語の会話の場面（勢力のリーダーとの会話など）を読み終えたことにして、最後の選択まで進める
+func finish_scenes(s: GameSession) -> void:
+	for i in 12:
+		s.story.check(s)
+		if s.pending_dialogue.is_empty() or str(s.pending_dialogue.get("id", "")) == "final_choice":
+			return
+		s.pending_dialogue = {}

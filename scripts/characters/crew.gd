@@ -28,8 +28,9 @@ func _init(game_data: GameData) -> void:
 	data = game_data
 
 
+## 人物の定義（仲間候補。無ければ勢力のリーダー・モブ）
 func def(id: String) -> Dictionary:
-	return data.survivors.get(id, {})
+	return data.survivors.get(id, data.npcs.get(id, {}))
 
 
 func display_name(id: String) -> String:

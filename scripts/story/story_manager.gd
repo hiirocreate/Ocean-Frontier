@@ -37,8 +37,13 @@ func check(s: GameSession) -> void:
 		if tid in fired_triggers:
 			continue
 		var t: Dictionary = data.story_flags[tid]
+		var scene := str(t.get("dialogue", ""))
+		if scene != "" and not s.pending_dialogue.is_empty():
+			continue  # 会話の場面は、他の会話が終わってから始める
 		if Conditions.check(t.get("condition", {}), s):
 			fired_triggers.append(tid)
+			if scene != "" and data.dialogues.has(scene):
+				s.pending_dialogue = {"id": scene, "nodes": data.dialogues[scene]["nodes"]}
 			for e in t.get("effects", []):
 				s.apply_effect(e)
 	var ch := chapter_def()

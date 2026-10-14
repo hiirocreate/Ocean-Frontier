@@ -497,7 +497,8 @@ const MERCHANT_LOOK := {"colors": {"skin": "#d9a27a", "hair": "#4a3a2a", "shirt"
 func spawn_encounter(kind: String, id: String) -> void:
 	_remove_encounter()
 	encounter = Encounter.new()
-	encounter.setup(kind, id, MERCHANT_LOOK if kind == "merchant" else session.crew.def(id))
+	var look: Dictionary = session.data.npcs.get("mob_merchant", MERCHANT_LOOK) if kind == "merchant" else session.crew.def(id)
+	encounter.setup(kind, id, look)
 	add_child(encounter)
 	var ang := camera_rig.yaw + PI + _visual_rng().randf_range(-0.6, 0.6)
 	encounter.position = raft_root.position + Vector3(sin(ang), 0, cos(ang)) * 26.0

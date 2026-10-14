@@ -729,6 +729,260 @@
      ]
     }
    }
+  },
+  {
+   "id": "volg_radio",
+   "nodes": {
+    "start": {
+     "speaker": "narrator",
+     "text": "無線機がざらついた音を立てた。割り込んできたのは、低く笑う男の声だ。",
+     "next": "n1"
+    },
+    "n1": {
+     "speaker": "volg",
+     "expression": "smile",
+     "text": "よう、筏の{address}。うちの若いのを追い払ったそうだな。度胸は買ってやる。",
+     "next": "n2"
+    },
+    "n2": {
+     "speaker": "volg",
+     "expression": "normal",
+     "text": "この海の潮は、黒潮が決める。通行料を払うなら見逃してやる。逆らうなら……沈むまで追うだけだ。",
+     "choices": [
+      {
+       "text": "「この海は誰のものでもない」",
+       "next": "defy",
+       "effects": [
+        {
+         "type": "reputation",
+         "kind": "fame",
+         "delta": 3
+        },
+        {
+         "type": "standing",
+         "faction": "black_current",
+         "delta": -5
+        }
+       ]
+      },
+      {
+       "text": "「話し合いの余地はあるのか」",
+       "next": "talk",
+       "effects": [
+        {
+         "type": "standing",
+         "faction": "black_current",
+         "delta": 5
+        }
+       ]
+      },
+      {
+       "text": "無線を切る",
+       "next": "end"
+      }
+     ]
+    },
+    "defy": {
+     "speaker": "volg",
+     "expression": "angry",
+     "text": "ハッ、言うじゃねえか。……覚えておけ、{name}。俺はしつこいぞ。",
+     "next": "end"
+    },
+    "talk": {
+     "speaker": "volg",
+     "expression": "surprised",
+     "text": "ほう、頭も回るらしい。赤潮の海で俺の船を見かけたら、旗を上げな。商売の話くらいは聞いてやる。",
+     "next": "end"
+    }
+   }
+  },
+  {
+   "id": "martha_meet",
+   "nodes": {
+    "start": {
+     "speaker": "narrator",
+     "text": "浮遊市場の旗を掲げた小舟が近づいてくる。帳簿を抱えた女性が、値踏みするようにこちらを見た。",
+     "next": "n1"
+    },
+    "n1": {
+     "speaker": "martha",
+     "expression": "smile",
+     "text": "潮流連合のマーサ・ヴェイルよ。海の上で生き延びて、仲間まで集めている{address}がいると聞いてね。",
+     "next": "n2"
+    },
+    "n2": {
+     "speaker": "martha",
+     "expression": "normal",
+     "text": "連合は誰の味方でもない。でも、取引相手は大切にするわ。うちの市場に品を卸してくれるなら、相場より少し色を付ける。",
+     "choices": [
+      {
+       "text": "取引を約束する",
+       "next": "deal",
+       "effects": [
+        {
+         "type": "standing",
+         "faction": "tide_union",
+         "delta": 8
+        },
+        {
+         "type": "coins",
+         "delta": 15
+        }
+       ]
+      },
+      {
+       "text": "黒潮や鉄礁のことを聞く",
+       "next": "info"
+      },
+      {
+       "text": "今は断る",
+       "next": "end"
+      }
+     ]
+    },
+    "deal": {
+     "speaker": "martha",
+     "expression": "smile",
+     "text": "話が早くて助かるわ。手付けよ、受け取って。……裏切りは高くつくから、覚えておいてね。",
+     "next": "end"
+    },
+    "info": {
+     "speaker": "martha",
+     "expression": "sad",
+     "text": "黒潮は奪い、鉄礁は縛る。どちらも海を自分のものにしたいだけ。……灯台会？　あの人たちは、何も欲しがらないのが一番気味が悪いわ。",
+     "next": "end"
+    }
+   }
+  },
+  {
+   "id": "drake_patrol",
+   "nodes": {
+    "start": {
+     "speaker": "narrator",
+     "text": "灰色の巡視船が行く手を塞いだ。甲板の士官が、拡声器を手にこちらを見下ろしている。",
+     "next": "n1"
+    },
+    "n1": {
+     "speaker": "drake",
+     "expression": "normal",
+     "text": "鉄礁防衛隊司令、ドレイクだ。この海域は我々の管理下にある。積み荷と乗員を申告してもらおう。",
+     "choices": [
+      {
+       "text": "素直に申告する",
+       "next": "comply",
+       "effects": [
+        {
+         "type": "standing",
+         "faction": "iron_reef",
+         "delta": 6
+        }
+       ]
+      },
+      {
+       "text": "「海を管理する権利がどこにある」",
+       "next": "refuse",
+       "effects": [
+        {
+         "type": "standing",
+         "faction": "iron_reef",
+         "delta": -6
+        },
+        {
+         "type": "reputation",
+         "kind": "fame",
+         "delta": 2
+        }
+       ]
+      }
+     ]
+    },
+    "comply": {
+     "speaker": "drake",
+     "expression": "smile",
+     "text": "協力に感謝する。秩序なき海に未来はない。……{address}、海賊を見かけたら知らせてくれ。",
+     "next": "end"
+    },
+    "refuse": {
+     "speaker": "drake",
+     "expression": "angry",
+     "text": "権利ではない、責任だ。混乱を放置すれば、また多くが沈む。……今日は見逃そう。次はない。",
+     "next": "end"
+    }
+   }
+  },
+  {
+   "id": "lightkeeper_vision",
+   "nodes": {
+    "start": {
+     "speaker": "narrator",
+     "text": "霧の向こうで、ひとつの灯りが揺れている。小舟の上に、白い衣の人影が立っていた。",
+     "next": "n1"
+    },
+    "n1": {
+     "speaker": "lightkeeper",
+     "expression": "normal",
+     "text": "……潮は、記憶を運ぶ。あなたが拾い集めたものも、いずれ海へ還る。",
+     "next": "n2"
+    },
+    "n2": {
+     "speaker": "lightkeeper",
+     "expression": "sad",
+     "text": "灯台は道を照らすためにある。けれど、照らされた道が正しいとは限らない。{name}——あなたは、どちらへ進む？",
+     "choices": [
+      {
+       "text": "「真実を知りたい」",
+       "next": "truth",
+       "effects": [
+        {
+         "type": "flag",
+         "key": "met_lightkeeper",
+         "value": true
+        }
+       ]
+      },
+      {
+       "text": "「あなたは何者だ」",
+       "next": "who",
+       "effects": [
+        {
+         "type": "flag",
+         "key": "met_lightkeeper",
+         "value": true
+        }
+       ]
+      }
+     ]
+    },
+    "truth": {
+     "speaker": "lightkeeper",
+     "expression": "smile",
+     "text": "ならば最後の潮流まで来るといい。そこで、全てを選び直せる。",
+     "next": "end"
+    },
+    "who": {
+     "speaker": "lightkeeper",
+     "expression": "normal",
+     "text": "灯を守る者。それ以上でも、以下でもない。……答えは、沈んだ記録の中に。",
+     "next": "end"
+    }
+   }
+  },
+  {
+   "id": "lightkeeper_final",
+   "nodes": {
+    "start": {
+     "speaker": "lightkeeper",
+     "expression": "normal",
+     "text": "よく来た。ここが潮の始まりであり、終わりだ。",
+     "next": "n1"
+    },
+    "n1": {
+     "speaker": "lightkeeper",
+     "expression": "sad",
+     "text": "我々は世界を沈めたのではない。沈みゆく世界を、見届けると決めただけだ。……選ぶのは、あなただ。",
+     "next": "end"
+    }
+   }
   }
  ]
 }

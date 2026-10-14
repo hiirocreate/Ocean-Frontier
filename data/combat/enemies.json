@@ -75,7 +75,8 @@
    },
    "reputation": {
     "fame": 2
-   }
+   },
+   "portrait": "mob_scavenger"
   },
   {
    "id": "pirate_raiders",
@@ -126,7 +127,8 @@
    "reputation": {
     "fame": 5
    },
-   "faction": "black_current"
+   "faction": "black_current",
+   "portrait": "mob_pirate"
   },
   {
    "id": "drone_sentinel",
@@ -204,7 +206,8 @@
     "fame": 6,
     "infamy": 3
    },
-   "faction": "iron_reef"
+   "faction": "iron_reef",
+   "portrait": "mob_marine"
   },
   {
    "id": "merchant_guards",
@@ -256,7 +259,8 @@
     "fear": 3,
     "trust": -4
    },
-   "faction": "tide_union"
+   "faction": "tide_union",
+   "portrait": "mob_guard"
   }
  ]
 }

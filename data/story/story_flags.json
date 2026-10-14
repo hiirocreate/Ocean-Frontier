@@ -140,6 +140,57 @@
      "value": true
     }
    ]
+  },
+  {
+   "id": "scene_volg",
+   "condition": {
+    "counter_min": {
+     "pirate_encounters": 1
+    }
+   },
+   "dialogue": "volg_radio",
+   "effects": []
+  },
+  {
+   "id": "scene_martha",
+   "condition": {
+    "chapter_min": 2
+   },
+   "dialogue": "martha_meet",
+   "effects": []
+  },
+  {
+   "id": "scene_drake",
+   "condition": {
+    "all": [
+     {
+      "chapter_min": 3
+     },
+     {
+      "day_min": 8
+     }
+    ]
+   },
+   "dialogue": "drake_patrol",
+   "effects": []
+  },
+  {
+   "id": "scene_lightkeeper",
+   "condition": {
+    "flags_all": [
+     "known_faction_beacon_order"
+    ]
+   },
+   "dialogue": "lightkeeper_vision",
+   "effects": []
+  },
+  {
+   "id": "scene_lightkeeper_final",
+   "condition": {
+    "chapter_min": 5
+   },
+   "dialogue": "lightkeeper_final",
+   "effects": []
   }
  ]
 }

@@ -24,6 +24,26 @@ NPC = {
     "rook": ("1boy, solo, original, adult man, pirate, black hair tied back, eyepatch, dark red patched long coat, "
              "harpoon on back, smirk", 1505),
 }
+# 勢力のリーダー（悪役・物語の要人）。表情5種
+LEADERS = {
+    "volg": ("1boy, solo, original, mature male, pirate captain, black long coat with red lining, tricorn hat, "
+             "scar across face, black beard, gold earring, menacing grin", 3101),
+    "drake": ("1boy, solo, original, middle-aged man, military commander, navy blue officer uniform, peaked cap, medals, "
+              "slicked-back gray hair, cold eyes", 3102),
+    "martha": ("1girl, solo, original, mature female, merchant guild leader, auburn hair in a bun, teal and gold coat, "
+               "holding ledger, sly smile", 3103),
+    "lightkeeper": ("1other, solo, original, androgynous, mysterious robed figure, white hooded robe, holding lantern, "
+                    "silver hair, pale skin, calm", 3104),
+}
+# モブ（汎用の人物）。敵対するものは怒り顔も作る
+MOBS = {
+    "mob_pirate": ("1boy, solo, original, adult man, pirate crewman, red bandana, striped shirt, cutlass, rough", 3201, ["angry"]),
+    "mob_marine": ("1boy, solo, original, adult man, marine soldier, steel helmet, gray-blue uniform, body armor, rifle", 3202, ["angry"]),
+    "mob_guard": ("1boy, solo, original, adult man, mercenary bodyguard, leather armor, teal sash, wooden club", 3203, ["angry"]),
+    "mob_scavenger": ("1boy, solo, original, adult man, scavenger raider, ragged clothes, gas mask around neck, scrap metal armor", 3204, ["angry"]),
+    "mob_fisher": ("1boy, solo, original, old man, fisherman, straw hat, rolled up sleeves, fishing net on shoulder, kind", 3205, []),
+    "mob_merchant": ("1girl, solo, original, adult woman, traveling trader, teal headscarf, big backpack full of goods, friendly", 3206, ["smile"]),
+}
 PLAYER_OUTFIT = "castaway, green hair, blue eyes, navy blue hooded jacket, white t-shirt, brown leather harness, ring pendant necklace"
 PLAYER = {
     ("male", "young"): ("1boy, solo, original, child, little boy, short messy hair", 2101),
@@ -56,6 +76,10 @@ FULL_DESC = {"tobi": "1boy, solo, original, teenage boy, spiky orange hair, gogg
 def characters():
     for cid, (desc, seed) in NPC.items():
         yield cid, desc, seed, list(EXPR)
+    for cid, (desc, seed) in LEADERS.items():
+        yield cid, desc, seed, list(EXPR)
+    for cid, (desc, seed, exprs) in MOBS.items():
+        yield cid, desc, seed, exprs
     for (g, band), (desc, seed) in PLAYER.items():
         yield f"player_{g}_{band}", f"{desc}, {PLAYER_OUTFIT}", seed, PLAYER_EXPR
 
@@ -71,7 +95,7 @@ def main() -> None:
         else:
             for e in exprs:
                 # 表情に関する語（smirk など）を元の説明から除き、顔だけを強めに描き直す
-                base = ", ".join(t for t in desc.split(", ") if t not in ("smirk", "confident", "stern", "energetic"))
+                base = ", ".join(t for t in desc.split(", ") if t not in ("smirk", "confident", "stern", "energetic", "menacing grin", "sly smile", "calm", "kind", "friendly", "rough", "cold eyes"))
                 jobs.append({"id": f"{cid}_{e}", "prompt": f"{base}, {EXPR[e]}, {PORTRAIT}, {STYLE}", "seed": seed,
                              "init": f"{cid}_normal", "strength": EXPR_STRENGTH.get(cid, 0.68), "face_only": True,
                              "face_box": FACE_BOX.get(cid, [0.5, 0.32, 0.36, 0.24])})

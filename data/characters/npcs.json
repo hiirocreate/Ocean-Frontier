@@ -1,0 +1,25 @@
+{
+ "_comment": "仲間にならない人物（勢力のリーダー＝悪役・要人、モブ）。会話の話者・戦闘相手・遭遇の表示に使う。立ち絵と3Dモデルは assets/characters/ の <id>_*.webp / <id>.glb。colors は素材が無い場合の簡易表示用。",
+ "npcs": [
+  {"id": "volg", "name": "ヴォルグ", "role": "海賊団『黒潮』船長", "faction": "black_current", "address_style": "pirate",
+   "colors": {"skin": "#c99a78", "hair": "#1a1a1a", "shirt": "#3a2020", "outer": "#1e1e22", "pants": "#1e1e22", "accent": "#c03030"}, "hair_style": "tied", "accessory": "scar"},
+  {"id": "drake", "name": "ドレイク", "role": "鉄礁防衛隊 司令官", "faction": "iron_reef", "address_style": "military",
+   "colors": {"skin": "#e0b898", "hair": "#a0a0a8", "shirt": "#d8d8d0", "outer": "#1e2e4e", "pants": "#1e2e4e", "accent": "#c0a040"}, "hair_style": "crop", "accessory": ""},
+  {"id": "martha", "name": "マーサ・ヴェイル", "role": "潮流連合の代表", "faction": "tide_union", "address_style": "merchant",
+   "colors": {"skin": "#f0c8a8", "hair": "#8a3a2a", "shirt": "#e8e0c8", "outer": "#2aa69a", "pants": "#3a3a4a", "accent": "#e8c060"}, "hair_style": "tied", "accessory": "earrings"},
+  {"id": "lightkeeper", "name": "灯守", "role": "灯台会", "faction": "beacon_order", "address_style": "name",
+   "colors": {"skin": "#f2dcd0", "hair": "#d0d0d8", "shirt": "#f0f0f0", "outer": "#e8e8f0", "pants": "#c8c8d0", "accent": "#f0d070"}, "hair_style": "long", "accessory": ""},
+  {"id": "mob_pirate", "name": "黒潮の海賊", "role": "モブ", "faction": "black_current",
+   "colors": {"skin": "#c99a78", "hair": "#2a2020", "shirt": "#e0e0e0", "outer": "#a03030", "pants": "#2a2a30", "accent": "#c03030"}, "hair_style": "crop", "accessory": ""},
+  {"id": "mob_marine", "name": "鉄礁の海兵", "role": "モブ", "faction": "iron_reef",
+   "colors": {"skin": "#e0b898", "hair": "#3a3020", "shirt": "#7a8a9a", "outer": "#4a5a6a", "pants": "#3a4a5a", "accent": "#c0a040"}, "hair_style": "crop", "accessory": ""},
+  {"id": "mob_guard", "name": "連合の用心棒", "role": "モブ", "faction": "tide_union",
+   "colors": {"skin": "#c99a78", "hair": "#2a2020", "shirt": "#6a4a30", "outer": "#2aa69a", "pants": "#3a3020", "accent": "#e8c060"}, "hair_style": "crop", "accessory": ""},
+  {"id": "mob_scavenger", "name": "略奪者", "role": "モブ", "faction": "",
+   "colors": {"skin": "#b8876a", "hair": "#3a3020", "shirt": "#5a5040", "outer": "#6a6a60", "pants": "#3a3a30", "accent": "#8a8a7a"}, "hair_style": "messy", "accessory": ""},
+  {"id": "mob_fisher", "name": "漁師", "role": "モブ", "faction": "tide_union",
+   "colors": {"skin": "#c99a78", "hair": "#d8d4cc", "shirt": "#d0c8b0", "outer": "#6a8a9a", "pants": "#4a4a5a", "accent": "#e0c070"}, "hair_style": "crop", "accessory": ""},
+  {"id": "mob_merchant", "name": "行商人", "role": "モブ", "faction": "tide_union",
+   "colors": {"skin": "#d9a27a", "hair": "#4a3a2a", "shirt": "#e0d0a0", "outer": "#2aa69a", "pants": "#3a3a4a", "accent": "#e8c060"}, "hair_style": "crop", "accessory": ""}
+ ]
+}

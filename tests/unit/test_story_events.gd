@@ -80,7 +80,7 @@ func test_full_main_story_without_companions() -> void:
 	eq(s.crew.aboard_ids().size(), 0, "仲間がいなくても最終章に到達")
 	s.flags["reached_atlas_core"] = true
 	s.pending_dialogue = {}
-	s.story.check(s)
+	finish_scenes(s)
 	eq(s.pending_dialogue.get("id", ""), "final_choice", "中枢で最後の選択が提示される")
 
 
@@ -228,3 +228,29 @@ func test_repair_after_storm() -> void:
 	check(s.raft_condition() > 40.0, "床が回復")
 	check(float(s.raft.buildings[uid]["durability"]) > 30.0, "設備が回復")
 	check(not s.actions.start("repair_building", {"building_uid": "999"})["ok"], "存在しない設備は修理できない")
+
+
+func test_faction_leader_scenes() -> void:
+	var d := game_data()
+	var s := GameSession.new(d)
+	s.new_game(11)
+	s.pending_dialogue = {}
+	# 海賊と一度遭遇すると、黒潮の船長ヴォルグから無線が入る
+	s.counters["pirate_encounters"] = 1.0
+	s.story.check(s)
+	eq(s.pending_dialogue.get("id", ""), "volg_radio", "ヴォルグの場面")
+	# 他の会話の表示中は次の場面を始めない
+	s.flags["known_faction_beacon_order"] = true
+	s.story.check(s)
+	eq(s.pending_dialogue.get("id", ""), "volg_radio", "会話中は次の場面を待つ")
+	s.pending_dialogue = {}
+	s.story.check(s)
+	eq(s.pending_dialogue.get("id", ""), "lightkeeper_vision", "灯守の場面")
+	# 話者は仲間でなくても名前と外見が引ける
+	for id in ["volg", "drake", "martha", "lightkeeper"]:
+		check(s.crew.display_name(id) != id, "%s の名前" % id)
+		check(not s.crew.def(id).is_empty(), "%s の定義" % id)
+	# 選択肢の効果（勢力との関係）が働く
+	var before := s.factions.standing("black_current")
+	s.apply_effect({"type": "standing", "faction": "black_current", "delta": 5})
+	check(s.factions.standing("black_current") > before, "黒潮との関係が変わる")

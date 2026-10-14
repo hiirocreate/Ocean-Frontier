@@ -95,6 +95,9 @@ static func _story(d: GameData, e: Array[String]) -> void:
 	for tid in d.story_flags:
 		_cond(e, "story_flag " + str(tid), d.story_flags[tid].get("condition", {}))
 		_check_effects(d, e, "story_flag " + str(tid), d.story_flags[tid].get("effects", []))
+		var scene := str(d.story_flags[tid].get("dialogue", ""))
+		if scene != "" and not d.dialogues.has(scene):
+			e.append("story_flag %s: 存在しない会話 '%s'" % [tid, scene])
 	for qid in d.quests:
 		var q: Dictionary = d.quests[qid]
 		var giver := str(q.get("giver", ""))
@@ -290,7 +293,7 @@ static func _dialogues(d: GameData, e: Array[String]) -> void:
 		for nid in nodes:
 			var n: Dictionary = nodes[nid]
 			var sp := str(n.get("speaker", ""))
-			if not (sp in SPECIAL_SPEAKERS) and not d.survivors.has(sp):
+			if not (sp in SPECIAL_SPEAKERS) and not d.survivors.has(sp) and not d.npcs.has(sp):
 				e.append("%s.%s: 存在しない話者 '%s'" % [o, nid, sp])
 			var nexts: Array = []
 			if n.has("next"):

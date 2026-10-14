@@ -54,6 +54,12 @@ func _refresh() -> void:
 	for f in p["factors"]:
 		left.add_child(UiTheme.label("・" + f, 15, Color(0.85, 0.88, 0.9)))
 	h.add_child(left)
+	var face := str(e_def.get("portrait", ""))
+	if face != "" and session.data.npcs.has(face):
+		var pv := PortraitView.new()
+		pv.custom_minimum_size = Vector2(170, 215)
+		pv.set_character(face, session.data.npcs[face], "angry")
+		h.add_child(pv)
 	var right := VBoxContainer.new()
 	right.add_child(UiTheme.label(str(e["name"]), 20, Color("ffb0a0")))
 	right.add_child(UiTheme.label("攻撃 %d  防御 %d  耐久 %d  士気 %d" % [int(e["attack"]), int(e["defense"]), int(e["hp"]), int(e["morale"])], 17))

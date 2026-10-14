@@ -195,7 +195,7 @@ func test_main_story_completable_for_all_profiles() -> void:
 			eq(s.story.chapter, 5, "%s: 最終章に到達" % tag)
 			s.flags["reached_atlas_core"] = true
 			s.pending_dialogue = {}
-			s.story.check(s)
+			finish_scenes(s)
 			eq(s.pending_dialogue.get("id", ""), "final_choice", "%s: 最後の選択" % tag)
 			check(str(s.story.recall_text(s)) != "", "%s: 回想の台詞" % tag)
 			check(s.story.choose_ending(s, "keep_secret"), "%s: エンディング到達" % tag)
