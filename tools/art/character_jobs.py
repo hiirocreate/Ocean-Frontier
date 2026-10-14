@@ -35,6 +35,10 @@ PLAYER = {
     ("female", "adult"): ("1girl, solo, original, young woman, medium hair, ponytail", 2203),
     ("female", "mature"): ("1girl, solo, original, mature female, long hair, ponytail", 2204),
 }
+# 立ち絵（768x1024）上の顔の位置（中心x, 中心y, 半径x, 半径y の比率）。基本画像を見て決めた値
+FACE_BOX = {"garrett": [0.48, 0.2, 0.3, 0.2], "rook": [0.52, 0.36, 0.42, 0.3], "tobi": [0.5, 0.3, 0.3, 0.2],
+            "selene": [0.5, 0.25, 0.3, 0.2]}
+EXPR_STRENGTH = {"rook": 0.8}  # 元の表情（不敵な笑み）が強く残るため強めに描き直す
 EXPR = {
     "smile": "smile, happy, open mouth",
     "sad": "sad, frown, looking down",
@@ -66,8 +70,11 @@ def main() -> None:
                          "w": 832, "h": 1216})
         else:
             for e in exprs:
-                jobs.append({"id": f"{cid}_{e}", "prompt": f"{desc}, {EXPR[e]}, {PORTRAIT}, {STYLE}", "seed": seed,
-                             "init": f"{cid}_normal", "strength": 0.55})
+                # 表情に関する語（smirk など）を元の説明から除き、顔だけを強めに描き直す
+                base = ", ".join(t for t in desc.split(", ") if t not in ("smirk", "confident", "stern", "energetic"))
+                jobs.append({"id": f"{cid}_{e}", "prompt": f"{base}, {EXPR[e]}, {PORTRAIT}, {STYLE}", "seed": seed,
+                             "init": f"{cid}_normal", "strength": EXPR_STRENGTH.get(cid, 0.68), "face_only": True,
+                             "face_box": FACE_BOX.get(cid, [0.5, 0.32, 0.36, 0.24])})
     json.dump(jobs, sys.stdout, ensure_ascii=False, indent=1)
 
 

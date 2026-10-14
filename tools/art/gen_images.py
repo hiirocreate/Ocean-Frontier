@@ -21,7 +21,7 @@ import time
 
 import torch
 from diffusers import DPMSolverMultistepScheduler, EulerDiscreteScheduler, StableDiffusionXLImg2ImgPipeline, StableDiffusionXLPipeline
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFilter
 
 QUALITY = ", masterpiece, high score, great score, absurdres"
 NEGATIVE = ("lowres, bad anatomy, bad hands, text, error, missing finger, extra digits, fewer digits, cropped, worst quality, "
@@ -76,6 +76,12 @@ def main() -> None:
             if j.get("init"):  # 表情差分など: 元画像から img2img（構図と人物を保つ）
                 init = Image.open(os.path.join(out_dir, j["init"] + ".png")).convert("RGB")
                 img = i2i(image=init, strength=float(j.get("strength", 0.5)), **kw).images[0]
+                if j.get("face_only"):  # 顔のまわりだけ差し替え、髪・服・構図は元画像のまま保つ
+                    w, h = init.size
+                    cx, cy, rx, ry = j.get("face_box", [0.5, 0.32, 0.36, 0.24])
+                    mask = Image.new("L", (w, h), 0)
+                    ImageDraw.Draw(mask).ellipse(((cx - rx) * w, (cy - ry) * h, (cx + rx) * w, (cy + ry) * h), fill=255)
+                    img = Image.composite(img, init, mask.filter(ImageFilter.GaussianBlur(w * 0.04)))
             else:
                 img = pipe(width=int(j.get("w", 832)), height=int(j.get("h", 1216)), **kw).images[0]
         img.save(os.path.join(out_dir, j["id"] + ".png"))
