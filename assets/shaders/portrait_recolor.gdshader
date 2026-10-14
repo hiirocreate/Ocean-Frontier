@@ -3,6 +3,6 @@ shader_type canvas_item;
 #include "res://assets/shaders/recolor.gdshaderinc"
 
 void fragment() {
-	vec4 t = texture(TEXTURE, UV);
-	COLOR = vec4(recolor(t.rgb), t.a) * COLOR;
+	// COLOR には既にテクスチャの色が入っている（二重に掛けないこと）
+	COLOR = vec4(recolor(COLOR.rgb, false), COLOR.a);
 }

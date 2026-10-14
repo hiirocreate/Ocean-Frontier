@@ -109,6 +109,7 @@
 | T-906 | セーブ・ロード（profile とスキーマ version 2、旧セーブの移行） | 高 | 検証済み | test_save_load_keeps_profile_and_migrates_old_saves | — |
 | T-907 | 能力のゲームへの反映（生存・修理・観察・交渉・医療・航海・戦闘・指揮・学習） | 中 | 検証済み | test_profile_drives_dialogue_look_abilities_events | 数値バランスの実プレイ調整 |
 | T-908 | セルルック素材: 主人公SVG立ち絵・斧ローポリ（Blender Python）・トゥーンシェーダー＋輪郭線 | 中 | 実装済み | tools/art/preview_assets.gd（読込・三角形数・適用・描画） | ゲーム画面への組み込み（立ち絵の差し替え、全体のセルルック化）は未実施 |
+| T-909 | 生成キャラクター素材: 立ち絵57枚・3Dモデル13体（自動リギング・4アニメ）・髪色/肌色の置き換え・表示スタイル切替 | 高 | 検証済み | test_character_art（4件）、E2E撮影 | 腕が動かない（D-051）。3Dの顔の細部は粗い。実機での見え方の確認 |
 
 ## 次に行うタスク
 1. ユーザーの実機（Android）での動作確認と不具合修正（KI-001）

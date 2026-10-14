@@ -6,7 +6,7 @@ extends RefCounted
 const PORTRAIT_DIR := "res://assets/characters/portraits/"
 const MODEL_DIR := "res://assets/characters/models/"
 const RECOLOR_2D := preload("res://assets/shaders/portrait_recolor.gdshader")
-const DEFAULT_SKIN := "#f5d1b8"  # 生成時の基準の肌色（主人公の生成画像の平均的な明部）
+const DEFAULT_SKIN := "#e8b996"  # 基準の肌色（外見「明るい肌」と同じ。これを選ぶと生成画像の肌のまま）
 
 static var _cache := {}
 

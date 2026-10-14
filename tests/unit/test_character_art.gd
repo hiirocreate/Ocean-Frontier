@@ -1,0 +1,74 @@
+extends TestCase
+## 生成キャラクター素材（立ち絵・3Dモデル）の網羅と、無い場合のフォールバック
+
+const EXPRESSIONS := ["normal", "smile", "sad", "angry", "surprised"]
+
+
+func _player_look(d: GameData, g: String, a: int) -> Dictionary:
+	var p := PlayerProfile.create_default(d)
+	p.gender = g
+	p.age = a
+	p.appearance = PlayerProfile.default_appearance(g)
+	p.finalize(d)
+	return p.look(d)
+
+
+func test_every_character_has_portrait_and_model() -> void:
+	var d := game_data()
+	for id in d.survivors:
+		var aid := CharacterArt.art_id(str(id), d.survivors[id])
+		for e in EXPRESSIONS:
+			check(CharacterArt.portrait(aid, e) != null, "%s の立ち絵（%s）" % [id, e])
+		check(CharacterArt.model_scene(aid) != null, "%s の3Dモデル" % id)
+	for g in PlayerProfile.GENDERS:
+		for a in [12, 17, 25, 35]:
+			var look := _player_look(d, g, a)
+			var aid := CharacterArt.art_id("player", look)
+			check(aid.begins_with("player_%s_" % g), "主人公の素材ID %s" % aid)
+			# 表情が無い場合も通常の表情で必ず表示できる
+			for e in EXPRESSIONS:
+				check(CharacterArt.portrait(aid, e) != null, "%s の立ち絵（%s）" % [aid, e])
+			check(CharacterArt.model_scene(aid) != null, "%s の3Dモデル" % aid)
+
+
+func test_generated_model_has_animations_and_light_mesh() -> void:
+	var d := game_data()
+	var scene := CharacterArt.model_scene(CharacterArt.art_id("mira", d.survivors["mira"]))
+	check(scene != null, "モデルを読み込める")
+	if scene == null:
+		return
+	var n := scene.instantiate()
+	var ap := n.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	check(ap != null, "AnimationPlayer がある")
+	if ap:
+		for a in ["idle", "walk", "work", "rest"]:
+			check(ap.has_animation(a), "アニメーション %s" % a)
+	var tris := 0
+	for mi in n.find_children("*", "MeshInstance3D", true, false):
+		for s in (mi as MeshInstance3D).mesh.get_surface_count():
+			tris += (mi as MeshInstance3D).mesh.surface_get_array_index_len(s) / 3
+	check(tris > 500 and tris <= 6000, "三角形数 %d（Android 向けに 6000 以下）" % tris)
+	n.free()
+
+
+func test_simple_mode_and_missing_art_fall_back() -> void:
+	var d := game_data()
+	var look := _player_look(d, "female", 25)
+	look["art_mode"] = "simple"
+	check(not CharacterArt.enabled(look), "シンプル表示では生成素材を使わない")
+	check(CharacterArt.portrait("no_such_character", "normal") == null, "素材が無ければ null（図形描画にフォールバック）")
+	check(CharacterArt.model_scene("") == null, "IDが空なら null")
+	var m := CharacterModel.new()
+	m.apply_look(look)
+	m._ready()
+	check(m._art == null, "シンプル表示の主人公はプリミティブ構成で描く")
+	m.free()
+
+
+func test_recolor_only_for_player() -> void:
+	var d := game_data()
+	var look := _player_look(d, "male", 17)
+	var p := CharacterArt.recolor_params(look)
+	check(bool(p.get("hair_recolor", false)), "主人公は髪色を置き換える")
+	eq((p["hair_target"] as Color).to_html(false), Color(str(look["colors"]["hair"])).to_html(false), "選んだ髪色")
+	check(CharacterArt.recolor_params(d.survivors["mira"]).is_empty(), "仲間は置き換えない")

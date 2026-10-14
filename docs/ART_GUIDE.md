@@ -46,3 +46,9 @@
 - フラットシェーディングで頂点を結合したメッシュ（現在のキャラクター・筏）は、角で輪郭線が割れることがある。滑らかな法線を持つメッシュで使うか、`extrude_from_center` を使う。
 - Blender素材は `tools/blender/*.py` で生成し、三角形数の上限をスクリプト内で検証する（小物は200以下）。
 - 確認: `xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --script res://tools/art/preview_assets.gd` → `build/screenshots/art_preview.png`
+
+## 生成キャラクター素材（D-049〜D-052）
+- 再生成: `tools/art/build_character_assets.sh`（必要な環境は先頭のコメント）。プロンプトと乱数は `tools/art/character_jobs.py` に固定し再現可能にしている。
+- 画風: Animagine XL 4.0 に「anime screencap」を付け、白背景・正面で生成。CPU（4コア）で1枚約8分、表情差分は約5分。
+- 3D: TripoSR（解像度256）→ Blender で約5000三角形に削減、骨9本（腰・背骨・胸・首・頭・太もも・すね）、身長 1.85、正面 +Z。
+- 主人公は緑の髪で生成し、`recolor.gdshaderinc` で置き換える。主人公の素材に緑を他に使わないこと。

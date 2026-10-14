@@ -19,6 +19,8 @@
 | char_protagonist_cel_svg | 主人公セル調立ち絵（16〜19歳・中性的ベース、腕を伸ばす構図） | 2D（SVG） | assets/characters/portraits/protagonist_youth_cel.svg | 生成スクリプト（ベース面・影面・輪郭を別レイヤー） | 独自 | 立ち絵 | 主人公 | 完成（ゲーム未組込） | いいえ |
 | item_axe_model | 斧（木の柄＋金属くずの斧頭、160三角形） | 3D（glb） | assets/items/models/axe.glb | Blender Python（tools/blender/axe_lowpoly.py） | 独自 | アイテム | — | 完成（ゲーム未組込） | いいえ |
 | shader_toon | セルルック（2/3階調・固いハイライト・リム）＋輪郭線パス | シェーダー | assets/shaders/toon_*.gdshader, scripts/visual/toon.gd | 手書き | 独自 | 3D全般（予定） | — | 完成（ゲーム未適用） | いいえ |
+| char_portraits_generated | 立ち絵（仲間5名×表情5、主人公 性別2×年齢帯4×表情4） | 2D（WebP・透過） | assets/characters/portraits/ | Animagine XL 4.0（ローカルCPU生成）＋顔だけ img2img で表情差分 | 生成 | 会話・仲間・作成画面 | 全キャラクター | 採用（ゲーム組込済み） | はい（生成スクリプトで再現可） |
+| char_models_generated | 探索用3Dモデル13体（約5000三角形・骨9本・待機/歩行/作業/休憩） | 3D（glb・頂点カラー） | assets/characters/models/ | TripoSR → Blender 自動リギング | 生成 | 探索・作成画面 | 全キャラクター | 採用（ゲーム組込済み）。腕は胴と一体で動かない | はい |
 | char_portraits | 立ち絵（主人公＋仲間5名×表情6種） | 2D（図形描画） | scripts/ui/portrait_view.gd | コードで描画（配色・髪型・装飾をデータから） | 独自 | 会話・仲間画面 | 全キャラクター | 仮素材 | はい |
 | char_crew_models | 仲間5名の3Dモデル | 3D | scripts/characters/character_model.gd（apply_look） | プリミティブ組合せ | 独自 | 探索・筏 | 全仲間 | 仮素材 | はい |
 | encounter_boat | 漂流者の小舟 | 3D | scripts/world/encounter.gd | プリミティブ組合せ | 独自 | 救助・再会 | — | 仮素材 | はい |

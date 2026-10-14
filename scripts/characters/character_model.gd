@@ -170,7 +170,10 @@ func _setup_generated() -> bool:
 	add_child(_art)
 	if not body.is_empty():
 		_art.scale = Vector3.ONE * float(body.get("height", 1.0))
-	Toon.apply(_art, 3.0, 2, CharacterArt.recolor_params(_defn))
+	var rc := CharacterArt.recolor_params(_defn)
+	if not rc.is_empty():
+		rc["hair_min_y"] = 1.85 * 0.80  # 生成モデルは身長 1.85（rig_generated_character.py）。上位 20% を頭部とみなす
+	Toon.apply(_art, 3.0, 2, rc)
 	_anim = _art.find_child("AnimationPlayer", true, false) as AnimationPlayer
 	if _anim:
 		for a in ["idle", "walk", "work"]:

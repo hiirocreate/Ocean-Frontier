@@ -28,6 +28,13 @@ uniform float specular_strength : hint_range(0.0, 2.0) = 0.25;
 uniform vec4 rim_color : source_color = vec4(0.0, 0.95, 1.0, 1.0); // 魔力のライトブルー
 uniform float rim_amount : hint_range(0.0, 1.0) = 0.22;
 uniform float rim_strength : hint_range(0.0, 2.0) = 0.35;
+uniform float hair_min_y = 1000.0; // この高さ（モデル座標）より上を頭部として髪色の判定を緩める
+
+varying float v_model_y;
+
+void vertex() {
+	v_model_y = VERTEX.y;
+}
 
 float cut(float edge, float x) {
 	return edge_softness <= 0.0 ? step(edge, x) : smoothstep(edge - edge_softness, edge + edge_softness, x);
@@ -41,7 +48,9 @@ void fragment() {
 	if (use_vertex_color) {
 		c *= COLOR.rgb;
 	}
-	c = recolor(c); // 主人公の髪色・肌の色（生成モデルのみ有効）
+	if (hair_recolor || skin_recolor) {
+		c = rc_to_linear(recolor(rc_to_srgb(c), v_model_y > hair_min_y)); // 主人公の髪色・肌の色（生成モデルのみ。判定は sRGB）
+	}
 	ALBEDO = c;
 	// 環境光の代わりに一定の底上げ（ambient_light_disabled と組み合わせて階調を崩さない）
 	EMISSION = c * ambient_color.rgb;
