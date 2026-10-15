@@ -84,4 +84,4 @@ tests/unit/         自動テスト
 - 最新版: リポジトリの **Releases → 「最新のデバッグ版」（タグ `debug-latest`）** の `ocean_frontier_debug.apk`
   - 直接リンク: `https://github.com/hiirocreate/Ocean-Frontier/releases/download/debug-latest/ocean_frontier_debug.apk`
 - push のたびに `.github/workflows/android.yml` がテスト → APK作成 → Releases の更新を行う。Actions タブの「Run workflow」で手動実行も可能。
-- 上書き更新できるようにするには、デバッグ鍵をシークレット `DEBUG_KEYSTORE_BASE64`（`base64 -w0 debug.keystore` の出力）に登録する。未登録だと実行ごとに鍵が変わるため、更新時はアンインストールが必要。
+- 署名の鍵は Actions のキャッシュに保管して毎回同じものを使うので、上書きインストールで更新できる。キャッシュは7日間ビルドが無いと消えるため、恒久的に固定したい場合はシークレット `DEBUG_KEYSTORE_BASE64`（`base64 -w0 debug.keystore` の出力）に登録する（シークレットが優先）。
