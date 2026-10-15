@@ -72,3 +72,18 @@ func test_recolor_only_for_player() -> void:
 	check(bool(p.get("hair_recolor", false)), "主人公は髪色を置き換える")
 	eq((p["hair_target"] as Color).to_html(false), Color(str(look["colors"]["hair"])).to_html(false), "選んだ髪色")
 	check(CharacterArt.recolor_params(d.survivors["mira"]).is_empty(), "仲間は置き換えない")
+
+
+func test_npc_art_and_leaders() -> void:
+	var d := game_data()
+	for id in d.npcs:
+		var defn: Dictionary = d.npcs[id]
+		check(CharacterArt.portrait(CharacterArt.art_id(id, defn), "normal") != null, "%s の立ち絵" % id)
+		check(CharacterArt.model_scene(CharacterArt.art_id(id, defn)) != null, "%s の3Dモデル" % id)
+	for id in ["volg", "drake", "martha", "lightkeeper"]:
+		for e in EXPRESSIONS:
+			check(CharacterArt.portrait(id, e) != null, "%s の表情 %s" % [id, e])
+	# 戦闘相手（人間）には立ち絵が割り当てられている
+	for eid in d.enemies:
+		if str(d.enemies[eid].get("kind", "")) == "human":
+			check(d.npcs.has(str(d.enemies[eid].get("portrait", ""))), "%s の立ち絵の割り当て" % eid)

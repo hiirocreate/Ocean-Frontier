@@ -263,6 +263,24 @@ func _run() -> void:
 	await shot("14_map")
 	w.hud.toggle_map()
 
+	# 勢力のリーダー（悪役）との会話の場面
+	s.pending_dialogue = {"id": "volg_radio", "nodes": game.data.dialogues["volg_radio"]["nodes"]}
+	await frames(10)
+	if w.hud.dialogue_panel.visible:
+		w.hud.dialogue_panel.runner.advance()
+	await frames(5)
+	check(w.hud.dialogue_panel.visible and w.hud.dialogue_panel.portrait.visible, "悪役（ヴォルグ）の立ち絵付きの会話")
+	await shot("14b_villain_dialogue")
+	for i in 6:
+		if not w.hud.dialogue_panel.visible:
+			break
+		var r: DialogueRunner = w.hud.dialogue_panel.runner
+		if not r.choices().is_empty():
+			r.choose(int(r.choices()[0]["index"]))
+		else:
+			r.advance()
+		await frames(3)
+
 	# 勢力・交易: 浮遊市場へ → 交易画面で買い物
 	w.raft_root.position = s.site_position("tide_union_market") + Vector3(20, 0, 10)
 	await frames(3)

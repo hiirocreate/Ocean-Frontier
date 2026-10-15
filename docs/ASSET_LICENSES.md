@@ -15,8 +15,8 @@
 | 主人公セル調立ち絵（青年層・SVG） | `assets/characters/portraits/protagonist_youth_cel.svg` | `tools/art/gen_protagonist_svg.py` で生成 | プロジェクト独自 | 参考用 |
 | 斧のローポリモデル | `assets/items/models/axe.glb` | `tools/blender/axe_lowpoly.py`（Blender / bpy で生成） | プロジェクト独自 | アイテム（未組込） |
 | トゥーンシェーダー・色置き換え | `assets/shaders/toon_*.gdshader`, `recolor.gdshaderinc`, `portrait_recolor.gdshader` | 本プロジェクトで作成 | プロジェクト独自 | セルルック描画 |
-| キャラクター立ち絵（57枚） | `assets/characters/portraits/*.webp` | Animagine XL 4.0 でローカル生成（`tools/art/`）。背景除去は rembg（isnet-anime） | 生成物は制作者に帰属（モデルは CreativeML Open RAIL++-M。利用制限条項〈違法・有害用途の禁止など〉に従う） | 会話・仲間画面・作成画面 |
-| キャラクター3Dモデル（13体） | `assets/characters/models/*.glb` | 上記の全身画像を TripoSR（MIT）で3D化し、`tools/blender/rig_generated_character.py` で軽量化・骨・アニメーション | 生成物は制作者に帰属 | 探索・作成画面 |
+| キャラクター立ち絵（88枚） | `assets/characters/portraits/*.webp` | Animagine XL 4.0 でローカル生成（`tools/art/`）。背景除去は rembg（isnet-anime） | 生成物は制作者に帰属（モデルは CreativeML Open RAIL++-M。利用制限条項〈違法・有害用途の禁止など〉に従う） | 会話・仲間画面・作成画面 |
+| キャラクター3Dモデル（23体） | `assets/characters/models/*.glb` | 上記の全身画像を TripoSR（MIT）で3D化し、`tools/blender/rig_generated_character.py` で軽量化・骨・アニメーション | 生成物は制作者に帰属 | 探索・作成画面 |
 
 ## ソフトウェア
 | ソフトウェア | ライセンス | 備考 |
