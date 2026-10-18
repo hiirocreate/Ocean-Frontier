@@ -180,7 +180,8 @@ func look(data: GameData) -> Dictionary:
 		"colors": {"skin": skin.get("color", "#e8b996"), "hair": hair.get("color", "#2e2a2b"), "shirt": outfit.get("shirt", "#d8cfb8"),
 			"outer": outfit.get("outer", "#3f6b73"), "pants": outfit.get("pants", "#4a4f5e"), "accent": "#c2553d"},
 		"hair_style": str(appearance.get("hair_style", "messy")), "accessory": "" if acc == "none" else acc,
-		"face": str(appearance.get("face", "soft")), "gender": gender, "age": age, "age_band": age_band(),
+		"face": str(appearance.get("face", "soft")), "outfit": str(appearance.get("outfit", "castaway")),
+		"gender": gender, "age": age, "age_band": age_band(),
 		"art_id": "player_%s_%s" % [gender, age_band()], "art_mode": str(appearance.get("art_mode", "illust")),
 	}
 

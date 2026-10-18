@@ -51,8 +51,13 @@ static func recolor_params(defn: Dictionary) -> Dictionary:
 	if not str(defn.get("art_id", "")).begins_with("player_"):
 		return {}
 	var c: Dictionary = defn.get("colors", {})
-	return {"hair_recolor": true, "hair_target": Color(str(c.get("hair", "#2e2a2b"))),
+	var p := {"hair_recolor": true, "hair_target": Color(str(c.get("hair", "#2e2a2b"))),
 		"skin_recolor": true, "skin_target": Color(str(c.get("skin", DEFAULT_SKIN))), "skin_source": Color(DEFAULT_SKIN)}
+	# 衣装: 既定の「漂流者の服」は生成素材の紺の上着のまま。それ以外は上着の色を置き換える
+	if str(defn.get("outfit", "castaway")) != "castaway":
+		p["outer_recolor"] = true
+		p["outer_target"] = Color(str(c.get("outer", "#3f6b73")))
+	return p
 
 
 static func portrait_material(defn: Dictionary) -> ShaderMaterial:

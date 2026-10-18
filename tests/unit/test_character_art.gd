@@ -87,3 +87,15 @@ func test_npc_art_and_leaders() -> void:
 	for eid in d.enemies:
 		if str(d.enemies[eid].get("kind", "")) == "human":
 			check(d.npcs.has(str(d.enemies[eid].get("portrait", ""))), "%s の立ち絵の割り当て" % eid)
+
+
+func test_outfit_recolor_follows_selection() -> void:
+	var d := game_data()
+	var p := PlayerProfile.create_default(d)
+	p.appearance = PlayerProfile.default_appearance("male")
+	p.finalize(d)
+	check(not CharacterArt.recolor_params(p.look(d)).has("outer_recolor"), "既定の衣装は生成素材のまま")
+	p.appearance["outfit"] = "lab"
+	var rc := CharacterArt.recolor_params(p.look(d))
+	check(bool(rc.get("outer_recolor", false)), "衣装を変えると上着の色を置き換える")
+	eq((rc["outer_target"] as Color).to_html(false), Color(str(p.look(d)["colors"]["outer"])).to_html(false), "選んだ衣装の色")

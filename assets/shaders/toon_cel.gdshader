@@ -48,8 +48,8 @@ void fragment() {
 	if (use_vertex_color) {
 		c *= COLOR.rgb;
 	}
-	if (hair_recolor || skin_recolor) {
-		c = rc_to_linear(recolor(rc_to_srgb(c), v_model_y > hair_min_y)); // 主人公の髪色・肌の色（生成モデルのみ。判定は sRGB）
+	if (hair_recolor || skin_recolor || outer_recolor) {
+		c = rc_to_linear(recolor(rc_to_srgb(c), v_model_y > hair_min_y, v_model_y < hair_min_y)); // 主人公の髪色・肌の色（生成モデルのみ。判定は sRGB）
 	}
 	ALBEDO = c;
 	// 環境光の代わりに一定の底上げ（ambient_light_disabled と組み合わせて階調を崩さない）

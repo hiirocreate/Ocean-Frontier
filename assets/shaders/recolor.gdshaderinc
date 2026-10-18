@@ -7,6 +7,9 @@ uniform vec4 hair_target = vec4(0.18, 0.165, 0.17, 1.0);
 uniform bool skin_recolor = false;
 uniform vec4 skin_target = vec4(0.91, 0.725, 0.59, 1.0);
 uniform vec4 skin_source = vec4(0.96, 0.82, 0.72, 1.0); // 生成時の基準の肌色
+// 衣装: 生成素材の上着（紺色）を選んだ衣装の色に置き換える。顔より下の部分だけ（目の青を巻き込まないため）
+uniform bool outer_recolor = false;
+uniform vec4 outer_target = vec4(0.25, 0.42, 0.45, 1.0);
 
 vec3 rc_rgb2hsv(vec3 c) {
 	vec4 k = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
@@ -26,7 +29,7 @@ vec3 rc_to_linear(vec3 c) {
 
 // c は sRGB の色。head_region=true（3Dモデルの頭部の高さ）では、くすんだ青緑まで髪とみなす
 // （画像から作った3Dモデルの頂点色は生成画像より彩度が低く、色だけでは服と区別しにくいため高さで限定する）
-vec3 recolor(vec3 c, bool head_region) {
+vec3 recolor(vec3 c, bool head_region, bool body_region) {
 	vec3 hsv = rc_rgb2hsv(c);
 	if (hair_recolor) {
 		// 黄緑〜緑（約 55°〜175°。頭部では 45°〜190°）で、くすみ過ぎていない画素
@@ -42,6 +45,12 @@ vec3 recolor(vec3 c, bool head_region) {
 		float m = smoothstep(0.0, 0.03, hsv.x) * (1.0 - smoothstep(0.10, 0.13, hsv.x))
 			* smoothstep(0.08, 0.14, hsv.y) * (1.0 - smoothstep(0.55, 0.65, hsv.y)) * smoothstep(0.45, 0.6, hsv.z);
 		c = mix(c, clamp(c * skin_target.rgb / max(skin_source.rgb, vec3(0.05)), 0.0, 1.0), m);
+	}
+	if (outer_recolor && body_region) {
+		// 紺〜青（約 200°〜250°）で彩度がある画素 = 上着
+		float m = smoothstep(0.53, 0.57, hsv.x) * (1.0 - smoothstep(0.70, 0.74, hsv.x)) * smoothstep(0.18, 0.30, hsv.y);
+		vec3 outer = clamp(outer_target.rgb * (hsv.z / 0.45), 0.0, 1.0);
+		c = mix(c, outer, m);
 	}
 	return c;
 }

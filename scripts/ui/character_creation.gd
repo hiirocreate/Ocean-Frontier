@@ -231,13 +231,13 @@ func _build_appearance() -> VBoxContainer:
 		h.add_child(ob)
 		v.add_child(h)
 		_appearance_opts[spec[0]] = ob
-	var note := UiTheme.label("イラスト表示では髪色・肌の色が立ち絵と3Dモデルに反映されます。髪型・顔・衣装・アクセサリーはシンプル表示で反映されます。", 15, Color(0.8, 0.86, 0.88))
+	var note := UiTheme.label("イラスト表示では「髪色・肌の色・衣装の色」が立ち絵と3Dモデルに反映されます。髪型・顔の特徴・アクセサリーを選ぶには、表示スタイルを「シンプル」にしてください。", 15, Color(0.8, 0.86, 0.88))
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(note)
 	var rnd := UiTheme.button("ランダム", Vector2(200, 56))
 	rnd.pressed.connect(func():
 		for k in _appearance_opts:
-			if k == "art_mode":
+			if k == "art_mode" or (_appearance_opts[k] as OptionButton).disabled:
 				continue
 			var ob: OptionButton = _appearance_opts[k]
 			var i := randi() % ob.item_count
@@ -299,6 +299,12 @@ func _refresh() -> void:
 		_gender_buttons[g].button_pressed = profile.gender == g
 	var band: Dictionary = data.age_bands.get(profile.age_band(), {})
 	_age_info.text = "%d歳（%s）：%s" % [profile.age, band.get("name", ""), band.get("description", "")]
+	# イラスト表示で絵に反映できない項目は選べないようにする（選んでも見た目が変わらないため）
+	var illust := str(profile.appearance.get("art_mode", "illust")) != "simple"
+	for k in ["hair_style", "face", "accessory"]:
+		if _appearance_opts.has(k):
+			(_appearance_opts[k] as OptionButton).disabled = illust
+			(_appearance_opts[k] as OptionButton).tooltip_text = "表示スタイル「シンプル」で選べます" if illust else ""
 	for k in _appearance_opts:
 		var ob: OptionButton = _appearance_opts[k]
 		for i in ob.item_count:
