@@ -45,6 +45,11 @@ func _run() -> void:
 	await frames(10)
 	check(current_scene != null and current_scene.name == "MainMenu", "メインメニュー表示")
 	await shot("01_main_menu")
+	# 新しいバージョンの案内（通信の代わりに案内の表示だけを確認）
+	current_scene.show_update({"build": 99, "notes": "更新内容: 例", "apk_url": UpdateChecker.APK_URL})
+	await frames(5)
+	check(current_scene._update_box != null and current_scene._update_box.visible, "タイトル画面に更新の案内が出る")
+	await shot("01b_update_notice")
 
 	game.data.balance["events"]["chance_multiplier"] = 0.0  # E2Eではランダムイベントを止めて結果を安定させる
 	# 主人公作成画面

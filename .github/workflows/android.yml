@@ -115,6 +115,13 @@ jobs:
           export/android/debug_keystore_pass = "android"
           EOF
 
+      # アプリにビルド番号を書き込む（タイトル画面の更新確認で使う）。Android の versionCode も実行番号にする
+      - name: ビルド番号を書き込む
+        run: |
+          printf '{"build": %d, "sha": "%s"}\n' "${{ github.run_number }}" "${GITHUB_SHA::7}" > build_info.json
+          sed -i "s/^version\/code=.*/version\/code=${{ github.run_number }}/" export_presets.cfg
+          cat build_info.json; grep "^version/code" export_presets.cfg
+
       - name: テスト（データ検証・ユニット・E2E）
         run: tools/run_tests.sh
 
@@ -137,8 +144,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # アプリが読む更新情報（最新のビルド番号とダウンロード先）
+          python3 - <<PY
+          import json, subprocess
+          subject = subprocess.run(["git", "log", "-1", "--format=%s"], capture_output=True, text=True).stdout.strip()
+          json.dump({"build": ${{ github.run_number }}, "sha": "${GITHUB_SHA::7}", "notes": "更新内容: " + subject,
+                     "apk_url": "https://github.com/${GITHUB_REPOSITORY}/releases/download/debug-latest/ocean_frontier_debug.apk"},
+                    open("build/android/version.json", "w"), ensure_ascii=False)
+          PY
+          cat build/android/version.json
           gh release delete debug-latest --cleanup-tag -y || true
-          gh release create debug-latest build/android/ocean_frontier_debug.apk \
+          gh release create debug-latest build/android/ocean_frontier_debug.apk build/android/version.json \
             --target "${GITHUB_SHA}" --prerelease \
             --title "最新のデバッグ版 (#${{ github.run_number }})" \
             --notes "ブランチ ${GITHUB_REF_NAME} / コミット ${GITHUB_SHA::7} から自動ビルドしたデバッグ版APKです。Androidで開くとインストールできます（提供元不明のアプリの許可が必要）。"

@@ -3,6 +3,8 @@ extends Control
 
 var _continue: Button
 var _status: Label
+var _update_box: PanelContainer
+var _menu: VBoxContainer
 
 
 func _ready() -> void:
@@ -14,6 +16,7 @@ func _ready() -> void:
 	bg.material = _bg_material()
 	add_child(bg)
 	var v := VBoxContainer.new()
+	_menu = v
 	v.custom_minimum_size = Vector2(520, 0)
 	v.add_theme_constant_override("separation", 14)
 	add_child(v)
@@ -53,9 +56,51 @@ func _ready() -> void:
 	v.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
 	if not Game.data_errors.is_empty():
 		_status.text = "データに%d件の問題があります（ログ参照）" % Game.data_errors.size()
-	var ver := UiTheme.label("v%s  オフラインでプレイできます" % ProjectSettings.get_setting("application/config/version"), 16, Color(1, 1, 1, 0.6))
+	var b := UpdateChecker.local_build()
+	var ver := UiTheme.label("v%s%s  オフラインでプレイできます" % [ProjectSettings.get_setting("application/config/version"), " (#%d)" % b if b > 0 else ""], 16, Color(1, 1, 1, 0.6))
 	add_child(ver)
 	ver.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 16)
+	# 新しいバージョンの確認（通信できなければ何も表示しない）
+	var checker := UpdateChecker.new()
+	add_child(checker)
+	checker.update_available.connect(show_update)
+	checker.check()
+
+
+## 新しいバージョンがあることを知らせ、ダウンロードできるようにする
+func show_update(info: Dictionary) -> void:
+	if _update_box:
+		_update_box.queue_free()
+	_update_box = PanelContainer.new()
+	_update_box.add_theme_stylebox_override("panel", UiTheme.box(Color(0.05, 0.16, 0.2, 0.96), UiTheme.C_GOLD, 14, 16))
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 8)
+	_update_box.add_child(v)
+	v.add_child(UiTheme.label("新しいバージョン（#%d）があります" % int(info["build"]), 22, UiTheme.C_GOLD))
+	if str(info.get("notes", "")) != "":
+		var n := UiTheme.label(str(info["notes"]), 16)
+		n.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		n.custom_minimum_size = Vector2(380, 0)
+		v.add_child(n)
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 10)
+	var dl := UiTheme.button("ダウンロード", Vector2(200, 56))
+	dl.pressed.connect(func(): OS.shell_open(str(info["apk_url"])))
+	h.add_child(dl)
+	var later := UiTheme.button("あとで", Vector2(120, 56))
+	later.pressed.connect(func():
+		_update_box.visible = false
+		_menu.set_anchors_and_offsets_preset.call_deferred(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE))
+	h.add_child(later)
+	v.add_child(h)
+	var hint := UiTheme.label("ダウンロード後、ファイルを開くと上書きでインストールできます（セーブデータは残ります）", 14, Color(0.8, 0.86, 0.88))
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.custom_minimum_size = Vector2(380, 0)
+	v.add_child(hint)
+	# タイトルの下（メニューの先頭）に差し込み、メニュー全体を中央に置き直す
+	_menu.add_child(_update_box)
+	_menu.move_child(_update_box, 2)
+	_menu.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
 
 
 func _bg_material() -> ShaderMaterial:
