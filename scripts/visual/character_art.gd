@@ -60,7 +60,8 @@ static func recolor_params(defn: Dictionary) -> Dictionary:
 	return p
 
 
-static func portrait_material(defn: Dictionary) -> ShaderMaterial:
+## tex: 表示する立ち絵。対応する上着のマスク（<立ち絵>_outer.png）があれば、フードを含む上着だけを置き換える
+static func portrait_material(defn: Dictionary, tex: Texture2D = null) -> ShaderMaterial:
 	var p := recolor_params(defn)
 	if p.is_empty():
 		return null
@@ -68,4 +69,18 @@ static func portrait_material(defn: Dictionary) -> ShaderMaterial:
 	m.shader = RECOLOR_2D
 	for k in p:
 		m.set_shader_parameter(k, p[k])
+	var mask := outer_mask(tex)
+	if mask:
+		m.set_shader_parameter("use_outer_mask", true)
+		m.set_shader_parameter("outer_mask", mask)
+		m.set_shader_parameter("outer_hue_lo", 0.50)
 	return m
+
+
+static func outer_mask(tex: Texture2D) -> Texture2D:
+	if tex == null or tex.resource_path == "":
+		return null
+	var path := tex.resource_path.get_basename() + "_outer.png"
+	if not _cache.has(path):
+		_cache[path] = load(path) if ResourceLoader.exists(path) else null
+	return _cache[path]

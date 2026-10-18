@@ -46,8 +46,9 @@ func _refresh() -> void:
 	var p := CombatSystem.player_force(session, terrain)
 	var e := CombatSystem.enemy_force(session, enemy_id)
 	_box.add_child(UiTheme.label("⚔ %sが襲いかかってきた！" % e["name"], 28, Color("ffb0a0")))
-	var h := HBoxContainer.new()
-	h.add_theme_constant_override("separation", 30)
+	var h := BoxContainer.new()
+	h.vertical = Game.portrait  # 縦画面では「こちら／相手」を上下に並べる
+	h.add_theme_constant_override("separation", 30 if not Game.portrait else 10)
 	var left := VBoxContainer.new()
 	left.add_child(UiTheme.label("こちら", 20, UiTheme.C_GOLD))
 	left.add_child(UiTheme.label("攻撃 %d  防御 %d  耐久 %d  士気 %d" % [int(p["attack"]), int(p["defense"]), int(p["hp"]), int(p["morale"])], 17))

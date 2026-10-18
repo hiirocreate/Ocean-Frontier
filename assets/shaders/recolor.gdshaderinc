@@ -10,6 +10,7 @@ uniform vec4 skin_source = vec4(0.96, 0.82, 0.72, 1.0); // 生成時の基準の
 // 衣装: 生成素材の上着（紺色）を選んだ衣装の色に置き換える。顔より下の部分だけ（目の青を巻き込まないため）
 uniform bool outer_recolor = false;
 uniform vec4 outer_target = vec4(0.25, 0.42, 0.45, 1.0);
+uniform float outer_hue_lo = 0.53; // 上着とみなす色相の下限（マスクで範囲を限定できる立ち絵では水色のハイライトまで含める）
 
 vec3 rc_rgb2hsv(vec3 c) {
 	vec4 k = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
@@ -48,7 +49,7 @@ vec3 recolor(vec3 c, bool head_region, bool body_region) {
 	}
 	if (outer_recolor && body_region) {
 		// 紺〜青（約 200°〜250°）で彩度がある画素 = 上着
-		float m = smoothstep(0.53, 0.57, hsv.x) * (1.0 - smoothstep(0.70, 0.74, hsv.x)) * smoothstep(0.18, 0.30, hsv.y);
+		float m = smoothstep(outer_hue_lo, outer_hue_lo + 0.04, hsv.x) * (1.0 - smoothstep(0.70, 0.74, hsv.x)) * smoothstep(0.18, 0.30, hsv.y);
 		vec3 outer = clamp(outer_target.rgb * (hsv.z / 0.45), 0.0, 1.0);
 		c = mix(c, outer, m);
 	}

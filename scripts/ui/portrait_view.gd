@@ -28,7 +28,7 @@ func set_character(id: String, defn: Dictionary, expr: String = "normal") -> voi
 	if CharacterArt.enabled(look):
 		_texture = CharacterArt.portrait(CharacterArt.art_id(id, look), expression)
 		if _texture:
-			material = CharacterArt.portrait_material(look)
+			material = CharacterArt.portrait_material(look, _texture)
 	queue_redraw()
 
 

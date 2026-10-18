@@ -173,6 +173,7 @@ func _setup_generated() -> bool:
 	var rc := CharacterArt.recolor_params(_defn)
 	if not rc.is_empty():
 		rc["hair_min_y"] = 1.85 * 0.80  # 生成モデルは身長 1.85（rig_generated_character.py）。上位 20% を頭部とみなす
+		rc["outer_max_y"] = 1.85 * 0.92  # フードは頭の後ろまであるため、目の高さの手前まで上着の色を置き換える
 	Toon.apply(_art, 3.0, 2, rc)
 	_anim = _art.find_child("AnimationPlayer", true, false) as AnimationPlayer
 	if _anim:

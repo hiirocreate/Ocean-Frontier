@@ -29,6 +29,7 @@ uniform vec4 rim_color : source_color = vec4(0.0, 0.95, 1.0, 1.0); // 魔力の�
 uniform float rim_amount : hint_range(0.0, 1.0) = 0.22;
 uniform float rim_strength : hint_range(0.0, 2.0) = 0.35;
 uniform float hair_min_y = 1000.0; // この高さ（モデル座標）より上を頭部として髪色の判定を緩める
+uniform float outer_max_y = 1000.0; // この高さより下を上着の置き換えの対象とする（頭の後ろのフードを含め、目の高さは除く）
 
 varying float v_model_y;
 
@@ -49,7 +50,7 @@ void fragment() {
 		c *= COLOR.rgb;
 	}
 	if (hair_recolor || skin_recolor || outer_recolor) {
-		c = rc_to_linear(recolor(rc_to_srgb(c), v_model_y > hair_min_y, v_model_y < hair_min_y)); // 主人公の髪色・肌の色（生成モデルのみ。判定は sRGB）
+		c = rc_to_linear(recolor(rc_to_srgb(c), v_model_y > hair_min_y, v_model_y < outer_max_y)); // 主人公の髪色・肌の色（生成モデルのみ。判定は sRGB）
 	}
 	ALBEDO = c;
 	// 環境光の代わりに一定の底上げ（ambient_light_disabled と組み合わせて階調を崩さない）

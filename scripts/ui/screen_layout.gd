@@ -2,7 +2,8 @@ class_name ScreenLayout
 extends RefCounted
 ## 画面の向き（横画面／縦画面）への対応。
 ## - 端末の向きに合わせて UI の基準解像度を切り替える（横 1280x720 / 縦 720x1280）
-## - fit() で登録したパネルは、画面より大きくならないよう最小サイズを縮め、位置を付け直す
+## - fit() で登録したパネルは、画面より大きくならないよう最小サイズを縮め、位置を付け直す。
+##   中身がそれでも収まらない場合はパネル全体を縮小し、必ず画面内に収める（中身が変わるたびに再計算）
 ## - 向きが変わると Game.layout_changed(portrait) が送られ、HUD などが配置を切り替える
 
 const LANDSCAPE := Vector2i(1280, 720)
@@ -32,6 +33,7 @@ static func fit(c: Control, design: Vector2, preset := Control.PRESET_CENTER, ma
 	c.set_meta("fit_preset", preset)
 	c.set_meta("fit_margin", margin)
 	c.add_to_group(GROUP)
+	c.minimum_size_changed.connect(_queue_apply.bind(c))
 	if c.is_inside_tree():
 		apply(c)
 	else:
@@ -47,8 +49,36 @@ static func apply(c: Control) -> void:
 	c.size = c.custom_minimum_size
 	c.set_anchors_and_offsets_preset(int(c.get_meta("fit_preset")), Control.PRESET_MODE_MINSIZE, int(c.get_meta("fit_margin")))
 	c.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	# 中身の最小サイズが画面に収まらなければ、配置の基準点（中央・角）を中心に全体を縮小する
+	var need := c.get_combined_minimum_size()
+	var room := vp - Vector2(24.0, 24.0) - Vector2.ONE * 2.0 * float(c.get_meta("fit_margin"))
+	var k := minf(1.0, minf(room.x / maxf(need.x, 1.0), room.y / maxf(need.y, 1.0)))
+	c.pivot_offset = c.size * Vector2(c.anchor_left, c.anchor_top)
+	c.scale = Vector2(k, k)
+
+
+static func _queue_apply(c: Control) -> void:
+	if c.has_meta("fit_queued"):
+		return
+	c.set_meta("fit_queued", true)
+	(func():
+		c.remove_meta("fit_queued")
+		apply(c)).call_deferred()
 
 
 static func apply_all(tree: SceneTree) -> void:
 	for n in tree.get_nodes_in_group(GROUP):
 		apply(n as Control)
+
+
+## 一覧と詳細の2列: 横画面では左右、縦画面では上下に並べる（side は一覧側。横画面の幅／縦画面の高さ）
+static func split(box: BoxContainer, side: Control, side_w := 230.0, side_h := 170.0) -> void:
+	var f := func(p: bool) -> void:
+		if not is_instance_valid(box):
+			return
+		box.vertical = p
+		side.custom_minimum_size = Vector2(0, side_h) if p else Vector2(side_w, 0)
+	var game := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
+	if game:
+		game.layout_changed.connect(f)
+		f.call(game.portrait)

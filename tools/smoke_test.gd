@@ -28,10 +28,45 @@ func frames(n: int) -> void:
 func shot(name: String) -> void:
 	if DisplayServer.get_name() == "headless":
 		return
+	await process_frame
+	var issues := layout_issues()
+	check(issues.is_empty(), "%s: 文字・枠が画面内に収まる%s" % [name, "" if issues.is_empty() else "（" + ", ".join(issues.slice(0, 6)) + "）"])
 	await RenderingServer.frame_post_draw
 	var img := root.get_texture().get_image()
 	img.save_png(shot_dir.path_join(name + ".png"))
 	print("  screenshot: ", name)
+
+
+## 表示中の UI が画面からはみ出していないか（スクロール領域の中身は、スクロール領域自体が収まっていればよい）
+func layout_issues() -> Array[String]:
+	var vp := root.get_visible_rect()
+	var out: Array[String] = []
+	var stack: Array[Node] = [root]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		if n is CanvasItem and not (n as CanvasItem).visible or n is CanvasLayer and not (n as CanvasLayer).visible or n is SubViewport:
+			continue
+		if n is Control:
+			var c := n as Control
+			var r := c.get_global_rect()
+			if r.size.x > 1.0 and r.size.y > 1.0 and not vp.grow(2.0).encloses(r) and not r.encloses(vp):
+				out.append("%s %s" % [_label_of(c), r])
+			if n is ScrollContainer:
+				continue
+		for ch in n.get_children():
+			stack.append(ch)
+	return out
+
+
+func _label_of(c: Control) -> String:
+	var t := ""
+	if c is Label:
+		t = (c as Label).text
+	elif c is Button:
+		t = (c as Button).text
+	elif c is RichTextLabel:
+		t = (c as RichTextLabel).get_parsed_text()
+	return "%s「%s」" % [c.get_class(), t.substr(0, 12).replace("\n", " ")]
 
 
 func world() -> Node:
@@ -66,6 +101,19 @@ func _run() -> void:
 	cc._trait_checks["observant"].button_pressed = true
 	await frames(10)
 	await shot("00a_creation_basic")
+	# 衣装の色はフードを含む上着全体に反映される（目の青は変えない）
+	cc._gender_buttons["male"].pressed.emit()
+	cc.set_age(17)
+	cc.profile.appearance["outfit"] = "scavenger"
+	cc._refresh()
+	await frames(10)
+	check(CharacterArt.outer_mask(cc._portrait._texture) != null, "立ち絵に上着（フード）のマスクがある")
+	await shot("00a2_creation_outfit")
+	cc.profile.appearance["outfit"] = "castaway"
+	cc._gender_buttons["female"].pressed.emit()
+	cc.set_age(14)
+	cc._refresh()
+	await frames(5)
 	cc._tabs.current_tab = 2
 	await frames(10)
 	await shot("00b_creation_background")
@@ -94,6 +142,23 @@ func _run() -> void:
 			w.hud.dialogue_panel.runner.advance()
 	await frames(3)
 	check(not w.hud.dialogue_panel.visible, "導入を読み終えると閉じる")
+	# 長い本文・長い選択肢でも会話の枠は固定の大きさで画面内に収まる
+	var dp: DialoguePanel = w.hud.dialogue_panel
+	var long_text := "潮の流れが変わった。".repeat(24)
+	dp.open_inline("layout_test", {"start": {"speaker": "narrator", "text": long_text, "next": "q"},
+		"q": {"speaker": "player", "text": "どうする？", "choices": [
+			{"text": "長い選択肢の文章でも枠の幅で折り返して最後まで読めるようにする（ここまで）", "next": "end"},
+			{"text": "短い選択肢", "next": "end"}]}})
+	await frames(4)
+	var box_rect: Rect2 = dp._box.get_global_rect()
+	await shot("02b_long_dialogue")
+	check(int(dp._text_label.get_theme_font_size("font_size")) < DialoguePanel.TEXT_SIZES[0], "長い本文は文字を小さくして枠に収める")
+	dp.runner.advance()
+	await frames(4)
+	check(dp._box.get_global_rect() == box_rect, "会話の枠の大きさは本文の長さで変わらない")
+	await shot("02c_long_choice")
+	dp.runner.choose(1)
+	await frames(2)
 	game.settings["quality"] = "high"
 	game.quality_changed()
 	s.clock.total_minutes = 9 * 60.0
@@ -206,7 +271,13 @@ func _run() -> void:
 	check(w.hud._building_panel.visible, "建築物をタップすると操作パネルが開く")
 	await shot("05c_building_panel")
 	var water0 := s.inventory.count("water_bottle")
-	s.harvest(s.raft.building_at(btile))
+	var buid := s.raft.building_at(btile)
+	# 設置の完了時刻は作業の進み具合で前後するため、1つできあがるまで時間を進める（最大 5 時間）
+	for i in 10:
+		if int(s.raft.buildings[buid]["stored"]) > 0:
+			break
+		s.advance(30)
+	s.harvest(buid)
 	check(s.inventory.count("water_bottle") >= water0 + 1, "浄水器から水を収穫")
 	w.hud.hide_building_panel()
 

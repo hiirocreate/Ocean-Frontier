@@ -99,3 +99,13 @@ func test_outfit_recolor_follows_selection() -> void:
 	var rc := CharacterArt.recolor_params(p.look(d))
 	check(bool(rc.get("outer_recolor", false)), "衣装を変えると上着の色を置き換える")
 	eq((rc["outer_target"] as Color).to_html(false), Color(str(p.look(d)["colors"]["outer"])).to_html(false), "選んだ衣装の色")
+
+
+func test_player_portraits_have_outer_mask() -> void:
+	# 上着（フードを含む）のマスク。無いと衣装の色が顔より下にしか反映されない
+	for g in PlayerProfile.GENDERS:
+		for band in ["young", "youth", "adult", "mature"]:
+			for e in ["normal", "smile", "sad", "surprised"]:
+				var tex := CharacterArt.portrait("player_%s_%s" % [g, band], e)
+				check(CharacterArt.outer_mask(tex) != null, "player_%s_%s_%s の上着マスク" % [g, band, e])
+	check(CharacterArt.outer_mask(null) == null, "立ち絵が無ければマスクも無い")

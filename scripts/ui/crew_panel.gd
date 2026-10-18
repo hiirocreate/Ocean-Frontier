@@ -32,12 +32,11 @@ func setup(s: GameSession) -> void:
 	close.pressed.connect(func(): visible = false)
 	head.add_child(close)
 	v.add_child(head)
-	var h := HBoxContainer.new()
+	var h := BoxContainer.new()
 	h.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	h.add_theme_constant_override("separation", 16)
 	v.add_child(h)
 	var lsc := ScrollContainer.new()
-	lsc.custom_minimum_size = Vector2(230, 0)
 	lsc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_list = VBoxContainer.new()
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -45,11 +44,13 @@ func setup(s: GameSession) -> void:
 	h.add_child(lsc)
 	var dsc := ScrollContainer.new()
 	dsc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	dsc.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	dsc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_detail = VBoxContainer.new()
 	_detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	dsc.add_child(_detail)
 	h.add_child(dsc)
+	ScreenLayout.split(h, lsc, 230.0)
 
 
 func open() -> void:
