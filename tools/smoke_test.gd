@@ -9,7 +9,7 @@ var shot_dir := ""
 
 
 func _initialize() -> void:
-	shot_dir = ProjectSettings.globalize_path("res://build/screenshots")
+	shot_dir = ProjectSettings.globalize_path("res://build/screenshots" + ("_portrait" if OS.get_environment("SHOT_SUFFIX") == "portrait" else ""))
 	DirAccess.make_dir_recursive_absolute(shot_dir)
 	_run.call_deferred()
 
@@ -103,6 +103,14 @@ func _run() -> void:
 	await frames(5)
 	var moved: float = (w.raft_root.position - p0).length()
 	check(moved > 1.0, "筏が移動した (%.2fm)" % moved)
+	# 筏の床板が水面より上にある（荒天の波でも沈まない）
+	var lowest := 99.0
+	for i in 40:
+		await process_frame
+		var rp: Vector3 = w.raft_root.global_position
+		lowest = minf(lowest, rp.y - OceanWaves.height(rp.x, rp.z, w._time, w.wave_amp))
+	check(lowest > 0.0, "筏の床板が水面より上 (最小 %.2fm)" % lowest)
+	check(ScreenLayout.portrait(w) == (w.get_viewport().get_visible_rect().size.y > w.get_viewport().get_visible_rect().size.x), "画面の向きの判定")
 	check(s.raft_position.distance_to(Vector3(w.raft_root.position.x, 0, w.raft_root.position.z)) < 0.01, "セッションに位置が反映")
 
 	# 2) 漂流物を回収 → 3) インベントリに追加（抽選の偏りで重量上限に達しないよう余裕を持たせる）
@@ -339,6 +347,13 @@ func _run() -> void:
 	s2.set_weather("storm", 3)
 	await create_timer(5.5).timeout
 	await shot("18_storm")
+	var w2 := world()
+	var low_storm := 99.0
+	for i in 40:
+		await process_frame
+		var rp2: Vector3 = w2.raft_root.global_position
+		low_storm = minf(low_storm, rp2.y - OceanWaves.height(rp2.x, rp2.z, w2._time, w2.wave_amp))
+	check(w2.wave_amp > 0.8 and low_storm > -0.05, "嵐でも筏が沈まない (波 %.2f, 最小 %.2fm)" % [w2.wave_amp, low_storm])
 	world().hud.quest_panel.open()
 	await frames(5)
 	await shot("19_record")

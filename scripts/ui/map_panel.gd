@@ -12,7 +12,7 @@ const SITE_COLORS := {"shipwreck": "c9a070", "drone_ship": "b0b8c0", "underwater
 
 func setup(s: GameSession) -> void:
 	session = s
-	custom_minimum_size = Vector2(1000, 640)
+	ScreenLayout.fit(self, Vector2(1000, 640))
 	add_theme_stylebox_override("panel", UiTheme.box(Color(0.03, 0.08, 0.12, 0.97), UiTheme.C_PANEL_BORDER, 14))
 	visible = false
 	var v := VBoxContainer.new()

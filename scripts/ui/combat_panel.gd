@@ -9,7 +9,7 @@ var _result: Dictionary = {}
 
 func setup(s: GameSession) -> void:
 	session = s
-	custom_minimum_size = Vector2(760, 0)
+	ScreenLayout.fit(self, Vector2(760, 0))
 	add_theme_stylebox_override("panel", UiTheme.box(Color(0.12, 0.04, 0.05, 0.96), Color(0.9, 0.4, 0.35, 0.7), 14, 16))
 	visible = false
 	_box = VBoxContainer.new()

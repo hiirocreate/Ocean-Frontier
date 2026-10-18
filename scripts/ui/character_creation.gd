@@ -23,6 +23,7 @@ var _confirm: VBoxContainer
 var _start_button: Button
 var _err: Label
 var _syncing := false
+var _root_box: BoxContainer
 
 
 func _ready() -> void:
@@ -38,23 +39,32 @@ func _ready() -> void:
 	bg.color = Color("08202e")
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
-	var root := HBoxContainer.new()
+	var root := BoxContainer.new()  # 横画面は左右、縦画面は上下に並べる
+	_root_box = root
 	root.add_theme_constant_override("separation", 20)
 	add_child(root)
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 20)
-	# 左：プレビュー
-	var left := VBoxContainer.new()
+	# 上／左：プレビュー（縦画面では立ち絵と3Dを横に並べる）
+	var outer := VBoxContainer.new()
+	root.add_child(outer)
+	outer.add_child(UiTheme.label("主人公の編集" if edit_mode else "主人公の作成", 28, UiTheme.C_GOLD))
+	var left := BoxContainer.new()
 	left.custom_minimum_size = Vector2(340, 0)
-	root.add_child(left)
-	left.add_child(UiTheme.label("主人公の編集" if edit_mode else "主人公の作成", 28, UiTheme.C_GOLD))
+	outer.add_child(left)
 	_portrait = PortraitView.new()
 	_portrait.custom_minimum_size = Vector2(300, 300)
 	left.add_child(_portrait)
 	left.add_child(_build_3d_preview())
-	# 右：手順
+	# 下／右：手順
 	var right := VBoxContainer.new()
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(right)
+	var relayout := func(p: bool):
+		root.vertical = p
+		left.vertical = not p
+	relayout.call(Game.portrait)
+	Game.layout_changed.connect(relayout)
 	_tabs = TabContainer.new()
 	_tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	right.add_child(_tabs)
@@ -68,8 +78,9 @@ func _ready() -> void:
 	_tabs.tab_changed.connect(func(_i): _refresh())
 	_err = UiTheme.label("", 17, UiTheme.C_WARN)
 	right.add_child(_err)
-	var nav := HBoxContainer.new()
-	nav.add_theme_constant_override("separation", 12)
+	var nav := HFlowContainer.new()  # 縦画面で幅が足りないときは折り返す
+	nav.add_theme_constant_override("h_separation", 12)
+	nav.add_theme_constant_override("v_separation", 10)
 	if not edit_mode:
 		var skip := UiTheme.button("おまかせで開始", Vector2(220, 60))
 		skip.pressed.connect(func(): Game.start_new_game(null))

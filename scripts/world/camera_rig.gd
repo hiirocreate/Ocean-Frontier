@@ -22,6 +22,8 @@ var _dist_start := 0.0
 func _ready() -> void:
 	camera = Camera3D.new()
 	camera.fov = 60.0
+	_apply_orientation(Game.portrait)
+	Game.layout_changed.connect(_apply_orientation)
 	camera.far = 600.0
 	add_child(camera)
 
@@ -74,3 +76,8 @@ func _pinch_len() -> float:
 	if pts.size() < 2:
 		return 0.0
 	return (pts[0]["pos"] as Vector2).distance_to(pts[1]["pos"])
+
+
+## 縦画面では横方向の画角を固定し、筏の左右が切れないようにする（縦方向は広くなる）
+func _apply_orientation(portrait: bool) -> void:
+	camera.keep_aspect = Camera3D.KEEP_WIDTH if portrait else Camera3D.KEEP_HEIGHT

@@ -4,6 +4,7 @@
 | 種類 | コマンド | 内容 |
 |---|---|---|
 | 全自動 | `tools/run_tests.sh` | データ検証 → ユニット/統合 → E2E（ヘッドレス）。実行時エラーをログから検出して失敗扱い |
+| E2E（縦画面） | `RES=720x1280 SHOT_SUFFIX=portrait tools/run_e2e_render.sh` | 縦画面での全画面撮影（build/screenshots_portrait） |
 | E2E（描画あり） | `xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --script res://tools/smoke_test.gd` | 実シーンでのプレイサイクルとスクリーンショット |
 | データ検証のみ | `godot --headless --path . --script res://tools/validate_data.gd` | |
 

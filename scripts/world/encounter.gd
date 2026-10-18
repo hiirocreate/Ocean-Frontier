@@ -32,6 +32,6 @@ func setup(k: String, id: String, defn: Dictionary) -> void:
 
 
 func update_float(t: float, amp: float) -> void:
-	position.y = OceanWaves.height(position.x, position.z, t, amp) * 0.8
+	position.y = OceanWaves.height(position.x, position.z, t, amp) + 0.12
 	rotation.z = sin(t * 1.1 + _phase) * 0.06
 	rotation.x = cos(t * 0.9 + _phase) * 0.05

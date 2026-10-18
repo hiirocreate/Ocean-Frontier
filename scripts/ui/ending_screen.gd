@@ -30,7 +30,7 @@ void fragment() {
 	var id := str(s.story.ending) if s else ""
 	var e: Dictionary = Game.data.endings.get(id, {})
 	var v := VBoxContainer.new()
-	v.custom_minimum_size = Vector2(900, 0)
+	v.custom_minimum_size = Vector2(minf(900.0, get_viewport_rect().size.x - 40.0) if is_inside_tree() else 900.0, 0)
 	v.add_theme_constant_override("separation", 16)
 	add_child(v)
 	var t := UiTheme.label(str(e.get("name", "終わり")), 48, UiTheme.C_GOLD)

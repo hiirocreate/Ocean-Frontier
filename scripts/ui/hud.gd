@@ -36,6 +36,7 @@ var _site_panel: PanelContainer
 var _site_info: VBoxContainer
 var _site_id := ""
 var _nav_label: Label
+var _top_row: HBoxContainer
 var dialogue_panel: DialoguePanel
 var menu_button: Button
 var _inventory_panel: PanelContainer
@@ -98,7 +99,7 @@ func setup(s: GameSession) -> void:
 		panel.grow_vertical = Control.GROW_DIRECTION_BOTH
 		set(pn, panel)
 	_site_panel = PanelContainer.new()
-	_site_panel.custom_minimum_size = Vector2(500, 0)
+	ScreenLayout.fit(_site_panel, Vector2(500, 0), Control.PRESET_CENTER_BOTTOM, 24)
 	_site_panel.visible = false
 	_site_info = VBoxContainer.new()
 	_site_panel.add_child(_site_info)
@@ -120,6 +121,42 @@ func setup(s: GameSession) -> void:
 	session.actions.job_completed.connect(func(_j, _r): _queue_refresh())
 	session.raft.changed.connect(_queue_refresh)
 	Game.message.connect(_on_message)
+	Game.layout_changed.connect(func(_p): _apply_layout.call_deferred())
+	_apply_layout.call_deferred()
+
+
+## 横画面／縦画面で HUD の配置を切り替える（パネルの大きさは ScreenLayout.fit が画面に合わせる）
+func _apply_layout() -> void:
+	var portrait := ScreenLayout.portrait(root)
+	ScreenLayout.apply_all(get_tree())
+	# 上部のボタン列: 横画面は右上、縦画面は状態表示の下に右寄せ
+	_top_row.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 20)
+	_top_row.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	if portrait:
+		_top_row.offset_top += 210
+		_top_row.offset_bottom += 210
+	_jobs_box.offset_top = 300.0 if portrait else 100.0
+	# 通知: 横画面は上部中央、縦画面は画面の中ほど
+	_toasts.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 20)
+	_toasts.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_toasts.offset_top = 520.0 if portrait else 96.0
+	_nav_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 24)
+	_nav_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	if portrait:
+		_nav_label.offset_top += 280
+		_nav_label.offset_bottom += 280
+	else:
+		_shift_left(_toasts)
+		_shift_left(_nav_label)
+	# 下部のパネル: 横画面は右下のボタンを避けて左寄せ、縦画面は操作ボタンの上に置く
+	for c in [_site_panel, _build_panel, _building_panel]:
+		c.grow_vertical = Control.GROW_DIRECTION_BEGIN
+		if portrait:
+			c.offset_top -= 230
+			c.offset_bottom -= 230
+		else:
+			_shift_left(c)
+	dialogue_panel.apply_layout(portrait)
 
 
 # ---------- レイアウト ----------
@@ -205,6 +242,7 @@ func _build_controls() -> void:
 
 	menu_button = UiTheme.button("メニュー", Vector2(110, 64))
 	var top := HBoxContainer.new()
+	_top_row = top
 	top.add_theme_constant_override("separation", 12)
 	map_button = UiTheme.button("海図", Vector2(92, 64))
 	map_button.pressed.connect(toggle_map)
@@ -254,7 +292,7 @@ func _build_jobs() -> void:
 
 func _modal(size: Vector2) -> PanelContainer:
 	var p := PanelContainer.new()
-	p.custom_minimum_size = size
+	ScreenLayout.fit(p, size)
 	p.add_theme_stylebox_override("panel", UiTheme.box(Color(0.04, 0.11, 0.16, 0.96), UiTheme.C_PANEL_BORDER, 14))
 	p.visible = false
 	root.add_child(p)
@@ -298,7 +336,7 @@ func _scroll_tab(title: String) -> VBoxContainer:
 
 func _build_build_panel() -> void:
 	_build_panel = PanelContainer.new()
-	_build_panel.custom_minimum_size = Vector2(500, 0)
+	ScreenLayout.fit(_build_panel, Vector2(500, 0), Control.PRESET_CENTER_BOTTOM, 24)
 	_build_panel.visible = false
 	_build_info = VBoxContainer.new()
 	_build_panel.add_child(_build_info)
@@ -317,7 +355,7 @@ func _shift_left(c: Control) -> void:
 
 func _build_building_panel() -> void:
 	_building_panel = PanelContainer.new()
-	_building_panel.custom_minimum_size = Vector2(500, 0)
+	ScreenLayout.fit(_building_panel, Vector2(500, 0), Control.PRESET_CENTER_BOTTOM, 24)
 	_building_panel.visible = false
 	_building_info = VBoxContainer.new()
 	_building_panel.add_child(_building_info)

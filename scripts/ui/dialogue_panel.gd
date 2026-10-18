@@ -65,6 +65,34 @@ func setup(s: GameSession) -> void:
 	_choices.offset_top = -210
 
 
+## 横画面／縦画面の配置。縦画面では選択肢を全幅にし、立ち絵を選択肢の上に置く
+func apply_layout(portrait_mode: bool) -> void:
+	if portrait_mode:
+		portrait.custom_minimum_size = Vector2(360, 460)
+		portrait.offset_left = 24
+		portrait.offset_right = 384
+		portrait.offset_bottom = -480
+		portrait.offset_top = -480 - 460
+		_choices.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+		_choices.offset_left = 24
+		_choices.offset_right = -24
+		_choices.offset_bottom = -210
+		_choices.offset_top = -210
+	else:
+		portrait.custom_minimum_size = Vector2(300, 380)
+		portrait.offset_left = 40
+		portrait.offset_right = 340
+		portrait.offset_top = -380 - 150
+		portrait.offset_bottom = -150
+		_choices.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+		_choices.offset_right = -40
+		_choices.offset_bottom = -210
+		_choices.offset_left = -480
+		_choices.offset_top = -210
+	_choices.grow_horizontal = Control.GROW_DIRECTION_BOTH if portrait_mode else Control.GROW_DIRECTION_BEGIN
+	_choices.grow_vertical = Control.GROW_DIRECTION_BEGIN
+
+
 func open(dialogue_id: String) -> bool:
 	runner = DialogueRunner.new(session)
 	runner.node_changed.connect(_show_node)

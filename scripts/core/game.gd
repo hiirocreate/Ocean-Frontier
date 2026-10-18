@@ -5,6 +5,7 @@ extends Node
 signal session_changed
 signal message(text: String)
 signal settings_changed
+signal layout_changed(portrait: bool)  # 端末の向き（縦画面なら true）が変わった
 
 const SETTINGS_PATH := "user://settings.cfg"
 const MAIN_MENU := "res://scenes/main/main_menu.tscn"
@@ -16,10 +17,13 @@ var session: GameSession
 var running: bool = false  # 3Dワールド表示中のみ時間を進める
 var settings := {"quality": "medium", "master_volume": 1.0}
 var data_errors: Array[String] = []
+var portrait := false  # 縦画面で遊んでいるか
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	get_tree().root.size_changed.connect(_on_window_resized)
+	_on_window_resized()
 	_setup_input()
 	data = GameData.load_default()
 	data_errors = DataValidator.validate(data)
@@ -28,6 +32,15 @@ func _ready() -> void:
 	load_settings()
 	get_tree().set_auto_accept_quit(false)
 	GameLog.info("起動 v%s / データ問題 %d件" % [ProjectSettings.get_setting("application/config/version"), data_errors.size()])
+
+
+## 端末の向きが変わったら UI の基準解像度と各パネルの大きさを付け直す
+func _on_window_resized() -> void:
+	var p := ScreenLayout.apply_scale(get_tree().root)
+	ScreenLayout.apply_all.call_deferred(get_tree())
+	if p != portrait:
+		portrait = p
+		layout_changed.emit(p)
 
 
 func _setup_input() -> void:

@@ -4,7 +4,8 @@ set -u
 cd "$(dirname "$0")/.."
 GODOT="${GODOT:-godot}"
 LOG="$(mktemp)"
-timeout 600 xvfb-run -a -s "-screen 0 1280x720x24" "$GODOT" --path . --rendering-driver opengl3 --script res://tools/smoke_test.gd >"$LOG" 2>&1
+RES="${RES:-1280x720}"  # 縦画面の確認は RES=720x1280
+timeout 600 xvfb-run -a -s "-screen 0 1280x1280x24" "$GODOT" --path . --rendering-driver opengl3 --resolution "$RES" --script res://tools/smoke_test.gd >"$LOG" 2>&1
 status=$?
 grep -E "  (OK|FAIL)|E2E|screenshot" "$LOG"
 if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|Parameter \"[a-z_]+\" is null" "$LOG" >/dev/null; then

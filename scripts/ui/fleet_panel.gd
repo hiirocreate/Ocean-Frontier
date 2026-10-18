@@ -12,7 +12,7 @@ var _target := ""
 
 func setup(s: GameSession) -> void:
 	session = s
-	custom_minimum_size = Vector2(1060, 620)
+	ScreenLayout.fit(self, Vector2(1060, 620))
 	add_theme_stylebox_override("panel", UiTheme.box(Color(0.04, 0.11, 0.16, 0.97), UiTheme.C_PANEL_BORDER, 14))
 	visible = false
 	var v := VBoxContainer.new()

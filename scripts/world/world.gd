@@ -22,6 +22,7 @@ var env: Environment
 var sky_mat: ProceduralSkyMaterial
 var debris_root: Node3D
 var wave_amp := 0.45
+const RAFT_FREEBOARD := 0.22  # 平均海面から床板の中心までの高さ（m）
 var _time := 0.0
 var _velocity := Vector3.ZERO
 var _nearest: Debris
@@ -301,9 +302,20 @@ func _update_movement(delta: float) -> void:
 	_velocity = _velocity.lerp(desired, minf(1.0, delta * 2.0))
 	raft_root.position += _velocity * delta
 	var c := raft_root.position
-	raft_root.position.y = OceanWaves.height(c.x, c.z, _time, wave_amp) * 0.6 - 0.05
-	raft_root.rotation.x = (OceanWaves.height(c.x, c.z + 2.0, _time, wave_amp) - OceanWaves.height(c.x, c.z - 2.0, _time, wave_amp)) * 0.06
-	raft_root.rotation.z = -(OceanWaves.height(c.x + 2.0, c.z, _time, wave_amp) - OceanWaves.height(c.x - 2.0, c.z, _time, wave_amp)) * 0.06
+	# 筏の広がり（中心と前後左右 2m）の海面の平均に、喫水を残して浮かべる（丸太の下半分だけ水に浸かる）
+	var surf := 0.0
+	for o in [Vector2.ZERO, Vector2(2, 0), Vector2(-2, 0), Vector2(0, 2), Vector2(0, -2)]:
+		surf += OceanWaves.height(c.x + o.x, c.z + o.y, _time, wave_amp)
+	raft_root.position.y = surf / 5.0 + RAFT_FREEBOARD
+	# 波の斜面に沿って傾ける（高い側が持ち上がる向き。X軸回りは +Z 側を上げるのが負の角度）
+	# 斜面は筏の向き（ヨー）に合わせたローカルの前後・左右方向で測る
+	var yaw := raft_root.rotation.y
+	var fz := Vector2(sin(yaw), cos(yaw)) * 2.0
+	var fx := Vector2(cos(yaw), -sin(yaw)) * 2.0
+	var slope_z := (OceanWaves.height(c.x + fz.x, c.z + fz.y, _time, wave_amp) - OceanWaves.height(c.x - fz.x, c.z - fz.y, _time, wave_amp)) / 4.0
+	var slope_x := (OceanWaves.height(c.x + fx.x, c.z + fx.y, _time, wave_amp) - OceanWaves.height(c.x - fx.x, c.z - fx.y, _time, wave_amp)) / 4.0
+	raft_root.rotation.x = -atan(slope_z) * 0.8
+	raft_root.rotation.z = atan(slope_x) * 0.8
 	player.moving = input.length() > 0.1
 	if player.moving:
 		var target_yaw := atan2(_velocity.x, _velocity.z) - raft_root.rotation.y
