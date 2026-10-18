@@ -203,6 +203,18 @@ func _run() -> void:
 	w.hud.toggle_inventory()
 	await frames(5)
 	await shot("03_inventory")
+	# クラフト: 作れる順に並び、足りない素材の入手方法が出る。項目が多くてもなぞってスクロールできる
+	w.hud._inv_tabs.current_tab = 1
+	await frames(5)
+	var craft_text: String = " ".join(w.hud._craft_list.find_children("*", "Label", true, false).map(func(l): return l.text))
+	check(craft_text.contains("入手") or craft_text.contains("を「回収」"), "足りない素材の入手方法が表示される")
+	check(s.data.obtain_hints("scrap_metal").any(func(h): return h.contains("回収")), "金属くずは漂流物から手に入ると案内される")
+	var csc: ScrollContainer = w.hud._craft_list.get_parent()
+	var blockers: Array = w.hud._craft_list.find_children("*", "Control", true, false).filter(func(c): return c.mouse_filter == Control.MOUSE_FILTER_STOP and c.is_visible_in_tree())
+	check(blockers.is_empty(), "スクロール領域内の部品がなぞる操作を妨げない（%s）" % ",".join(blockers.map(func(c): return c.get_class() + ":" + str(c.get_parent().get_class()))))
+	check(csc.get_v_scroll_bar().max_value > csc.size.y, "クラフトの一覧は画面に収まらない分をスクロールできる")
+	await shot("03b_craft")
+	w.hud._inv_tabs.current_tab = 0
 	w.hud.toggle_inventory()
 
 	# 4) 素材を消費して 5) 筏を拡張（タップ操作で場所を選ぶ）
@@ -247,6 +259,9 @@ func _run() -> void:
 	w.raft_view.select_ghost(btile)
 	await frames(3)
 	await shot("05b_build_purifier")
+	var bp: Control = w.hud._build_panel
+	check(not bp.get_global_rect().intersects(w.hud.build_button.get_global_rect()), "建築のパネルが右下のボタンに重ならない")
+	check(bp.find_children("*", "Button", true, false).any(func(b): return b.text == "×" and root.get_visible_rect().encloses(b.get_global_rect())), "建築のパネルに閉じるボタンが画面内にある")
 	w.hud.build_confirmed.emit(w.hud.build_action_id(), w.hud.build_params(btile))
 	s.advance(40)
 	await frames(5)

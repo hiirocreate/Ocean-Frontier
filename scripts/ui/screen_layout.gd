@@ -11,6 +11,21 @@ const PORTRAIT := Vector2i(720, 1280)
 const GROUP := "screen_fit"
 
 
+## スクロール領域の中のボタンや枠が指の操作を受け止めてしまうと、なぞってもスクロールできない。
+## スクロール領域内の部品は操作を親（スクロール領域）にも渡す設定にする（ボタンは押せるまま）
+static func touch_scroll_friendly(n: Node) -> void:
+	if not (n is Control) or n is ScrollContainer or n is ScrollBar or n is Range or n is LineEdit or n is TextEdit:
+		return
+	var c := n as Control
+	if c.mouse_filter != Control.MOUSE_FILTER_STOP:
+		return
+	var p := c.get_parent()
+	while p != null and not (p is ScrollContainer):
+		p = p.get_parent()
+	if p != null:
+		c.mouse_filter = Control.MOUSE_FILTER_PASS
+
+
 static func is_portrait_size(window_size: Vector2) -> bool:
 	return window_size.y > window_size.x
 
@@ -28,8 +43,10 @@ static func portrait(node: Node) -> bool:
 
 
 ## パネルの設計上の大きさを登録する。画面に収まるよう縮め、preset で位置を付け直す
-static func fit(c: Control, design: Vector2, preset := Control.PRESET_CENTER, margin := 0) -> void:
+## shift / shift_portrait: 配置後にずらす量（横画面／縦画面。画面端のボタンを避けるため）
+static func fit(c: Control, design: Vector2, preset := Control.PRESET_CENTER, margin := 0, shift := Vector2.ZERO, shift_portrait := Vector2.ZERO) -> void:
 	c.set_meta("fit_design", design)
+	c.set_meta("fit_shift", [shift, shift_portrait])
 	c.set_meta("fit_preset", preset)
 	c.set_meta("fit_margin", margin)
 	c.add_to_group(GROUP)
@@ -49,6 +66,11 @@ static func apply(c: Control) -> void:
 	c.size = c.custom_minimum_size
 	c.set_anchors_and_offsets_preset(int(c.get_meta("fit_preset")), Control.PRESET_MODE_MINSIZE, int(c.get_meta("fit_margin")))
 	c.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	var sh: Vector2 = c.get_meta("fit_shift")[1 if is_portrait_size(vp) else 0]
+	c.offset_left += sh.x
+	c.offset_right += sh.x
+	c.offset_top += sh.y
+	c.offset_bottom += sh.y
 	# 中身の最小サイズが画面に収まらなければ、配置の基準点（中央・角）を中心に全体を縮小する
 	var need := c.get_combined_minimum_size()
 	var room := vp - Vector2(24.0, 24.0) - Vector2.ONE * 2.0 * float(c.get_meta("fit_margin"))

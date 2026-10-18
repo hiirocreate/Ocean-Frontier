@@ -151,3 +151,21 @@ func test_over_capacity_does_not_block_weight_reducing_actions() -> void:
 	check(s.inventory.free_weight() < 0.0, "重量超過の状態")
 	var r := s.actions.start("craft_rope")
 	check(r["ok"], "重量が減る行動は重量超過でも実行できる %s" % str(r["problems"]))
+
+
+func test_every_craft_material_has_obtain_hint() -> void:
+	# クラフト・建築に使う素材と工具は、どこで手に入るかを必ず案内できる
+	var d := game_data()
+	var seen := {}
+	for aid in d.actions:
+		var a: Dictionary = d.actions[aid]
+		if not (a.get("category") in ["craft", "repair", "build", "raft"]):
+			continue
+		for id in a.get("inputs", {}):
+			seen[id] = true
+		for t in a.get("tools", []):
+			seen[str(t["item"])] = true
+	for id in seen:
+		check(not d.obtain_hints(id).is_empty(), "%s の入手方法" % id)
+	check(d.obtain_hints("wood")[0].contains("回収"), "木材は漂流物の回収で手に入る")
+	check(d.obtain_hints("hammer").any(func(h): return h.contains("クラフト")), "金槌はクラフトで作る")

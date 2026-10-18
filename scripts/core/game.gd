@@ -23,6 +23,7 @@ var portrait := false  # 縦画面で遊んでいるか
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().root.size_changed.connect(_on_window_resized)
+	get_tree().node_added.connect(ScreenLayout.touch_scroll_friendly)
 	_on_window_resized()
 	_setup_input()
 	data = GameData.load_default()

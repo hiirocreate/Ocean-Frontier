@@ -174,6 +174,52 @@ func item_name(id: String) -> String:
 	return str(items.get(id, {}).get("name", id))
 
 
+const DEBRIS_NAMES := {"plank": "木材の束", "barrel": "樽", "crate": "木箱"}
+const OBTAIN_NAMES := {"drift": "漂流物の回収", "explore": "島・難破船・遺跡の探索（物語の手がかり）", "trade": "拠点での交易", "craft": "クラフト", "fishing": "釣り", "farm": "栽培", "research": "研究"}
+
+
+## アイテムの入手方法（クラフト画面の案内用）。データ（漂流物・設備・仲間の作業・クラフト・探索地点・交易）から作る
+func obtain_hints(id: String) -> Array[String]:
+	var out: Array[String] = []
+	var kinds: Array[String] = []
+	for z in zones.values():
+		var tables: Dictionary = z.get("drift_tables", {})
+		for k in tables:
+			var nm := str(DEBRIS_NAMES.get(k, k))
+			if not (nm in kinds) and tables[k].get("entries", []).any(func(e): return e.get("item") == id):
+				kinds.append(nm)
+	if not kinds.is_empty():
+		out.append("海に浮かぶ%sを「回収」" % "・".join(kinds))
+	for bid in buildings:
+		if str(buildings[bid].get("production", {}).get("item", "")) == id:
+			out.append("設備「%s」で収穫（建築で作る）" % building_name(bid))
+	for jid in jobs:
+		var o: Dictionary = jobs[jid].get("output", {})
+		if str(o.get("item", "")) == id or o.get("to", {}).has(id):
+			out.append("仲間の作業「%s」" % jobs[jid].get("name", jid))
+	for aid in actions:
+		var a: Dictionary = actions[aid]
+		if a.get("category") == "craft" and a.get("outputs", {}).has(id):
+			out.append("クラフト「%s」" % a.get("name", aid))
+	var places: Array[String] = []
+	for sid in sites:
+		if sites[sid].get("loot", {}).get("entries", []).any(func(e): return e.get("item") == id):
+			places.append(str(sites[sid].get("name", sid)))
+	if not places.is_empty():
+		out.append("探索（%s%s）" % ["・".join(places.slice(0, 2)), " など" if places.size() > 2 else ""])
+	var sellers: Array[String] = []
+	for fid in factions:
+		if factions[fid].get("market", {}).get("sells", {}).has(id):
+			sellers.append(str(factions[fid].get("name", fid)))
+	if not sellers.is_empty():
+		out.append("交易（%s）" % "・".join(sellers.slice(0, 2)))
+	if out.is_empty():
+		# 物語の進行で手に入る物など: アイテム定義の入手区分で案内する
+		for o in item(id).get("obtain", []):
+			out.append(str(OBTAIN_NAMES.get(o, o)))
+	return out
+
+
 func action(id: String) -> Dictionary:
 	return actions.get(id, {})
 

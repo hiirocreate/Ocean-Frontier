@@ -48,6 +48,7 @@ var _build_info: VBoxContainer
 var _build_tile := NO_TILE
 var build_type := "tile"
 var _building_panel: PanelContainer
+const BOTTOM_LIFT_PORTRAIT := 330.0  # 縦画面で下部パネルを右下の操作ボタンの上に置くための持ち上げ量
 var _building_info: VBoxContainer
 var _building_uid := ""
 var _sleep_overlay: ColorRect
@@ -98,16 +99,8 @@ func setup(s: GameSession) -> void:
 		panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
 		panel.grow_vertical = Control.GROW_DIRECTION_BOTH
 		set(pn, panel)
-	_site_panel = PanelContainer.new()
-	ScreenLayout.fit(_site_panel, Vector2(500, 0), Control.PRESET_CENTER_BOTTOM, 24)
-	_site_panel.visible = false
-	_site_info = VBoxContainer.new()
-	_site_panel.add_child(_site_info)
-	root.add_child(_site_panel)
-	_site_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 24)
-	_site_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_site_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_shift_left(_site_panel)
+	_site_info = _bottom_panel(func(): _site_panel.visible = false)
+	_site_panel = _site_info.get_meta("panel")
 	dialogue_panel = DialoguePanel.new()
 	root.add_child(dialogue_panel)
 	dialogue_panel.setup(session)
@@ -148,14 +141,9 @@ func _apply_layout() -> void:
 	else:
 		_shift_left(_toasts)
 		_shift_left(_nav_label)
-	# 下部のパネル: 横画面は右下のボタンを避けて左寄せ、縦画面は操作ボタンの上に置く
-	for c in [_site_panel, _build_panel, _building_panel]:
-		c.grow_vertical = Control.GROW_DIRECTION_BEGIN
-		if portrait:
-			c.offset_top -= 230
-			c.offset_bottom -= 230
-		else:
-			_shift_left(c)
+	# 下部のパネル（位置は ScreenLayout.fit のずらし量で決まる）の高さの上限を向きに合わせる
+	for b in [_site_info, _build_info, _building_info]:
+		_fit_bottom_scroll(b)
 	dialogue_panel.apply_layout(portrait)
 
 
@@ -335,16 +323,46 @@ func _scroll_tab(title: String) -> VBoxContainer:
 
 
 func _build_build_panel() -> void:
-	_build_panel = PanelContainer.new()
-	ScreenLayout.fit(_build_panel, Vector2(500, 0), Control.PRESET_CENTER_BOTTOM, 24)
-	_build_panel.visible = false
-	_build_info = VBoxContainer.new()
-	_build_panel.add_child(_build_info)
-	root.add_child(_build_panel)
-	_build_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 24)
-	_build_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_build_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_shift_left(_build_panel)
+	_build_info = _bottom_panel(func(): set_build_mode(false))
+	_build_panel = _build_info.get_meta("panel")
+	(_build_info.get_meta("title") as Label).text = "建築"
+
+
+## 画面下の小さなパネル（地点・建築・設備）。見出しと閉じるボタンは常に見え、中身が長いときはパネル内でスクロールする。
+## 横画面は右下のボタンを避けて左に寄せ、縦画面は操作ボタンの上に置く。戻り値は中身を入れる箱（meta: panel, title）
+func _bottom_panel(on_close: Callable) -> VBoxContainer:
+	var p := PanelContainer.new()
+	ScreenLayout.fit(p, Vector2(500, 0), Control.PRESET_CENTER_BOTTOM, 24, Vector2(-110, 0), Vector2(0, -BOTTOM_LIFT_PORTRAIT))
+	p.visible = false
+	var v := VBoxContainer.new()
+	p.add_child(v)
+	var head := HBoxContainer.new()
+	var title := UiTheme.label("", 24, UiTheme.C_GOLD)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.clip_text = true
+	head.add_child(title)
+	var close := UiTheme.button("×", Vector2(56, 52))
+	close.pressed.connect(on_close)
+	head.add_child(close)
+	v.add_child(head)
+	var sc := ScrollContainer.new()
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var body := VBoxContainer.new()
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.add_child(body)
+	v.add_child(sc)
+	body.minimum_size_changed.connect(_fit_bottom_scroll.bind(body))
+	body.set_meta("panel", p)
+	body.set_meta("title", title)
+	body.set_meta("scroll", sc)
+	root.add_child(p)
+	return body
+
+
+## 中身の高さに合わせて広げ、上限を超えたらスクロールにする
+func _fit_bottom_scroll(body: VBoxContainer) -> void:
+	var limit := 520.0 if ScreenLayout.portrait(root) else 400.0
+	(body.get_meta("scroll") as ScrollContainer).custom_minimum_size.y = minf(body.get_combined_minimum_size().y, limit)
 
 
 ## 画面下中央のパネルを右下のボタン群と重ならないよう左に寄せる
@@ -354,16 +372,8 @@ func _shift_left(c: Control) -> void:
 
 
 func _build_building_panel() -> void:
-	_building_panel = PanelContainer.new()
-	ScreenLayout.fit(_building_panel, Vector2(500, 0), Control.PRESET_CENTER_BOTTOM, 24)
-	_building_panel.visible = false
-	_building_info = VBoxContainer.new()
-	_building_panel.add_child(_building_info)
-	root.add_child(_building_panel)
-	_building_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 24)
-	_building_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_building_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_shift_left(_building_panel)
+	_building_info = _bottom_panel(hide_building_panel)
+	_building_panel = _building_info.get_meta("panel")
 
 
 func _build_menu() -> void:
@@ -586,15 +596,7 @@ func _refresh_site_panel() -> void:
 	if sd.is_empty():
 		_site_panel.visible = false
 		return
-	var head := HBoxContainer.new()
-	head.add_child(UiTheme.label(str(sd.get("name", _site_id)), 24, UiTheme.C_GOLD))
-	var sp := Control.new()
-	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	head.add_child(sp)
-	var close := UiTheme.button("×", Vector2(56, 52))
-	close.pressed.connect(func(): _site_panel.visible = false)
-	head.add_child(close)
-	_site_info.add_child(head)
+	(_site_info.get_meta("title") as Label).text = str(sd.get("name", _site_id))
 	var desc := UiTheme.label(str(sd.get("description", "")), 17)
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_site_info.add_child(desc)
@@ -711,37 +713,68 @@ func _refresh_inventory() -> void:
 
 func _refresh_craft() -> void:
 	_clear(_craft_list)
+	var guide := UiTheme.label("素材は海に浮かぶ漂流物に近づいて「回収」で集めます。足りない物の入手方法は各項目に表示されます。作業台などの設備は「建築」で作れます。", 16, Color(0.75, 0.85, 0.9))
+	guide.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_craft_list.add_child(guide)
+	# 今すぐ作れるもの → 足りない物が少ないもの の順に並べる
+	var entries: Array = []
 	for id in session.data.actions:
 		var a: Dictionary = session.data.actions[id]
 		if not (a.get("category") in ["craft", "repair"]) or id in ["repair_building", "repair_ship"]:
 			continue  # 対象を選ぶ修理は設備・船団の画面から行う
-		var panel := PanelContainer.new()
-		panel.add_theme_stylebox_override("panel", UiTheme.box(Color(0.08, 0.2, 0.26, 0.9), Color(0, 0, 0, 0), 10, 10))
-		var row := HBoxContainer.new()
-		panel.add_child(row)
-		var info := VBoxContainer.new()
-		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var outs: Dictionary = a.get("outputs", {})
-		var head := str(a.get("name", id))
-		if not outs.is_empty():
-			head += " → " + session.describe_items(outs)
-		head += "（%d分）" % int(a.get("duration_minutes", 0))
-		info.add_child(UiTheme.label(head, 20))
-		info.add_child(_requirements_label(id))
-		var problems := session.actions.check(id)
-		for p in problems:
-			if p["code"] != "missing_item":
-				info.add_child(UiTheme.label("・" + str(p["message"]), 16, UiTheme.C_WARN))
-		row.add_child(info)
-		var b := UiTheme.button("作る" if a.get("category") == "craft" else "修理", Vector2(100, 56))
-		b.disabled = not problems.is_empty()
-		b.pressed.connect(func():
-			var r := session.actions.start(id)
-			if not r["ok"]:
-				show_toast(str(r["problems"][0]["message"]), UiTheme.C_WARN)
-			_refresh_inventory())
-		row.add_child(b)
-		_craft_list.add_child(panel)
+		var lacking := session.actions.requirement_rows(id).filter(func(r): return not r["ok"])
+		entries.append({"id": id, "lacking": lacking, "problems": session.actions.check(id)})
+	entries.sort_custom(func(x, y): return [x["problems"].size() > 0, x["lacking"].size()] < [y["problems"].size() > 0, y["lacking"].size()])
+	var section := ""
+	for e in entries:
+		var want := "今すぐ作れる" if e["problems"].is_empty() else "足りない物がある"
+		if want != section:
+			section = want
+			_craft_list.add_child(UiTheme.label("― %s ―" % section, 18, UiTheme.C_GOLD))
+		_craft_list.add_child(_craft_entry(str(e["id"]), e["lacking"], e["problems"]))
+
+
+func _craft_entry(id: String, lacking: Array, problems: Array) -> Control:
+	var a: Dictionary = session.data.actions[id]
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", UiTheme.box(Color(0.08, 0.2, 0.26, 0.9), Color(0, 0, 0, 0), 10, 10))
+	var row := HBoxContainer.new()
+	panel.add_child(row)
+	var info := VBoxContainer.new()
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var outs: Dictionary = a.get("outputs", {})
+	var head := str(a.get("name", id))
+	if not outs.is_empty():
+		head += " → " + session.describe_items(outs)
+	head += "（%d分）" % int(a.get("duration_minutes", 0))
+	var hl := UiTheme.label(head, 20)
+	hl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	info.add_child(hl)
+	info.add_child(_requirements_label(id))
+	# 足りない物ごとの入手方法
+	for r in lacking:
+		var how: Array[String] = ["「建築」で作る"]
+		if r["kind"] != "facility":
+			how = session.data.obtain_hints(str(r["id"]))
+		var hint := UiTheme.label("・%s: %s" % [r["name"], " ／ ".join(how) if not how.is_empty() else "物語を進めると手に入る"], 15, Color(1.0, 0.82, 0.6))
+		hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		info.add_child(hint)
+	for p in problems:
+		if not (p["code"] in ["missing_item", "missing_tool", "missing_facility", "missing_key_item"]):
+			var pl := UiTheme.label("・" + str(p["message"]), 16, UiTheme.C_WARN)
+			pl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			info.add_child(pl)
+	row.add_child(info)
+	var b := UiTheme.button("作る" if a.get("category") == "craft" else "修理", Vector2(100, 56))
+	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	b.disabled = not problems.is_empty()
+	b.pressed.connect(func():
+		var r := session.actions.start(id)
+		if not r["ok"]:
+			show_toast(str(r["problems"][0]["message"]), UiTheme.C_WARN)
+		_refresh_inventory())
+	row.add_child(b)
+	return panel
 
 
 ## 必要素材を「木材 4/6」の形式で色分け表示する
@@ -877,15 +910,7 @@ func _refresh_building_panel() -> void:
 		return
 	var b: Dictionary = session.raft.buildings[_building_uid]
 	var def: Dictionary = session.data.buildings.get(b["id"], {})
-	var head := HBoxContainer.new()
-	head.add_child(UiTheme.label(str(def.get("name", b["id"])), 24, UiTheme.C_GOLD))
-	var sp := Control.new()
-	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	head.add_child(sp)
-	var close := UiTheme.button("×", Vector2(56, 52))
-	close.pressed.connect(hide_building_panel)
-	head.add_child(close)
-	_building_info.add_child(head)
+	(_building_info.get_meta("title") as Label).text = str(def.get("name", b["id"]))
 	var maxd := int(def.get("max_durability", 0))
 	_building_info.add_child(UiTheme.label("耐久 %d/%d%s" % [int(b["durability"]), maxd, "（壊れていて使えない）" if float(b["durability"]) <= 0.0 else ""], 16, UiTheme.C_WARN if float(b["durability"]) < maxd * 0.3 else UiTheme.C_TEXT))
 	if float(b["durability"]) < maxd:
